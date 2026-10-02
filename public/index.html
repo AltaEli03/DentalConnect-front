@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DentalConnect: demostración académica de un sitio web con despliegue automático en AWS.">
+  <title>DentalConnect | Tu próxima sonrisa</title>
+  <style>
+    :root { color-scheme: light; --ink: #123b3b; --teal: #087e75; --muted: #526b6a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5faf8; color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header, main, footer { width: min(100% - 40px, 1040px); margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; gap: 20px; }
+    .brand { font-weight: 800; font-size: 23px; letter-spacing: -.7px; }
+    .brand span { color: var(--teal); }
+    .demo { font-size: 12px; color: var(--muted); border: 1px solid #cfdfd9; border-radius: 30px; padding: 7px 12px; }
+    .hero { margin: 45px 0 38px; max-width: 730px; }
+    .eyebrow { text-transform: uppercase; font-size: 12px; font-weight: 750; letter-spacing: 2px; color: var(--teal); }
+    h1 { font-size: clamp(38px, 6vw, 66px); line-height: 1.06; letter-spacing: -2.5px; margin: 18px 0 24px; }
+    .intro { color: var(--muted); line-height: 1.8; max-width: 590px; font-size: 17px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 30px 0; }
+    article { background: white; border: 1px solid #dde9e4; border-radius: 18px; padding: 25px; }
+    .number { color: var(--teal); font-size: 12px; font-weight: 750; }
+    h2 { font-size: 19px; margin: 16px 0 10px; }
+    article p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0; }
+    .release { background: #123b3b; color: white; border-radius: 18px; padding: 28px; margin: 30px 0 42px; }
+    .release .eyebrow { color: #a8ded2; }
+    .release h2 { font-size: 26px; margin: 12px 0; }
+    .release p { color: #d4e8e2; line-height: 1.65; margin: 0; }
+    footer { border-top: 1px solid #d8e5de; padding: 24px 0 30px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } .hero { margin-top: 24px; } header { align-items: flex-start; } h1 { letter-spacing: -1.5px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Dental<span>Connect</span></div>
+    <span class="demo">Demostración académica</span>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="title">
+      <p class="eyebrow">Cerca de ti. Cerca de tu sonrisa.</p>
+      <h1 id="title">Tu próxima sonrisa<br>empieza aquí.</h1>
+      <p class="intro">Una idea para acercar a las personas a su próxima clínica dental. Este sitio es el primer paso de DentalConnect.</p>
+    </section>
+    <section class="cards" aria-label="Nuestra propuesta">
+      <article><span class="number">01 / ENCUENTRA</span><h2>Clínicas cerca de ti</h2><p>Queremos ayudarte a descubrir opciones de atención dental en tu comunidad.</p></article>
+      <article><span class="number">02 / CONOCE</span><h2>Información clara</h2><p>Un espacio pensado para consultar servicios y conocer cada clínica.</p></article>
+      <article><span class="number">03 / CONECTA</span><h2>Da el siguiente paso</h2><p>Nuestra visión es facilitar el contacto entre pacientes y profesionales.</p></article>
+    </section>
+    <section class="release" aria-labelledby="release-title">
+      <span class="eyebrow">Versión 1.0</span>
+      <h2 id="release-title">Bienvenido a DentalConnect</h2>
+      <p>Esta es la versión inicial de nuestra página de demostración.</p>
+    </section>
+  </main>
+  <footer>
+    <strong>DentalConnect · Proyecto académico</strong><br>
+    Emanuel Cruz Cruz · Eliuth Altamirano Granados<br>
+    Prototipo informativo: todavía no ofrece búsqueda de clínicas ni registro de citas.
+  </footer>
+</body>
+</html>

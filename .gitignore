@@ -1,0 +1,11 @@
+# Credenciales y configuración local: nunca se publican.
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+credentials
+node_modules/
+.DS_Store
+Thumbs.db
