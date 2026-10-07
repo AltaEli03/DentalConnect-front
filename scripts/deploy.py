@@ -14,8 +14,10 @@ def aws(*args):
     result = subprocess.run(
         ["aws", "amplify", *args, "--region", os.environ["AWS_REGION"],
          "--output", "json", "--no-cli-pager"],
-        check=True, capture_output=True, text=True,
+        check=False, capture_output=True, text=True,
     )
+    if result.returncode:
+        raise RuntimeError(f"Amplify {args[0]} failed: {result.stderr.strip()}")
     return json.loads(result.stdout)
 
 
