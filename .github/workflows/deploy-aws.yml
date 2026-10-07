@@ -30,11 +30,19 @@ jobs:
           test -n "$AMPLIFY_APP_ID"
           test -n "$AWS_ROLE_ARN"
           test -s public/index.html
+      - name: Show repository identity (no credentials)
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_ID: ${{ github.repository_id }}
+          OWNER_ID: ${{ github.repository_owner_id }}
+        run: |
+          printf 'Repository: %s\nRepository ID: %s\nOwner ID: %s\n' "$REPOSITORY" "$REPOSITORY_ID" "$OWNER_ID"
       - name: Get temporary AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@4a1596c86fd706dc0521e32f0121ad1a6d1adb74 # v6
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: DentalConnect-${{ github.run_id }}
+          retry-max-attempts: 3
       - name: Deploy and verify the published commit
         run: python3 scripts/deploy.py
