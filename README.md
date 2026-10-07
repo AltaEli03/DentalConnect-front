@@ -11,26 +11,33 @@ un directorio de clínicas, autenticación, una API ni una base de datos.
 ### Archivos
 
 - `public/index.html`: página de demostración.
-- `amplify.yml`: configuración de compilación y publicación en AWS Amplify Hosting.
+- `.github/workflows/deploy-aws.yml`: despliegue automático al recibir un push en `main`.
+- `scripts/deploy.py`: empaqueta el sitio, publica en Amplify y verifica el HTML y el commit por HTTPS.
 - `.gitignore`: exclusiones para credenciales y archivos locales.
 
-### Configuración prevista en AWS
+### Despliegue automático en AWS
 
-1. Conectar este repositorio con AWS Amplify Hosting.
-2. Seleccionar la rama `main` y mantener activadas las compilaciones automáticas.
-3. Utilizar `amplify.yml`: se verifica el HTML y se publica únicamente `public/`.
-4. Esperar el primer despliegue exitoso y abrir la URL HTTPS de Amplify.
-5. Cambiar el texto visible de la versión, hacer commit y push a `main`.
-6. Comprobar que Amplify inicia otra ejecución y que aparece el cambio en la URL.
+1. Un push a `main` activa el flujo `Deploy DentalConnect to AWS` de GitHub Actions.
+2. GitHub obtiene credenciales temporales mediante OIDC. La confianza de AWS está limitada a este repositorio y rama.
+3. El flujo empaqueta únicamente `public/` y agrega `deployment.json` con el SHA del commit.
+4. La API de Amplify recibe el paquete y publica en la rama de alojamiento `main`.
+5. El flujo espera el resultado y comprueba que la URL entregue el commit y HTML esperados.
 
-La existencia de este archivo no configura por sí sola la conexión con AWS.
-La conexión y las ejecuciones deben comprobarse en la consola de Amplify.
+Variables de GitHub Actions: `AMPLIFY_APP_ID` y `AWS_ROLE_ARN`.
+Son identificadores de recursos, no contraseñas ni claves de acceso.
+
+Sitio: https://main.d63zai2tg2i2u.amplifyapp.com
+
+Amplify utiliza una aplicación sin conexión Git nativa; el disparador automático
+reside en GitHub Actions. No hay que cargar ZIP ni pulsar desplegar en cada cambio.
+Las ejecuciones se revisan en la pestaña Actions de este repositorio.
 
 ### Secretos
 
-Este ejemplo no requiere credenciales, cadenas de conexión ni variables de entorno.
+Este HTML no requiere credenciales ni cadenas de conexión.
 No colocar secretos en HTML, JavaScript ni en `public/`: todo su contenido será público.
-La integración de GitHub se configura en AWS, sin guardar tokens en este repositorio.
+El flujo utiliza OIDC sin claves de AWS de larga duración. Las credenciales temporales
+solo están disponibles en el entorno del job. La URL firmada de carga se enmascara en los logs.
 Si se incorpora un backend, sus secretos deberán permanecer en el servicio de ejecución
 o en un gestor de secretos; nunca se deben enviar al navegador.
 

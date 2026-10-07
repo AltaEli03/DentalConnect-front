@@ -1,0 +1,40 @@
+name: Deploy DentalConnect to AWS
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: dentalconnect-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AWS_REGION: us-east-1
+      AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate deployment configuration
+        run: |
+          test -n "$AMPLIFY_APP_ID"
+          test -n "$AWS_ROLE_ARN"
+          test -s public/index.html
+      - name: Get temporary AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@4a1596c86fd706dc0521e32f0121ad1a6d1adb74 # v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: DentalConnect-${{ github.run_id }}
+      - name: Deploy and verify the published commit
+        run: python3 scripts/deploy.py
