@@ -28,6 +28,8 @@ Son identificadores de recursos, no contraseñas ni claves de acceso.
 
 La confianza OIDC utiliza el formato inmutable de GitHub, incluyendo los IDs
 del propietario y repositorio, y la rama exacta `refs/heads/main`.
+La política IAM permite crear e iniciar despliegues solamente dentro de la rama
+`main` de esta aplicación, incluido su recurso `deployments/*`.
 
 Sitio: https://main.d63zai2tg2i2u.amplifyapp.com
 
