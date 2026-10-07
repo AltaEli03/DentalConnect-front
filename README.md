@@ -26,6 +26,9 @@ un directorio de clínicas, autenticación, una API ni una base de datos.
 Variables de GitHub Actions: `AMPLIFY_APP_ID` y `AWS_ROLE_ARN`.
 Son identificadores de recursos, no contraseñas ni claves de acceso.
 
+La confianza OIDC utiliza el formato inmutable de GitHub, incluyendo los IDs
+del propietario y repositorio, y la rama exacta `refs/heads/main`.
+
 Sitio: https://main.d63zai2tg2i2u.amplifyapp.com
 
 Amplify utiliza una aplicación sin conexión Git nativa; el disparador automático
