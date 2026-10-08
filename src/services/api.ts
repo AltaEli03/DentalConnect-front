@@ -1,6 +1,8 @@
 import type { ApiResponse, Clinic } from '../types/api';
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api';
+const baseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://nobhewluvya3gcb4e65utzf5qq0cjtwf.lambda-url.us-east-1.on.aws/api';
 
 async function request<T>(path: string): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`);
