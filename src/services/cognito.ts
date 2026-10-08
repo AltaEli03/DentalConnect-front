@@ -14,6 +14,7 @@ function normalizePhone(phone: string) {
 
 export function signUp(input: {firstName:string;lastName:string;email:string;phone:string;password:string}) {
   const attrs = [
+    new CognitoUserAttribute({ Name: 'email', Value: input.email.trim().toLowerCase() }),
     new CognitoUserAttribute({ Name: 'given_name', Value: input.firstName }),
     new CognitoUserAttribute({ Name: 'family_name', Value: input.lastName }),
     new CognitoUserAttribute({ Name: 'phone_number', Value: normalizePhone(input.phone) }),
