@@ -12,6 +12,9 @@ export function App() {
           Dental<span>Connect</span>
         </a>
         <p>Directorio de atención odontológica</p>
+        <nav aria-label="Cuenta">
+          <a href="/registro">Crear cuenta</a> · <a href="/iniciar-sesion">Iniciar sesión</a>
+        </nav>
       </header>
       <Routes>
         <Route path="/" element={<Navigate to="/clinics" replace />} />

@@ -5,7 +5,9 @@ const baseUrl =
   'https://nobhewluvya3gcb4e65utzf5qq0cjtwf.lambda-url.us-east-1.on.aws/api';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, { credentials: 'include', headers: { 'Content-Type': 'application/json', ...options.headers }, ...options });
+  const headers = new Headers(options.headers);
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   if (!response.ok)
     throw new Error(
       response.status === 404
