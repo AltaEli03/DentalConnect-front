@@ -1,11 +1,10 @@
-# Credenciales y configuración local: nunca se publican.
+node_modules
+dist
+coverage
 .env
 .env.*
 !.env.example
-.aws/
-*.pem
-*.key
-credentials
-node_modules/
-.DS_Store
-Thumbs.db
+*.tfstate
+*.tfstate.*
+.terraform
+
