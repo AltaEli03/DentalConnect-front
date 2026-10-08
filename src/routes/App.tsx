@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { ClinicDetailPage } from '../pages/ClinicDetailPage';
 import { ClinicListPage } from '../pages/ClinicListPage';
 import { AuthProvider } from '../auth/AuthContext';
@@ -8,12 +8,12 @@ export function App() {
   return (
     <AuthProvider>
       <header>
-        <a href="/clinics" className="brand">
+        <Link to="/clinics" className="brand">
           Dental<span>Connect</span>
-        </a>
+        </Link>
         <p>Directorio de atención odontológica</p>
         <nav aria-label="Cuenta">
-          <a href="/registro">Crear cuenta</a> · <a href="/iniciar-sesion">Iniciar sesión</a>
+          <Link to="/registro">Crear cuenta</Link> · <Link to="/iniciar-sesion">Iniciar sesión</Link>
         </nav>
       </header>
       <Routes>
@@ -26,7 +26,7 @@ export function App() {
         <Route path="/mi-cuenta" element={<AccountPage />} />
         <Route path="*" element={<Navigate to="/clinics" replace />} />
       </Routes>
-      <footer>DentalConnect · Sprint 1 · Información demostrativa</footer>
+      <footer>DentalConnect · Sprints 1 y 2 · Información demostrativa</footer>
     </AuthProvider>
   );
 }
