@@ -1,51 +1,21 @@
-# DentalConnect-front
-Aplicación Web Progresiva para localizar y contactar clínicas - Repositorio dedicado al Frontend
+# DentalConnect Frontend
 
-## Demostración de despliegue continuo
+Aplicación React + TypeScript del Sprint 1. Muestra el directorio de clínicas y sus detalles consumiendo exclusivamente la API pública de DentalConnect.
 
-Este ejemplo es una página estática en HTML y CSS. No implementa todavía una PWA,
-un directorio de clínicas, autenticación, una API ni una base de datos.
+## Desarrollo
 
-**Integrantes:** Emanuel Cruz Cruz y Eliuth Altamirano Granados.
+```bash
+cp .env.example .env
+npm ci
+npm run dev
+```
 
-### Archivos
+`VITE_API_BASE_URL` se configura en el entorno de compilación. Solo contiene la URL pública de la API; nunca se colocan contraseñas ni claves en variables `VITE_*`, porque quedan expuestas al navegador.
 
-- `public/index.html`: página de demostración.
-- `.github/workflows/deploy-aws.yml`: despliegue automático al recibir un push en `main`.
-- `scripts/deploy.py`: empaqueta el sitio, publica en Amplify y verifica el HTML y el commit por HTTPS.
-- `.gitignore`: exclusiones para credenciales y archivos locales.
+Calidad: `npm run lint`, `npm test` y `npm run build`.
 
-### Despliegue automático en AWS
+## AWS y despliegue continuo
 
-1. Un push a `main` activa el flujo `Deploy DentalConnect to AWS` de GitHub Actions.
-2. GitHub obtiene credenciales temporales mediante OIDC. La confianza de AWS está limitada a este repositorio y rama.
-3. El flujo empaqueta únicamente `public/` y agrega `deployment.json` con el SHA del commit.
-4. La API de Amplify recibe el paquete y publica en la rama de alojamiento `main`.
-5. El flujo espera el resultado y comprueba que la URL entregue el commit y HTML esperados.
+`infra/` define S3 privado con CloudFront y Origin Access Control. Antes de aplicar Terraform, ejecuta `terraform init`, `terraform plan` y `terraform apply` en una cuenta AWS autorizada. El estado de Terraform está excluido de Git.
 
-Variables de GitHub Actions: `AMPLIFY_APP_ID` y `AWS_ROLE_ARN`.
-Son identificadores de recursos, no contraseñas ni claves de acceso.
-
-La confianza OIDC utiliza el formato inmutable de GitHub, incluyendo los IDs
-del propietario y repositorio, y la rama exacta `refs/heads/main`.
-La política IAM permite crear e iniciar despliegues solamente dentro de la rama
-`main` de esta aplicación, incluido su recurso `deployments/*`.
-
-Sitio: https://main.d63zai2tg2i2u.amplifyapp.com
-
-Amplify utiliza una aplicación sin conexión Git nativa; el disparador automático
-reside en GitHub Actions. No hay que cargar ZIP ni pulsar desplegar en cada cambio.
-Las ejecuciones se revisan en la pestaña Actions de este repositorio.
-
-### Secretos
-
-Este HTML no requiere credenciales ni cadenas de conexión.
-No colocar secretos en HTML, JavaScript ni en `public/`: todo su contenido será público.
-El flujo utiliza OIDC sin claves de AWS de larga duración. Las credenciales temporales
-solo están disponibles en el entorno del job. La URL firmada de carga se enmascara en los logs.
-Si se incorpora un backend, sus secretos deberán permanecer en el servicio de ejecución
-o en un gestor de secretos; nunca se deben enviar al navegador.
-
-### Vista local
-
-Abrir `public/index.html` en un navegador. No se necesita instalar dependencias.
+Al hacer push a `sprint-1-Emanuel`, el workflow `deploy-s3-cloudfront.yml` compila y publica automáticamente. Se habilita únicamente cuando las variables del repositorio `AWS_DEPLOY_ROLE_ARN`, `AWS_S3_BUCKET`, `AWS_CLOUDFRONT_DISTRIBUTION_ID` y `VITE_API_BASE_URL` estén configuradas. Usa OIDC con credenciales temporales y después invalida CloudFront.

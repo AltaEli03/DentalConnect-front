@@ -1,0 +1,33 @@
+name: Deploy frontend to Amplify
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: npm ci && npm run build
+      - run: |
+          cd dist
+          zip -r ../site.zip .
+          cd ..
+          DEPLOYMENT=$(aws amplify create-deployment --app-id "$AMPLIFY_APP_ID" --branch-name main)
+          JOB=$(echo "$DEPLOYMENT" | jq -r .jobId)
+          URL=$(echo "$DEPLOYMENT" | jq -r .zipUploadUrl)
+          curl --fail --request PUT --upload-file site.zip "$URL"
+          aws amplify start-deployment --app-id "$AMPLIFY_APP_ID" --branch-name main --job-id "$JOB"

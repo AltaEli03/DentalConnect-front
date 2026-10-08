@@ -1,0 +1,31 @@
+name: Deploy frontend to S3 and CloudFront
+
+on:
+  push:
+    branches: [sprint-1-Emanuel]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    if: vars.AWS_DEPLOY_ROLE_ARN != '' && vars.AWS_S3_BUCKET != '' && vars.AWS_CLOUDFRONT_DISTRIBUTION_ID != '' && vars.VITE_API_BASE_URL != ''
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: npm ci
+      - run: npm run build
+      - run: aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}" --delete
+      - run: aws cloudfront create-invalidation --distribution-id "${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" --paths '/*'

@@ -1,0 +1,157 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #102a43;
+  background: #f7fbfc;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header,
+footer {
+  padding: 1rem max(1.5rem, calc((100% - 1120px) / 2));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+}
+.brand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #075985;
+  text-decoration: none;
+}
+.brand span {
+  color: #0f766e;
+}
+header p {
+  color: #486581;
+  margin: 0;
+}
+.hero {
+  padding: 5rem max(1.5rem, calc((100% - 1120px) / 2));
+  background: linear-gradient(120deg, #e0f2fe, #ecfdf5);
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  max-width: 760px;
+  margin: 0.4rem 0 2rem;
+}
+.eyebrow {
+  color: #0f766e;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+}
+.hero form {
+  max-width: 680px;
+}
+.hero label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.search {
+  display: flex;
+  gap: 0.5rem;
+}
+.search input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.9rem;
+  border: 1px solid #9fb3c8;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+button,
+.button {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  background: #075985;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.directory,
+.detail {
+  max-width: 1120px;
+  margin: auto;
+  padding: 3rem 1.5rem;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+.clinic-card {
+  overflow: hidden;
+  background: white;
+  border: 1px solid #d9e2ec;
+  border-radius: 0.8rem;
+}
+.clinic-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.clinic-card > div {
+  padding: 1.25rem;
+}
+.clinic-card h2 {
+  margin: 0.3rem 0;
+}
+.services {
+  color: #486581;
+  font-size: 0.9rem;
+  min-height: 3em;
+}
+.notice {
+  padding: 1rem;
+  background: #e0f2fe;
+  border-radius: 0.5rem;
+}
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.detail {
+  max-width: 850px;
+}
+.detail-image {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 0.8rem;
+  margin: 1.5rem 0;
+}
+.lead {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+li {
+  margin: 0.7rem 0;
+}
+footer {
+  margin-top: 3rem;
+  color: #486581;
+  font-size: 0.9rem;
+}
+@media (max-width: 620px) {
+  header {
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+  .search {
+    flex-direction: column;
+  }
+  .hero {
+    padding-top: 3rem;
+  }
+}
