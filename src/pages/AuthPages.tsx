@@ -20,9 +20,9 @@ export function VerifyPage(){
 }
 
 export function LoginPage(){
-  const{user,refresh}=useAuth();const nav=useNavigate();const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[error,setError]=useState('');if(user)return <Navigate to="/mi-cuenta" replace/>;
-  const submit=async(event:FormEvent)=>{event.preventDefault();setError('');try{await signIn(email,password);await refresh();nav('/mi-cuenta');}catch(cause){setError(message(cause));}};
-  return <AuthForm title="Inicia sesión"><form onSubmit={submit}><label>Correo electrónico<input required type="email" autoComplete="username" value={email} onChange={event=>setEmail(event.target.value)}/></label><label>Contraseña<input required type="password" autoComplete="current-password" value={password} onChange={event=>setPassword(event.target.value)}/></label>{error&&<p role="alert">{error}</p>}<button>Entrar</button></form><Link to="/registro">Crear cuenta</Link></AuthForm>;
+  const{user,acceptLogin}=useAuth();const nav=useNavigate();const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[error,setError]=useState('');const[busy,setBusy]=useState(false);if(user)return <Navigate to="/mi-cuenta" replace/>;
+  const submit=async(event:FormEvent)=>{event.preventDefault();setError('');setBusy(true);try{const profile=await signIn(email,password);acceptLogin(profile);nav('/mi-cuenta',{replace:true});}catch(cause){setError(message(cause));}finally{setBusy(false);}};
+  return <AuthForm title="Inicia sesión"><form onSubmit={submit}><label>Correo electrónico<input required type="email" autoComplete="username" value={email} onChange={event=>setEmail(event.target.value)}/></label><label>Contraseña<input required type="password" autoComplete="current-password" value={password} onChange={event=>setPassword(event.target.value)}/></label>{error&&<p role="alert">{error}</p>}<button disabled={busy}>{busy?'Validando…':'Entrar'}</button></form><Link to="/registro">Crear cuenta</Link></AuthForm>;
 }
 
 export function AccountPage(){const{user,loading,logout}=useAuth();const nav=useNavigate();if(loading)return <p>Cargando sesión…</p>;if(!user)return <Navigate to="/iniciar-sesion" replace/>;return <AuthForm title="Mi cuenta"><p>{user.firstName} {user.lastName}</p><p>{user.email}</p><p>Rol: PACIENTE</p><button onClick={()=>void logout().then(()=>nav('/iniciar-sesion'))}>Cerrar sesión</button></AuthForm>;}
