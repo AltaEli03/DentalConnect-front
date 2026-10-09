@@ -1,6 +1,6 @@
 # DentalConnect Frontend
 
-Aplicación React + TypeScript del Sprint 1. Muestra el directorio de clínicas y sus detalles consumiendo exclusivamente la API pública de DentalConnect.
+Aplicación React + TypeScript de los Sprints 1 y 2. Muestra el directorio de clínicas y sus detalles consumiendo la API pública de DentalConnect, e incluye registro, verificación de correo e inicio de sesión con Amazon Cognito.
 
 ## Desarrollo
 
@@ -10,7 +10,7 @@ npm ci
 npm run dev
 ```
 
-`VITE_API_BASE_URL` se configura en el entorno de compilación. Solo contiene la URL pública de la API; nunca se colocan contraseñas ni claves en variables `VITE_*`, porque quedan expuestas al navegador.
+`VITE_API_BASE_URL` se configura en el entorno de compilación. Solo contiene la URL pública de la API; nunca se colocan contraseñas ni claves en variables `VITE_*`, porque quedan expuestas al navegador. El registro y el inicio de sesión usan Cognito mediante `VITE_COGNITO_USER_POOL_ID` y `VITE_COGNITO_CLIENT_ID` (configuración pública del cliente, no secretos).
 
 Calidad: `npm run lint`, `npm test` y `npm run build`.
 
