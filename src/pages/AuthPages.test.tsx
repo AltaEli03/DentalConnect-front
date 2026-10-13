@@ -2,16 +2,15 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../routes/App';
-import { confirm, currentUser, signIn, signOut, signUp } from '../services/cognito';
+import { currentUser, signIn, signOut } from '../services/cognito';
+import { api } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
-  confirm: vi.fn(),
   currentUser: vi.fn(),
-  resend: vi.fn(),
   signIn: vi.fn(),
   signOut: vi.fn(),
-  signUp: vi.fn(),
 }));
+vi.mock('../services/api', () => ({ api: { register: vi.fn(), verify: vi.fn(), resend: vi.fn() } }));
 
 const profile = {
   email: 'paciente@example.com',
@@ -36,8 +35,8 @@ afterEach(() => cleanup());
 
 describe('Sprint 2 account flow', () => {
   it('registers, verifies the six digit code and returns to login', async () => {
-    vi.mocked(signUp).mockResolvedValue(undefined);
-    vi.mocked(confirm).mockResolvedValue(undefined);
+    vi.mocked(api.register).mockResolvedValue({ data: { message: 'Código enviado' } });
+    vi.mocked(api.verify).mockResolvedValue({ data: { message: 'Correo verificado' } });
     renderApp('/registro');
 
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana' } });
@@ -55,7 +54,7 @@ describe('Sprint 2 account flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
     await screen.findByRole('heading', { name: 'Verifica tu correo' });
-    expect(signUp).toHaveBeenCalledWith({
+    expect(api.register).toHaveBeenCalledWith({
       firstName: 'Ana',
       lastName: 'Pérez',
       email: 'paciente@example.com',
@@ -69,10 +68,13 @@ describe('Sprint 2 account flow', () => {
     fireEvent.change(screen.getByLabelText('Código de 6 dígitos'), {
       target: { value: '123456' },
     });
+    fireEvent.change(screen.getByLabelText('Contraseña elegida al registrarte (12 caracteres mínimo)'), {
+      target: { value: 'DentConnect123!' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Verificar cuenta' }));
 
     await screen.findByRole('heading', { name: 'Inicia sesión' });
-    expect(confirm).toHaveBeenCalledWith('paciente@example.com', '123456');
+    expect(api.verify).toHaveBeenCalledWith({ email: 'paciente@example.com', code: '123456', password: 'DentConnect123!' });
   });
 
   it('takes a verified patient to My Account and closes the session', async () => {
