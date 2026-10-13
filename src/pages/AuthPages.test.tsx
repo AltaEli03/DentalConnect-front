@@ -60,7 +60,6 @@ describe('Sprint 2 account flow', () => {
       email: 'paciente@example.com',
       phone: '+522221234567',
       password: 'DentConnect123!',
-      confirmPassword: 'DentConnect123!',
     });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'paciente@example.com' },
