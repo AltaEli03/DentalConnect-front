@@ -17,6 +17,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
+      - name: Validate Amplify configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$AMPLIFY_APP_ID" || { echo "Missing AMPLIFY_APP_ID repository variable" >&2; exit 1; }
+          test -n "$AWS_ROLE_ARN" || { echo "Missing AWS_ROLE_ARN repository variable" >&2; exit 1; }
+          test -n "$VITE_API_BASE_URL" || { echo "Missing VITE_API_BASE_URL repository variable" >&2; exit 1; }
+          [[ "$VITE_API_BASE_URL" == https://* ]] || { echo "VITE_API_BASE_URL must use HTTPS in production" >&2; exit 1; }
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
@@ -31,3 +39,13 @@ jobs:
           URL=$(echo "$DEPLOYMENT" | jq -r .zipUploadUrl)
           curl --fail --request PUT --upload-file site.zip "$URL"
           aws amplify start-deployment --app-id "$AMPLIFY_APP_ID" --branch-name main --job-id "$JOB"
+          for attempt in $(seq 1 60); do
+            STATUS=$(aws amplify get-job --app-id "$AMPLIFY_APP_ID" --branch-name main --job-id "$JOB" --query 'job.summary.status' --output text)
+            case "$STATUS" in
+              SUCCEED) echo "Amplify job $JOB succeeded"; exit 0 ;;
+              FAILED|CANCELLED) echo "Amplify job $JOB ended with $STATUS" >&2; exit 1 ;;
+              *) sleep 10 ;;
+            esac
+          done
+          echo "Timed out waiting for Amplify job $JOB" >&2
+          exit 1
