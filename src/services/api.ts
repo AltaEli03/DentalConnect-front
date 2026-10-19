@@ -1,10 +1,12 @@
 import type { ApiResponse, Clinic } from '../types/api';
 
-const baseUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  'https://nobhewluvya3gcb4e65utzf5qq0cjtwf.lambda-url.us-east-1.on.aws/api';
+const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || developmentBaseUrl).replace(/\/+$/, '');
+  if (!baseUrl) {
+    throw new Error('La URL de la API no está configurada para este ambiente.');
+  }
   const headers = new Headers(options.headers);
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });

@@ -10,12 +10,12 @@ npm ci
 npm run dev
 ```
 
-`VITE_API_BASE_URL` se configura en el entorno de compilación. Solo contiene la URL pública de la API; nunca se colocan contraseñas ni claves en variables `VITE_*`, porque quedan expuestas al navegador.
+`VITE_API_BASE_URL` se configura en el entorno de compilación. En desarrollo puede omitirse y se usa `http://localhost:3000/api`; en producción es obligatoria y no hay URL de API hardcodeada. Debe apuntar a la salida HTTPS `api_base_url` del Terraform del backend. Solo contiene una URL pública; nunca pongas contraseñas ni claves en variables `VITE_*`, porque quedan expuestas al navegador.
 
 Calidad: `npm run lint`, `npm test` y `npm run build`.
 
 ## AWS y despliegue continuo
 
-`infra/` define S3 privado con CloudFront y Origin Access Control. Antes de aplicar Terraform, ejecuta `terraform init`, `terraform plan` y `terraform apply` en una cuenta AWS autorizada. El estado de Terraform está excluido de Git.
+Al hacer push a `main`, el workflow `deploy-amplify.yml` compila y publica automáticamente en AWS Amplify, y espera a que la publicación termine antes de marcarla como exitosa. Configura las variables `AMPLIFY_APP_ID`, `AWS_ROLE_ARN` y `VITE_API_BASE_URL` en **Settings → Secrets and variables → Actions → Variables** del repositorio. `VITE_API_BASE_URL` debe ser HTTPS y se toma de la infraestructura del backend; si falta, el workflow falla en vez de compilar una aplicación que apunte a una API incorrecta.
 
-Al hacer push a `sprint-1-Emanuel`, el workflow `deploy-s3-cloudfront.yml` compila y publica automáticamente. Se habilita únicamente cuando las variables del repositorio `AWS_DEPLOY_ROLE_ARN`, `AWS_S3_BUCKET`, `AWS_CLOUDFRONT_DISTRIBUTION_ID` y `VITE_API_BASE_URL` estén configuradas. Usa OIDC con credenciales temporales y después invalida CloudFront.
+El workflow usa OIDC y credenciales temporales de AWS. `infra/` también conserva la configuración histórica de S3 privado y CloudFront; el sitio actual se publica mediante Amplify.
