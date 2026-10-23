@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   pull_request:
-    branches: [sprint-2-Emanuel]
+    branches: [main, sprint-3-Emanuel]
   push:
-    branches: [sprint-2-Emanuel]
+    branches: [main, sprint-3-Emanuel]
 
 permissions:
   contents: read

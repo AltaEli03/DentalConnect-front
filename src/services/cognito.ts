@@ -30,3 +30,5 @@ export function signIn(email:string,password:string) { const user=getUser(email)
 export type CognitoProfile={email:string;firstName:string;lastName:string};
 export function currentUser() { return new Promise<CognitoProfile|null>((resolve)=>{const user=pool.getCurrentUser();if(!user)return resolve(null);user.getSession((error:Error|null,session:CognitoUserSession|null)=>{if(error||!session?.isValid())return resolve(null);resolve(profileFromSession(session,user));});}); }
 export function signOut() { pool.getCurrentUser()?.signOut(); }
+
+export function currentIdToken() { return new Promise<string | null>((resolve) => { const user = pool.getCurrentUser(); if (!user) return resolve(null); user.getSession((error: Error | null, session: CognitoUserSession | null) => { if (error || !session?.isValid()) return resolve(null); resolve(session.getIdToken().getJwtToken()); }); }); }
