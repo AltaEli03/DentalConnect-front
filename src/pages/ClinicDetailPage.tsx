@@ -28,6 +28,14 @@ export function ClinicDetailPage() {
         <p>Cargando consultorio…</p>
       </main>
     );
+  const location = Array.from(
+    new Set([clinic.neighborhood, clinic.city, clinic.municipality, clinic.state].filter(Boolean)),
+  ).join(', ');
+  const mapUrl =
+    clinic.latitude != null && clinic.longitude != null
+      ? `https://www.google.com/maps?q=${clinic.latitude},${clinic.longitude}`
+      : null;
+  const hasLinks = Boolean(clinic.websiteUrl || clinic.facebookUrl || clinic.instagramUrl);
   return (
     <main className="detail">
       <Link to="/clinics">← Volver al directorio</Link>
@@ -39,21 +47,55 @@ export function ClinicDetailPage() {
         }
         alt={`Instalaciones de ${clinic.name}`}
       />
-      <p className="eyebrow">
-        {clinic.municipality}, {clinic.state}
-      </p>
+      {location && <p className="eyebrow">{location}</p>}
       <h1>{clinic.name}</h1>
       <p className="lead">{clinic.description}</p>
       <section>
         <h2>Contacto</h2>
         <p>
-          {clinic.address}, C.P. {clinic.postalCode}
+          {clinic.address}
+          {clinic.postalCode ? `, C.P. ${clinic.postalCode}` : ''}
         </p>
         <p>
           <a href={`tel:${clinic.phone}`}>{clinic.phone}</a> ·{' '}
           <a href={`mailto:${clinic.email}`}>{clinic.email}</a>
         </p>
       </section>
+      {(hasLinks || mapUrl) && (
+        <section>
+          <h2>Enlaces y ubicación</h2>
+          <ul className="public-links">
+            {clinic.websiteUrl && (
+              <li>
+                <a href={clinic.websiteUrl} target="_blank" rel="noreferrer">
+                  Sitio web
+                </a>
+              </li>
+            )}
+            {clinic.facebookUrl && (
+              <li>
+                <a href={clinic.facebookUrl} target="_blank" rel="noreferrer">
+                  Facebook
+                </a>
+              </li>
+            )}
+            {clinic.instagramUrl && (
+              <li>
+                <a href={clinic.instagramUrl} target="_blank" rel="noreferrer">
+                  Instagram
+                </a>
+              </li>
+            )}
+            {mapUrl && (
+              <li>
+                <a href={mapUrl} target="_blank" rel="noreferrer">
+                  Ver ubicación en el mapa
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
       <section>
         <h2>Servicios</h2>
         <ul>

@@ -21,13 +21,21 @@ export interface Clinic {
   phone: string;
   email: string;
   address: string;
+  city: string;
+  neighborhood: string;
   municipality: string;
   state: string;
   postalCode: string;
+  latitude?: number | null;
+  longitude?: number | null;
   imageUrl?: string | null;
+  websiteUrl?: string | null;
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
   services: Service[];
   dentists?: Dentist[];
 }
+export type ClinicProfileInput = Omit<Clinic, 'id' | 'imageUrl' | 'services' | 'dentists'>;
 export interface ApiResponse<T> {
   data: T;
 }

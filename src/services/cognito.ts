@@ -32,3 +32,5 @@ export function currentUser() { return new Promise<CognitoProfile|null>((resolve
 export function signOut() { pool.getCurrentUser()?.signOut(); }
 
 export function currentIdToken() { return new Promise<string | null>((resolve) => { const user = pool.getCurrentUser(); if (!user) return resolve(null); user.getSession((error: Error | null, session: CognitoUserSession | null) => { if (error || !session?.isValid()) return resolve(null); resolve(session.getIdToken().getJwtToken()); }); }); }
+
+export function currentClinicId() { return new Promise<string | null>((resolve) => { const user = pool.getCurrentUser(); if (!user) return resolve(null); user.getSession((error: Error | null, session: CognitoUserSession | null) => { if (error || !session?.isValid()) return resolve(null); const claims = session.getIdToken().decodePayload() as Record<string, unknown>; const clinicId = claims['custom:clinicId'] ?? claims.clinicId; resolve(typeof clinicId === 'string' && clinicId.trim() ? clinicId.trim() : null); }); }); }

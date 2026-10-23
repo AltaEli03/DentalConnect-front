@@ -214,6 +214,109 @@ button:disabled {
 li {
   margin: 0.7rem 0;
 }
+.profile-page {
+  max-width: 960px;
+  margin: auto;
+  padding: 3rem 1.5rem;
+}
+.profile-panel {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 1rem;
+  box-shadow: 0 18px 50px rgb(16 42 67 / 9%);
+}
+.profile-panel h1 {
+  margin: 0.4rem 0 0.75rem;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  line-height: 1.15;
+}
+.profile-intro {
+  color: #486581;
+  line-height: 1.55;
+}
+.profile-panel > .notice {
+  margin: 1.25rem 0;
+}
+.profile-form {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.profile-form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.profile-form legend {
+  margin-bottom: 0.85rem;
+  padding: 0;
+  color: #075985;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+.profile-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.profile-fields .wide {
+  grid-column: 1 / -1;
+}
+.field {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  color: #243b53;
+}
+.field > label {
+  font-weight: 650;
+}
+.profile-form input,
+.profile-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid #9fb3c8;
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #102a43;
+  font: inherit;
+}
+.profile-form textarea {
+  resize: vertical;
+}
+.profile-form input:focus-visible,
+.profile-form textarea:focus-visible {
+  outline: 3px solid rgb(14 116 144 / 22%);
+  border-color: #0e7490;
+}
+.profile-form input[aria-invalid='true'],
+.profile-form textarea[aria-invalid='true'] {
+  border-color: #b42318;
+}
+.field-hint {
+  color: #486581;
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.field-error {
+  color: #9f2525;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.form-actions a {
+  color: #075985;
+  font-weight: 650;
+}
 footer {
   margin-top: 3rem;
   color: #486581;
@@ -233,5 +336,8 @@ footer {
   }
   .auth-page {
     margin: 1.5rem auto;
+  }
+  .profile-page {
+    padding: 1.5rem 1rem;
   }
 }

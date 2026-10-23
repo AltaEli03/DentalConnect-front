@@ -15,9 +15,16 @@ describe('ClinicCard', () => {
             phone: '555',
             email: 'a@b.mx',
             address: 'Calle 1',
+            city: 'Puebla',
+            neighborhood: 'Centro',
             municipality: 'Puebla',
             state: 'Puebla',
             postalCode: '72000',
+            latitude: null,
+            longitude: null,
+            websiteUrl: null,
+            facebookUrl: null,
+            instagramUrl: null,
             services: [
               {
                 id: 's1',

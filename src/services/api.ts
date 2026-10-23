@@ -1,6 +1,31 @@
-import type { ApiResponse, Clinic } from '../types/api';
+import type { ApiResponse, Clinic, ClinicProfileInput } from '../types/api';
 
 const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
+
+export type FieldErrors = Record<string, string[]>;
+
+export class ApiError extends Error {
+  status: number;
+  fieldErrors: FieldErrors;
+
+  constructor(message: string, status: number, fieldErrors: FieldErrors = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+type ErrorResponse = {
+  error?: { message?: string; details?: { fieldErrors?: FieldErrors } };
+};
+
+function fallbackMessage(status: number) {
+  if (status === 401) return 'Tu sesión expiró. Inicia sesión de nuevo.';
+  if (status === 403) return 'No tienes permiso para administrar este consultorio.';
+  if (status === 404) return 'No encontramos ese consultorio.';
+  return 'No fue posible consultar la información.';
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || developmentBaseUrl).replace(/\/+$/, '');
@@ -11,12 +36,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   if (!response.ok) {
-    const result = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
-    throw new Error(
-      result?.error?.message ??
-        (response.status === 404
-          ? 'No encontramos ese consultorio.'
-          : 'No fue posible consultar la información.'),
+    const result = (await response.json().catch(() => null)) as ErrorResponse | null;
+    throw new ApiError(
+      result?.error?.message ?? fallbackMessage(response.status),
+      response.status,
+      result?.error?.details?.fieldErrors ?? {},
     );
   }
   return (await response.json()) as T;
@@ -28,6 +52,12 @@ export const api = {
       `/clinics${search ? `?search=${encodeURIComponent(search)}` : ''}`,
     ),
   clinic: (id: string) => request<ApiResponse<Clinic>>(`/clinics/${id}`),
+  updateClinic: (id: string, body: ClinicProfileInput, token: string) =>
+    request<ApiResponse<Clinic>>(`/clinics/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
   register: (body: Record<string,string>) => request<{data:{message:string}}>('/auth/register',{method:'POST',body:JSON.stringify(body)}),
   verify: (body: {email:string;code:string;password:string}) => request('/auth/verify-email',{method:'POST',body:JSON.stringify(body)}),
   resend: (email:string) => request('/auth/resend-verification-code',{method:'POST',body:JSON.stringify({email})}),
