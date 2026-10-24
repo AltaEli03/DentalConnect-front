@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ClinicProfileInput } from '../types/api';
+import type { ClinicProfileInput, ClinicServiceInput } from '../types/api';
 import { api, ApiError } from './api';
 
 const payload: ClinicProfileInput = {
@@ -19,6 +19,18 @@ const payload: ClinicProfileInput = {
   facebookUrl: null,
   instagramUrl: null,
 };
+
+const serviceInput: ClinicServiceInput = {
+  name: 'Limpieza dental',
+  description: 'Profilaxis ficticia.',
+  estimatedDurationMinutes: 45,
+};
+
+const jsonResponse = (body: unknown, status = 200) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  json: async () => body,
+});
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -66,5 +78,73 @@ describe('api.updateClinic', () => {
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as Error).message).toBe('Tu sesión expiró. Inicia sesión de nuevo.');
+  });
+});
+
+describe('api clinic services', () => {
+  it('lists services with the bearer token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: [] }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.clinicServices('clinic-1', 'token');
+
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/clinics/clinic-1/services');
+    expect(options.method).toBeUndefined();
+    expect(new Headers(options.headers).get('Authorization')).toBe('Bearer token');
+  });
+
+  it('creates, updates and changes status with the expected verbs and bodies', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: {} }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.createClinicService('clinic-1', serviceInput, 'token');
+    await api.updateClinicService('clinic-1', 'service-1', serviceInput, 'token');
+    await api.setClinicServiceStatus('clinic-1', 'service-1', false, 'token');
+
+    const calls = fetchMock.mock.calls as Array<[string, RequestInit]>;
+    expect(calls[0][0]).toContain('/clinics/clinic-1/services');
+    expect(calls[0][1].method).toBe('POST');
+    expect(JSON.parse(String(calls[0][1].body))).toEqual(serviceInput);
+    expect(new Headers(calls[0][1].headers).get('Authorization')).toBe('Bearer token');
+    expect(calls[1][0]).toContain('/clinics/clinic-1/services/service-1');
+    expect(calls[1][1].method).toBe('PUT');
+    expect(JSON.parse(String(calls[1][1].body))).toEqual(serviceInput);
+    expect(calls[2][0]).toContain('/clinics/clinic-1/services/service-1/status');
+    expect(calls[2][1].method).toBe('PATCH');
+    expect(JSON.parse(String(calls[2][1].body))).toEqual({ isActive: false });
+  });
+
+  it('exposes field errors from a service validation response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          {
+            error: {
+              message: 'Datos inválidos',
+              details: {
+                fieldErrors: {
+                  estimatedDurationMinutes: ['La duración debe ser un entero positivo en minutos'],
+                },
+              },
+            },
+          },
+          400,
+        ),
+      ),
+    );
+
+    const error = await api
+      .createClinicService('clinic-1', { ...serviceInput, estimatedDurationMinutes: 0 }, 'token')
+      .catch((cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 400,
+      fieldErrors: {
+        estimatedDurationMinutes: ['La duración debe ser un entero positivo en minutos'],
+      },
+    });
   });
 });

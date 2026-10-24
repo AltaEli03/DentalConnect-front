@@ -86,4 +86,26 @@ describe('ClinicDetailPage', () => {
     await screen.findByRole('heading', { name: 'Sonrisa del Centro' });
     expect(screen.queryByRole('heading', { name: 'Enlaces y ubicación' })).not.toBeInTheDocument();
   });
+
+  it('omits the price when a service has no published price', async () => {
+    vi.mocked(api.clinic).mockResolvedValue({
+      data: {
+        ...clinic,
+        services: [
+          {
+            id: 'service-1',
+            name: 'Limpieza dental',
+            description: 'Profilaxis',
+            estimatedDurationMinutes: 45,
+            priceFrom: null,
+          },
+        ],
+      },
+    });
+    renderPage();
+
+    expect(await screen.findByText('Limpieza dental')).toBeInTheDocument();
+    expect(screen.getByText(/Profilaxis/)).toBeInTheDocument();
+    expect(screen.queryByText(/desde/)).not.toBeInTheDocument();
+  });
 });

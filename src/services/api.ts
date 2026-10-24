@@ -1,4 +1,10 @@
-import type { ApiResponse, Clinic, ClinicProfileInput } from '../types/api';
+import type {
+  ApiResponse,
+  Clinic,
+  ClinicProfileInput,
+  ClinicServiceInput,
+  ClinicServiceManagement,
+} from '../types/api';
 
 const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
 
@@ -58,6 +64,43 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
     }),
+  clinicServices: (clinicId: string, token: string) =>
+    request<ApiResponse<ClinicServiceManagement[]>>(
+      `/clinics/${encodeURIComponent(clinicId)}/services`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    ),
+  createClinicService: (clinicId: string, body: ClinicServiceInput, token: string) =>
+    request<ApiResponse<ClinicServiceManagement>>(
+      `/clinics/${encodeURIComponent(clinicId)}/services`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      },
+    ),
+  updateClinicService: (
+    clinicId: string,
+    serviceId: string,
+    body: ClinicServiceInput,
+    token: string,
+  ) =>
+    request<ApiResponse<ClinicServiceManagement>>(
+      `/clinics/${encodeURIComponent(clinicId)}/services/${encodeURIComponent(serviceId)}`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      },
+    ),
+  setClinicServiceStatus: (clinicId: string, serviceId: string, isActive: boolean, token: string) =>
+    request<ApiResponse<ClinicServiceManagement>>(
+      `/clinics/${encodeURIComponent(clinicId)}/services/${encodeURIComponent(serviceId)}/status`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isActive }),
+      },
+    ),
   register: (body: Record<string,string>) => request<{data:{message:string}}>('/auth/register',{method:'POST',body:JSON.stringify(body)}),
   verify: (body: {email:string;code:string;password:string}) => request('/auth/verify-email',{method:'POST',body:JSON.stringify(body)}),
   resend: (email:string) => request('/auth/resend-verification-code',{method:'POST',body:JSON.stringify({email})}),

@@ -101,7 +101,8 @@ export function ClinicDetailPage() {
         <ul>
           {clinic.services.map((service) => (
             <li key={service.id}>
-              <strong>{service.name}</strong>: {service.description} · desde ${service.priceFrom}
+              <strong>{service.name}</strong>: {service.description}
+              {service.priceFrom != null && <> · desde ${service.priceFrom}</>}
             </li>
           ))}
         </ul>

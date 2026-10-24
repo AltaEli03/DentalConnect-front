@@ -15,7 +15,7 @@ vi.mock('../services/api', () => ({ api: {} }));
 afterEach(() => cleanup());
 
 describe('App navigation', () => {
-  it('opens clinic profile and dental team administration as separate pages', async () => {
+  it('opens clinic profile, dental team and services administration as separate pages', async () => {
     render(
       <MemoryRouter initialEntries={['/iniciar-sesion']}>
         <App />
@@ -30,6 +30,10 @@ describe('App navigation', () => {
       'href',
       '/administrar-dentistas',
     );
+    expect(screen.getByRole('link', { name: 'Servicios' })).toHaveAttribute(
+      'href',
+      '/administrar-servicios',
+    );
 
     fireEvent.click(screen.getByRole('link', { name: 'Administrar consultorio' }));
     expect(
@@ -39,6 +43,11 @@ describe('App navigation', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Equipo dental' }));
     expect(
       await screen.findByRole('heading', { name: 'Administración del equipo dental' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('link', { name: 'Servicios' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Servicios del consultorio' }),
     ).toBeInTheDocument();
   });
 });

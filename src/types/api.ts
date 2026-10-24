@@ -3,8 +3,20 @@ export interface Service {
   name: string;
   description: string;
   estimatedDurationMinutes: number;
-  priceFrom: number;
+  priceFrom: number | null;
 }
+export interface ClinicServiceManagement {
+  id: string;
+  name: string;
+  description: string;
+  estimatedDurationMinutes: number;
+  isActive: boolean;
+  priceFrom: number | null;
+}
+export type ClinicServiceInput = Pick<
+  ClinicServiceManagement,
+  'name' | 'description' | 'estimatedDurationMinutes'
+>;
 export interface Dentist {
   id: string;
   firstName: string;
