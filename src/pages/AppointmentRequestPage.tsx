@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { api } from '../services/api';
-import type { AvailabilitySlot, Clinic, Dentist } from '../types/api';
+import type { AvailabilitySlot, Clinic } from '../types/api';
 
 const mexico = (value: string) => new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Mexico_City' }).format(new Date(value));
 
