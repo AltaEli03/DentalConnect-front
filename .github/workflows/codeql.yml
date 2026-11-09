@@ -1,0 +1,50 @@
+name: CodeQL static analysis
+
+on:
+  push:
+    branches: [main, Sprint-7-Emanuel]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  pull-requests: read
+
+concurrency:
+  group: codeql-frontend
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze TypeScript and JavaScript with CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Build for analysis
+        uses: github/codeql-action/autobuild@v3
+      - name: Analyze and upload SARIF
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:javascript-typescript
+          output: codeql-results
+      - name: Preserve SARIF evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-frontend-sarif
+          path: codeql-results
+          if-no-files-found: error
+          retention-days: 90
