@@ -22,7 +22,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze TypeScript and JavaScript with CodeQL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout source
@@ -30,14 +30,14 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
           queries: security-extended
       - name: Build for analysis
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
       - name: Analyze and upload SARIF
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: /language:javascript-typescript
           output: codeql-results
