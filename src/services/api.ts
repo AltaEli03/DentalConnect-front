@@ -1,4 +1,5 @@
 import type { ApiResponse, AvailabilitySlot, Clinic } from '../types/api';
+import { currentIdToken } from './cognito';
 
 const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
 
@@ -6,6 +7,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || developmentBaseUrl).replace(/\/+$/, '');
   if (!baseUrl) throw new Error('La URL de la API no está configurada para este ambiente.');
   const headers = new Headers(options.headers);
+  const token = await currentIdToken();
+  if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   if (!response.ok) {
@@ -24,12 +27,14 @@ export const api = {
     return request<ApiResponse<Clinic[]>>('/clinics' + (query ? `?${query}` : ''));
   },
   clinic: (id: string) => request<ApiResponse<Clinic>>(`/clinics/${encodeURIComponent(id)}`),
-  availability: (clinicId: string, dentistId: string, serviceId: string) => {
-    const params = new URLSearchParams({ serviceId, days: '14' });
+  availability: (clinicId: string, dentistId: string, serviceId: string, date?: string) => {
+    const params = new URLSearchParams({ serviceId });
+    if (date) params.set('date', date); else params.set('days', '14');
     return request<{ data: AvailabilitySlot[]; timeZone: string }>(
       `/clinics/${encodeURIComponent(clinicId)}/dentists/${encodeURIComponent(dentistId)}/availability?${params.toString()}`,
     );
   },
+  createAppointment: (body: { clinicId: string; dentistId: string; dentalServiceId: string; startsAt: string }, idempotencyKey: string) => request<{ data: { id: string; folio: string; status: string; clinicId: string; dentistId: string; dentalServiceId: string; startsAt: string; endsAt: string; timeZoneId: string } }>('/appointments', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(body) }),
   register: (body: Record<string, string>) => request<{ data: { message: string } }>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   verify: (body: { email: string; code: string; password: string }) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify(body) }),
   resend: (email: string) => request('/auth/resend-verification-code', { method: 'POST', body: JSON.stringify({ email }) }),
