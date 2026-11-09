@@ -5,6 +5,7 @@ type Appointment = { id: string; reference?: string; folio?: string; status: str
 const apiBase = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
 const statusLabels: Record<string, string> = { PENDING: 'Pendiente', CONFIRMED: 'Confirmada', REJECTED: 'Rechazada', CANCELLED: 'Cancelada' };
 const dateTime = (value?: string) => value ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Mexico_City' }).format(new Date(value)) : 'No disponible';
+const normalizeAppointment = (item: any): Appointment => ({ ...item, createdAt: item.createdAt || item.receivedAt, patientFirstName: item.patientFirstName || item.patient?.firstName, patientLastName: item.patientLastName || item.patient?.lastName, patientEmail: item.patientEmail || item.patient?.email, patientPhone: item.patientPhone || item.patient?.phone, dentistName: item.dentistName || [item.dentist?.firstName, item.dentist?.lastName].filter(Boolean).join(' '), serviceName: item.serviceName || item.service?.name, rejectionReason: item.rejectionReason || item.rejection?.reason });
 const patientName = (item: Appointment) => [item.patientFirstName, item.patientLastName].filter(Boolean).join(' ') || 'Paciente';
 
 export function AppointmentManagementPage() {
@@ -29,7 +30,7 @@ export function AppointmentManagementPage() {
     const response = await fetch(apiBase + path, { ...init, headers });
     if (!response.ok) {
       const body = await response.json().catch(() => null);
-      const message = body?.message || body?.title || (response.status === 403 ? 'Tu cuenta no tiene permisos para administrar solicitudes de este consultorio.' : response.status === 404 ? 'La solicitud no existe o no pertenece a tu consultorio.' : 'Error HTTP ' + response.status);
+      const message = body?.error?.message || body?.message || body?.title || (response.status === 403 ? 'Tu cuenta no tiene permisos para administrar solicitudes de este consultorio.' : response.status === 404 ? 'La solicitud no existe o no pertenece a tu consultorio.' : 'Error HTTP ' + response.status);
       throw new Error(message);
     }
     return response.status === 204 ? null : response.json();
@@ -44,7 +45,7 @@ export function AppointmentManagementPage() {
       if (to) params.set('dateTo', to);
       const query = params.toString();
       const data = await request('/api/appointments' + (query ? '?' + query : ''));
-      const rows = Array.isArray(data) ? data : data?.appointments ?? data?.items ?? [];
+      const rows = (Array.isArray(data) ? data : data?.data ?? data?.appointments ?? data?.items ?? []).map(normalizeAppointment);
       setItems(rows);
       if (selected) {
         const updated = rows.find((row: Appointment) => row.id === selected.id);
@@ -60,7 +61,7 @@ export function AppointmentManagementPage() {
     setError(''); setNotice('');
     try {
       const data = await request('/api/appointments/' + encodeURIComponent(id));
-      setSelected(data?.appointment ?? data);
+      setSelected(normalizeAppointment(data?.data ?? data?.appointment ?? data));
     } catch (e) { setSelected(null); setError(e instanceof Error ? e.message : 'No se pudo abrir el detalle.'); }
   };
 
