@@ -22,6 +22,9 @@
 - [x] **T5. Verificación y guardas.** Prettier sobre archivos tocados, lint, suite completa, build y agentes de seguridad/trazabilidad.
       Verificación: `npm run lint` 0 errores; `npm test` conteo real (12/12); `npm run build` OK; `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente.
 
+- [x] **T6. .gitignore.** Ignorar `.vite`, `*.tsbuildinfo`, `.eslintcache`, `*.log`, archivos de sistema/editor y `*.tfvars`; conservar `.env.example` y lockfiles.
+      Verificación: `git check-ignore` sobre los patrones y `git check-ignore` sin coincidencia para `infra/terraform.tfvars.example`.
+
 ## Pendientes con dueño
 
 | Pendiente                                                 | Dueño            | Capa    | Marca                                                                |
@@ -36,6 +39,6 @@
 
 ## Evidencia
 
-| Fecha       | Baseline         | Tests HU           | Lint      | Build | Guardas                                                                  | Notas                                                        |
-| ----------- | ---------------- | ------------------ | --------- | ----- | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| 11-Nov-2026 | 7/7 (3 archivos) | 12/12 (4 archivos) | 0 errores | OK    | `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente | Implementado; PR pendiente; DENT-13 sigue Terminada en Jira. |
+| Fecha       | Baseline         | Tests HU           | Lint      | Build | Guardas                                                                  | Notas                                                                                   |
+| ----------- | ---------------- | ------------------ | --------- | ----- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| 11-Nov-2026 | 7/7 (3 archivos) | 12/12 (4 archivos) | 0 errores | OK    | `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente | Implementado en `Sprint-7-Eliuth`; commits `9e064d9`/`f8f573b`/`37c31f5`; PR pendiente. |

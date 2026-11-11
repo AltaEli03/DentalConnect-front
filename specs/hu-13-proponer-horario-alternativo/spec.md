@@ -32,6 +32,7 @@
 | `src/services/api.ts`                                      | Exportar `apiBaseUrl()` y usarla en `request`; centraliza la resolución de `VITE_API_BASE_URL` y conserva el fallback de desarrollo.                                                                                                                                                             |
 | `src/pages/AppointmentManagementPage.tsx`                  | Tipos de propuesta, normalización de IDs anidados, filtro/etiqueta `PROPOSED`, sección de propuesta, consulta de disponibilidad, envío y visualización de ambos horarios. Cambiar las rutas existentes de `/api/appointments...` a `/appointments...` para no duplicar el prefijo sobre la base. |
 | `src/pages/AppointmentManagementPage.test.tsx`             | Nuevo: 5 pruebas de página con `fetch` simulado.                                                                                                                                                                                                                                                 |
+| `.gitignore`                                               | Ignorar artefactos locales del frontend (`.vite`, `*.tsbuildinfo`, `.eslintcache`, logs, `.DS_Store`, `.idea`, `.vscode`) y `*.tfvars`; conserva `.env.example` y los lockfiles.                                                                                                                 |
 | `src/routes/App.tsx`, `src/types/api.ts`, `src/styles.css` | Sin cambios; se mantiene el patrón local de la página y las clases existentes.                                                                                                                                                                                                                   |
 
 ### Estado de la página
@@ -147,7 +148,7 @@ Archivo nuevo: `src/pages/AppointmentManagementPage.test.tsx` (vitest + @testing
 - `npx prettier --check` sobre los archivos tocados.
 - `security-reviewer` PASS y `traceability-clerk` OK sobre el diff.
 - Sin `TODO`; diferidos marcados con `NOTE (DENT-14)`, `NOTE (DENT-15)` y `NOTE (DENT-31)` cuando apliquen.
-- Diff limitado a `specs/`, `src/pages/AppointmentManagementPage.tsx`, `src/pages/AppointmentManagementPage.test.tsx` y `src/services/api.ts`.
+- Diff limitado a `specs/`, `src/pages/AppointmentManagementPage.tsx`, `src/pages/AppointmentManagementPage.test.tsx`, `src/services/api.ts` y `.gitignore`.
 
 ## Límites
 
@@ -170,7 +171,8 @@ Archivo nuevo: `src/pages/AppointmentManagementPage.test.tsx` (vitest + @testing
 | Tests de la HU      | `npm test` → 12/12 (4 archivos)                                          |
 | Lint                | `npm run lint` → 0 errores                                               |
 | Build               | `npm run build` → `tsc -b` + Vite OK                                     |
-| Commit              | `9e064d9`                                                                |
+| Rama                | `Sprint-7-Eliuth` (base `origin/main` 07a385f)                           |
+| Commits             | `9e064d9` código/pruebas · `f8f573b` specs · `37c31f5` `.gitignore`      |
 | PR                  | Pendiente (sin push/PR)                                                  |
 | Guardas             | `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente |
 
