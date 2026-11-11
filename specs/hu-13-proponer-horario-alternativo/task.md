@@ -2,7 +2,7 @@
 
 **Spec:** `spec.md`
 **Plan:** `plan.md`
-**Rama:** `Sprint-7-Eliuth` (convención `Sprint-NN-<integrante>`; commits citan `DENT-13`). Si el equipo mantiene la rama activa `Sprint-4-Emanuel`, trabajar ahí y citar `DENT-13`.
+**Rama:** `Sprint-7-Eliuth`, basada en `origin/main` (07a385f); commits citan `DENT-13`.
 **Contrato:** `DentalConnect-back/specs/hu-13-proponer-horario-alternativo/spec.md` (DENT-13, PR #16).
 
 ## Checklist
@@ -27,18 +27,18 @@
 
 ## Pendientes con dueño
 
-| Pendiente                                                 | Dueño            | Capa    | Marca                                                                |
-| --------------------------------------------------------- | ---------------- | ------- | -------------------------------------------------------------------- |
-| Aceptar/rechazar la propuesta desde el consultorio        | HU-14 / DENT-14  | Front   | `NOTE (DENT-14)`                                                     |
-| Vencimiento, reversión a `PENDING` y aviso al consultorio | TEC-07 / DENT-31 | Back    | `NOTE (DENT-31)`                                                     |
-| Entrega de la notificación al paciente                    | HU-15 / DENT-15  | Back    | `NOTE (DENT-15)`                                                     |
-| Historial de propuestas y contrapropuesta del paciente    | Fuera de alcance | —       | —                                                                    |
-| Cambiar servicio/dentista dentro de la propuesta          | Fuera de alcance | —       | —                                                                    |
-| Smoke E2E contra el API desplegado                        | Eliuth (HU-13)   | Front   | —                                                                    |
-| Estado de `DENT-13` en Jira (hoy `Terminada` por el back) | Eliuth (HU-13)   | Gestión | Confirmar si se reabre o se crea subtarea del front antes de cerrar. |
+| Pendiente                                                 | Dueño            | Capa    | Marca                                              |
+| --------------------------------------------------------- | ---------------- | ------- | -------------------------------------------------- |
+| Aceptar/rechazar la propuesta desde el consultorio        | HU-14 / DENT-14  | Front   | `NOTE (DENT-14)`                                   |
+| Vencimiento, reversión a `PENDING` y aviso al consultorio | TEC-07 / DENT-31 | Back    | `NOTE (DENT-31)`                                   |
+| Entrega de la notificación al paciente                    | HU-15 / DENT-15  | Back    | `NOTE (DENT-15)`                                   |
+| Historial de propuestas y contrapropuesta del paciente    | Fuera de alcance | —       | —                                                  |
+| Cambiar servicio/dentista dentro de la propuesta          | Fuera de alcance | —       | —                                                  |
+| Smoke E2E contra el API desplegado                        | Eliuth (HU-13)   | Front   | —                                                  |
+| PR del front (push/PR)                                    | Eliuth (HU-13)   | Gestión | Pendiente: rama local `Sprint-7-Eliuth`, sin push. |
 
 ## Evidencia
 
-| Fecha       | Baseline         | Tests HU           | Lint      | Build | Guardas                                                                  | Notas                                                                                   |
-| ----------- | ---------------- | ------------------ | --------- | ----- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| 11-Nov-2026 | 7/7 (3 archivos) | 12/12 (4 archivos) | 0 errores | OK    | `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente | Implementado en `Sprint-7-Eliuth`; commits `9e064d9`/`f8f573b`/`37c31f5`; PR pendiente. |
+| Fecha       | Baseline         | Tests HU           | Lint      | Build | Guardas                                                                                   | Notas                                                                                                            |
+| ----------- | ---------------- | ------------------ | --------- | ----- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 11-Nov-2026 | 7/7 (3 archivos) | 12/12 (4 archivos) | 0 errores | OK    | `security-reviewer` PASS; `traceability-clerk` OK (commit); DENT-13 cerrada; PR pendiente | Implementado en `Sprint-7-Eliuth`; commits `9e064d9`/`f8f573b`/`37c31f5`; DENT-13 cerrada en Jira; PR pendiente. |

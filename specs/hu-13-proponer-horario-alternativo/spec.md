@@ -163,19 +163,19 @@ Archivo nuevo: `src/pages/AppointmentManagementPage.test.tsx` (vitest + @testing
 
 ## Evidencia
 
-| Campo               | Valor                                                                    |
-| ------------------- | ------------------------------------------------------------------------ |
-| Fecha               | 11-Nov-2026                                                              |
-| Baseline tests      | `npm test` → 7/7 (3 archivos)                                            |
-| Baseline lint/build | No se ejecutó antes; post-cambio en verde                                |
-| Tests de la HU      | `npm test` → 12/12 (4 archivos)                                          |
-| Lint                | `npm run lint` → 0 errores                                               |
-| Build               | `npm run build` → `tsc -b` + Vite OK                                     |
-| Rama                | `Sprint-7-Eliuth` (base `origin/main` 07a385f)                           |
-| Commits             | `9e064d9` código/pruebas · `f8f573b` specs · `37c31f5` `.gitignore`      |
-| PR                  | Pendiente (sin push/PR)                                                  |
-| Guardas             | `security-reviewer` PASS; `traceability-clerk` OK (commit); PR pendiente |
+| Campo               | Valor                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| Fecha               | 11-Nov-2026                                                                                       |
+| Baseline tests      | `npm test` → 7/7 (3 archivos)                                                                     |
+| Baseline lint/build | No se ejecutó antes; post-cambio en verde                                                         |
+| Tests de la HU      | `npm test` → 12/12 (4 archivos)                                                                   |
+| Lint                | `npm run lint` → 0 errores                                                                        |
+| Build               | `npm run build` → `tsc -b` + Vite OK                                                              |
+| Rama                | `Sprint-7-Eliuth` (base `origin/main` 07a385f)                                                    |
+| Commits             | `9e064d9` código/pruebas · `f8f573b` specs · `37c31f5` `.gitignore`                               |
+| PR                  | Pendiente (sin push/PR)                                                                           |
+| Guardas             | `security-reviewer` PASS; `traceability-clerk` OK (commit); DENT-13 cerrada en Jira; PR pendiente |
 
 ## Aprobación
 
-🚧 Borrador con evidencia. Trazabilidad OK; pendiente revisor indicado por el usuario y PR.
+🚧 Borrador con evidencia. Trazabilidad OK; DENT-13 cerrada; pendiente revisor indicado por el usuario y PR.
