@@ -25,8 +25,8 @@
 - [x] **T6. Verificación y guardas.** Retirar el `NOTE (DENT-14)` consumido y reconciliar HU-13; Prettier sobre los archivos tocados, suite completa, build, `security-reviewer` PASS y `traceability-clerk` OK.
       Verificación: `grep -rn "NOTE (DENT-14)" src specs/hu-13-proponer-horario-alternativo` sin coincidencias; `npx prettier --check ...`; `npm run lint` 0; `npm test` 22/22; `npm run build` OK; guardas sin gaps bloqueantes.
 
-- [ ] **T7. Cierre y PR.** Comentar `DENT-14` con el enlace del PR y abrir PR contra `main` con título `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 22)`.
-      Verificación: PR creado y `ci.yml` en verde; sin marcar `DENT-14` como terminada sin PR.
+- [x] **T7. Cierre y PR.** Comentar `DENT-14` con el enlace del PR y abrir PR contra `main` con título `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 22)`.
+      Verificación: PR #10 mergeado (`f34171d`); `verify`, CodeQL y GitGuardian en verde; Jira `DENT-14` en `Terminada`.
 
 ## Pendientes con dueño
 
@@ -45,10 +45,10 @@
 
 ## Evidencia
 
-| Fecha       | Baseline                        | Tests HU                        | Lint                       | Build                | Guardas                                                                   | Notas                                                                                                                                                                                                                                                                              |
-| ----------- | ------------------------------- | ------------------------------- | -------------------------- | -------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | `npm test` → 22/22 (6 archivos) | `npm run lint` → 0 errores | `npm run build` → OK | `security-reviewer` PASS (4 WARN no bloqueantes); `traceability-clerk` OK | Rama `Sprint-7-Eliuth` (base `origin/main` a7d3b9c); commits `cd28e6f` specs, `37284f8` servicio, `224c87b` página, `081b175` enlace, `086158f` NOTE, `fd089ac` prueba incompleta + reconciliación HU-13, `2c4d175` cierre de specs; cierre en HEAD. PR #10 abierto; CI pendiente. |
+| Fecha       | Baseline                        | Tests HU                        | Lint                       | Build                | Guardas                                                                   | Notas                                                                                                                                                                                                                                                                                                                       |
+| ----------- | ------------------------------- | ------------------------------- | -------------------------- | -------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | `npm test` → 22/22 (6 archivos) | `npm run lint` → 0 errores | `npm run build` → OK | `security-reviewer` PASS (4 WARN no bloqueantes); `traceability-clerk` OK | Rama `Sprint-7-Eliuth` (base `origin/main` a7d3b9c); commits `cd28e6f` specs, `37284f8` servicio, `224c87b` página, `081b175` enlace, `086158f` NOTE, `fd089ac` prueba incompleta + reconciliación HU-13, `2c4d175` cierre de specs; cierre en HEAD. PR #10 mergeado (`f34171d`); CI verde (`verify`, CodeQL, GitGuardian). |
 
 ## Estado
 
-🚧 Borrador con evidencia. T1–T6 completos; PR #10 abierto, pendiente CI y merge.
+🚧 Borrador con evidencia. T1–T7 completos; PR #10 mergeado (`f34171d`) y Jira `DENT-14` en `Terminada`. Pendiente revisor distinto para ✅ Aprobado.
