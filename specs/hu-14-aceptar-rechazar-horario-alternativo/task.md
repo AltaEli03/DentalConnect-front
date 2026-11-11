@@ -7,25 +7,25 @@
 
 ## Checklist
 
-- [ ] **T1. Specs.** Crear `spec.md`, `plan.md` y `task.md` con la cabecera de `DENT-14` leída por Atlassian MCP, la contraparte del back (PR #17) y el alcance aprobado (enlace directo, sin listado).
+- [x] **T1. Specs.** Crear `spec.md`, `plan.md` y `task.md` con la cabecera de `DENT-14` leída por Atlassian MCP, la contraparte del back (PR #17) y el alcance aprobado (enlace directo, sin listado).
       Verificación: cabecera y summary coinciden con Jira; `git diff --check` sin espacios sobrantes.
 
-- [ ] **T2. Contrato y servicio.** Agregar `AppointmentProposal` en `src/types/api.ts`; `ApiError` y los métodos `proposal`, `acceptProposal`, `rejectProposal` en `src/services/api.ts`.
+- [x] **T2. Contrato y servicio.** Agregar `AppointmentProposal` en `src/types/api.ts`; `ApiError` y los métodos `proposal`, `acceptProposal`, `rejectProposal` en `src/services/api.ts`.
       Verificación: `npm run build` OK y `npm test` 12/12 existentes.
 
-- [ ] **T3. Pruebas RED.** Crear `src/pages/AppointmentProposalPage.test.tsx` con 8 casos: aceptar, rechazar, `409 SLOT_UNAVAILABLE`, `409 PROPOSAL_EXPIRED`, `409 PROPOSAL_NOT_ACTIVE`, sin sesión, `401` y `404`.
-      Verificación: `npm test -- src/pages/AppointmentProposalPage.test.tsx` falla por ruta/página ausente, no por imports ni mocks.
+- [x] **T3. Pruebas RED.** Crear `src/pages/AppointmentProposalPage.test.tsx` con 9 casos: aceptar, rechazar, `409 SLOT_UNAVAILABLE`, `409 PROPOSAL_EXPIRED`, `409 PROPOSAL_NOT_ACTIVE`, propuesta incompleta, sin sesión, `401` y `404`.
+      Verificación: `npm test -- src/pages/AppointmentProposalPage.test.tsx` falló por ruta/página ausente; luego 9/9.
 
-- [ ] **T4. Página y ruta.** Implementar `AppointmentProposalPage.tsx` y montar `/mi-solicitud/:appointmentId` en `src/routes/App.tsx`; guard de sesión, comparación de horarios, aceptar/rechazar, refresco tras error y accesibilidad.
-      Verificación: `npm test -- src/pages/AppointmentProposalPage.test.tsx` → 8/8; `npm run lint` y `npm run build` OK.
+- [x] **T4. Página y ruta.** Implementar `AppointmentProposalPage.tsx` y montar `/mi-solicitud/:appointmentId` en `src/routes/App.tsx`; guard de sesión, comparación de horarios, aceptar/rechazar, refresco tras error y accesibilidad.
+      Verificación: `npm test -- src/pages/AppointmentProposalPage.test.tsx` → 9/9; `npm run lint` y `npm run build` OK.
 
-- [ ] **T5. Enlace desde HU-09.** Guardar `id` en `requestResult` de `AppointmentRequestPage.tsx` y mostrar “Ver el estado de mi solicitud”; prueba `src/pages/AppointmentRequestPage.test.tsx` y `NOTE (DENT-16)`.
-      Verificación: `npm test -- src/pages/AppointmentRequestPage.test.tsx` → 1/1; `npm run lint`, `npm test` 21/21 y `npm run build` OK.
+- [x] **T5. Enlace desde HU-09.** Guardar `id` en `requestResult` de `AppointmentRequestPage.tsx` y mostrar “Ver el estado de mi solicitud”; prueba `src/pages/AppointmentRequestPage.test.tsx` y `NOTE (DENT-16)`.
+      Verificación: `npm test -- src/pages/AppointmentRequestPage.test.tsx` → 1/1; `npm run lint`, `npm test` 22/22 y `npm run build` OK.
 
-- [ ] **T6. Verificación y guardas.** Retirar el `NOTE (DENT-14)` consumido de `AppointmentManagementPage.tsx`; Prettier sobre los archivos tocados, suite completa, build, `security-reviewer` PASS y `traceability-clerk` OK.
-      Verificación: `grep -rn "NOTE (DENT-14)" src` sin coincidencias; `npx prettier --check ...`; `npm run lint` 0; `npm test` 21/21; `npm run build` OK; guardas sin gaps bloqueantes.
+- [x] **T6. Verificación y guardas.** Retirar el `NOTE (DENT-14)` consumido y reconciliar HU-13; Prettier sobre los archivos tocados, suite completa, build, `security-reviewer` PASS y `traceability-clerk` OK.
+      Verificación: `grep -rn "NOTE (DENT-14)" src specs/hu-13-proponer-horario-alternativo` sin coincidencias; `npx prettier --check ...`; `npm run lint` 0; `npm test` 22/22; `npm run build` OK; guardas sin gaps bloqueantes.
 
-- [ ] **T7. Cierre y PR.** Actualizar evidencia en `spec.md` y checklist; comentar `DENT-14` con el enlace del PR; abrir PR contra `main` con título `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 21)`.
+- [ ] **T7. Cierre y PR.** Comentar `DENT-14` con el enlace del PR y abrir PR contra `main` con título `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 22)`.
       Verificación: PR creado y `ci.yml` en verde; sin marcar `DENT-14` como terminada sin PR.
 
 ## Pendientes con dueño
@@ -45,10 +45,10 @@
 
 ## Evidencia
 
-| Fecha       | Baseline                        | Tests HU                   | Lint      | Build     | Guardas   | Notas                                                                                                 |
-| ----------- | ------------------------------- | -------------------------- | --------- | --------- | --------- | ----------------------------------------------------------------------------------------------------- |
-| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | Pendiente (esperado 21/21) | Pendiente | Pendiente | Pendiente | Spec, plan y checklist creados; implementación no iniciada. Back DENT-14 mergeado en `main` (PR #17). |
+| Fecha       | Baseline                        | Tests HU                        | Lint                       | Build                | Guardas                                                                                          | Notas                                                                                                                                                                               |
+| ----------- | ------------------------------- | ------------------------------- | -------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | `npm test` → 22/22 (6 archivos) | `npm run lint` → 0 errores | `npm run build` → OK | `security-reviewer` PASS (4 WARN no bloqueantes); `traceability-clerk` pendiente de re-auditoría | Rama `Sprint-7-Eliuth` (base `origin/main` a7d3b9c); commits `cd28e6f` specs, `37284f8` servicio, `224c87b` página, `081b175` enlace, `086158f` NOTE; cierre en HEAD. PR pendiente. |
 
 ## Estado
 
-🚧 Borrador. No hay código ni pruebas de la HU todavía; la implementación empieza en T2.
+🚧 Borrador con evidencia. T1–T6 completos; T7 (PR y comentario en Jira) pendiente.

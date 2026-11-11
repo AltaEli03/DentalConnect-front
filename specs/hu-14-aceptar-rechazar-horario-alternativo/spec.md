@@ -1,8 +1,8 @@
 # HU-14 · Aceptar o rechazar un horario alternativo (frontend)
 
-| HU                                              | Jira                                                          | Sprint                  | Módulo                                                         | Contraparte                                           | Estado      |
-| ----------------------------------------------- | ------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------- | ----------------------------------------------------- | ----------- |
-| HU-14 Aceptar o rechazar un horario alternativo | [DENT-14](https://uttt-proyecto.atlassian.net/browse/DENT-14) | DentalConnect Sprint 07 | `src/pages/AppointmentProposalPage.tsx` + `src/routes/App.tsx` | `DentalConnect-back` HU-14 (DENT-14, PR #17 mergeado) | 🚧 Borrador |
+| HU                                              | Jira                                                          | Sprint                  | Módulo                                                         | Contraparte                                           | Estado                    |
+| ----------------------------------------------- | ------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------- | ----------------------------------------------------- | ------------------------- |
+| HU-14 Aceptar o rechazar un horario alternativo | [DENT-14](https://uttt-proyecto.atlassian.net/browse/DENT-14) | DentalConnect Sprint 07 | `src/pages/AppointmentProposalPage.tsx` + `src/routes/App.tsx` | `DentalConnect-back` HU-14 (DENT-14, PR #17 mergeado) | 🚧 Borrador con evidencia |
 
 ## Contexto
 
@@ -34,7 +34,7 @@
 | `src/types/api.ts`                                                     | Nuevo `AppointmentProposal` con la forma camelCase real de `AppointmentResponse`.                                                         |
 | `src/services/api.ts`                                                  | Nuevo `ApiError` (mensaje + `status`) lanzado por `request`; métodos `proposal`, `acceptProposal` y `rejectProposal` con rutas relativas. |
 | `src/pages/AppointmentProposalPage.tsx`                                | Página privada de consulta y respuesta; estados de carga, error, aviso y ocupado.                                                         |
-| `src/pages/AppointmentProposalPage.test.tsx`                           | 8 pruebas de página con `fetch` simulado, `currentUser`/`currentIdToken` mockeados y `MemoryRouter`.                                      |
+| `src/pages/AppointmentProposalPage.test.tsx`                           | 9 pruebas de página con `fetch` simulado, `currentUser`/`currentIdToken` mockeados y `MemoryRouter`.                                      |
 | `src/pages/AppointmentRequestPage.test.tsx`                            | 1 prueba del enlace al estado de la solicitud creada (R8).                                                                                |
 | `src/routes/App.tsx`                                                   | Ruta `/mi-solicitud/:appointmentId`.                                                                                                      |
 | `src/pages/AppointmentRequestPage.tsx`                                 | Guardar `id` del resultado y enlace al estado de la solicitud; `NOTE (DENT-16)`.                                                          |
@@ -95,7 +95,7 @@ rejectProposal: (id: string) => request<ApiResponse<AppointmentProposal>>(`/appo
   - `<h1>Solicitud {folio}</h1>`; si no hay folio, “Solicitud de cita”.
   - Estado con etiquetas: `PENDING` Pendiente, `PROPOSED` Con propuesta, `CONFIRMED` Confirmada, `REJECTED` Rechazada, `CANCELLED` Cancelada.
   - `PROPOSED` con ambos horarios propuestos: “Horario original”, “Horario propuesto”, “Vence” y sección `aria-label="Responder propuesta"` con los dos botones. Texto: “Si aceptas, la cita queda confirmada en el horario propuesto. Si rechazas, la solicitud queda rechazada y no se reserva ningún horario.”
-  - `PROPOSED` incompleto: mismo aviso que `PENDING`, sin botones.
+  - `PROPOSED` incompleto: aviso “La propuesta está incompleta. Solicita un nuevo horario al consultorio.”, sin botones.
   - `REJECTED` con propuesta conservada: “Horario original” y “Horario propuesto rechazado”.
   - `CONFIRMED`: “Horario confirmado”.
   - `PENDING`: “Horario” y aviso “No hay una propuesta activa. Tu solicitud sigue pendiente con el horario original.”
@@ -189,7 +189,7 @@ La fuente del contrato es `DentalConnect-back/specs/hu-14-aceptar-rechazar-horar
 
 Archivos nuevos:
 
-- `src/pages/AppointmentProposalPage.test.tsx` (vitest + @testing-library, `fetch` simulado, `currentUser`/`currentIdToken` mockeados, `MemoryRouter` + `App`): 8 pruebas.
+- `src/pages/AppointmentProposalPage.test.tsx` (vitest + @testing-library, `fetch` simulado, `currentUser`/`currentIdToken` mockeados, `MemoryRouter` + `App`): 9 pruebas.
 - `src/pages/AppointmentRequestPage.test.tsx` (`api` y `currentUser` mockeados): 1 prueba.
 
 | Requisito       | Prueba                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -199,25 +199,26 @@ Archivos nuevos:
 | R4              | `informa el conflicto de disponibilidad sin confirmar` — el `POST` responde `409 SLOT_UNAVAILABLE`; se muestra el mensaje con `role="alert"`; el `GET` se repite; sigue “Con propuesta” y los botones; no hay aviso de éxito.                                                                                                                                                                              |
 | R5              | `impide aceptar una propuesta vencida y muestra la solicitud pendiente` — el `POST` responde `409 PROPOSAL_EXPIRED`; el `GET` posterior devuelve `PENDING` sin campos de propuesta; se muestra “Pendiente” y “Horario”, sin botones.                                                                                                                                                                       |
 | R6              | `refresca a confirmada cuando la propuesta ya fue respondida` — el `POST` responde `409 PROPOSAL_NOT_ACTIVE`; el `GET` posterior devuelve `CONFIRMED`; se muestra “Confirmada” y “Horario confirmado”, sin botones.                                                                                                                                                                                        |
+| R6              | `avisa cuando la propuesta está incompleta` — el `GET` devuelve `PROPOSED` sin `proposedStartsAt`/`proposedEndsAt`; se muestra el aviso de propuesta incompleta y no hay botones.                                                                                                                                                                                                                          |
 | R7              | `no consulta el API sin sesión` — `currentUser` null; se ve el aviso y el enlace de login; `fetch` no se llama.                                                                                                                                                                                                                                                                                            |
 | R7              | `muestra el mensaje de sesión requerida con 401` — el `GET` responde `401` sin body; se ve “Inicia sesión para consultar tu solicitud.”.                                                                                                                                                                                                                                                                   |
 | R7              | `oculta la solicitud de otra cuenta con 404` — el `GET` responde `404` sin body; se ve el mensaje de R7 y no se renderiza el folio.                                                                                                                                                                                                                                                                        |
 | R8              | `muestra el enlace al estado de la solicitud creada` — en `AppointmentRequestPage`, tras `api.createAppointment`, el aviso de éxito contiene el enlace `/mi-solicitud/apt-1`.                                                                                                                                                                                                                              |
 
 - Línea base medida el 11-Nov-2026: `npm test` → 12/12 (4 archivos).
-- Conteo esperado al cerrar: 21/21 (6 archivos). Registrar el conteo real; no inventarlo.
+- Conteo esperado al cerrar: 22/22 (6 archivos). Registrar el conteo real; no inventarlo.
 - Cada prueba cita su requisito con un comentario `// DENT-14 R1` (o el que corresponda).
 
 ## Criterios
 
 - `npm run lint` → 0 errores.
-- `npm test` → 21/21 en verde (conteo real al cerrar; si difiere, corregir esta spec).
+- `npm test` → 22/22 en verde (conteo real al cerrar; si difiere, corregir esta spec).
 - `npm run build` → `tsc -b` + Vite OK.
 - `npx prettier --check` sobre `src/pages/AppointmentProposalPage.tsx`, `src/pages/AppointmentProposalPage.test.tsx`, `src/pages/AppointmentRequestPage.tsx`, `src/pages/AppointmentRequestPage.test.tsx`, `src/pages/AppointmentManagementPage.tsx`, `src/routes/App.tsx`, `src/services/api.ts` y `src/types/api.ts`.
 - `security-reviewer` PASS sobre el diff contra `origin/main`.
 - `traceability-clerk` OK: DENT-14 ↔ spec ↔ código ↔ pruebas; `NOTE (DENT-16)` en las 3 capas.
-- Sin `TODO`; `NOTE (DENT-16)` vigente y `NOTE (DENT-31)` existente. El `NOTE (DENT-14)` de `AppointmentManagementPage` se retira porque esta HU ya implementa la respuesta del paciente.
-- Diff limitado a `specs/hu-14-aceptar-rechazar-horario-alternativo/`, `src/pages/AppointmentProposalPage.tsx`, `src/pages/AppointmentProposalPage.test.tsx`, `src/pages/AppointmentRequestPage.tsx`, `src/pages/AppointmentRequestPage.test.tsx`, `src/pages/AppointmentManagementPage.tsx`, `src/routes/App.tsx`, `src/services/api.ts` y `src/types/api.ts`.
+- Sin `TODO`; `NOTE (DENT-16)` vigente y `NOTE (DENT-31)` existente. El `NOTE (DENT-14)` de `AppointmentManagementPage` se retira porque esta HU ya implementa la respuesta del paciente; la HU-13 se reconcilia para que no quede como pendiente.
+- Diff limitado a `specs/hu-14-aceptar-rechazar-horario-alternativo/`, `specs/hu-13-proponer-horario-alternativo/{spec,plan,task}.md`, `src/pages/AppointmentProposalPage.tsx`, `src/pages/AppointmentProposalPage.test.tsx`, `src/pages/AppointmentRequestPage.tsx`, `src/pages/AppointmentRequestPage.test.tsx`, `src/pages/AppointmentManagementPage.tsx`, `src/routes/App.tsx`, `src/services/api.ts` y `src/types/api.ts`.
 - `package-lock.json` no se toca.
 - Jira `DENT-14` se actualiza al cerrar con el enlace del PR; no se marca terminado sin PR.
 
@@ -237,10 +238,10 @@ Archivos nuevos:
 
 ## Evidencia
 
-| Fecha       | Baseline                        | Tests HU                   | Lint      | Build     | Guardas   | Notas                                                                                      |
-| ----------- | ------------------------------- | -------------------------- | --------- | --------- | --------- | ------------------------------------------------------------------------------------------ |
-| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | Pendiente (esperado 21/21) | Pendiente | Pendiente | Pendiente | Spec y plan creados; implementación no iniciada. Back DENT-14 mergeado en `main` (PR #17). |
+| Fecha       | Baseline                        | Tests HU                        | Lint                       | Build                | Guardas                                                                                          | Notas                                                                                                                                                                               |
+| ----------- | ------------------------------- | ------------------------------- | -------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 11-Nov-2026 | `npm test` → 12/12 (4 archivos) | `npm test` → 22/22 (6 archivos) | `npm run lint` → 0 errores | `npm run build` → OK | `security-reviewer` PASS (4 WARN no bloqueantes); `traceability-clerk` pendiente de re-auditoría | Rama `Sprint-7-Eliuth` (base `origin/main` a7d3b9c); commits `cd28e6f` specs, `37284f8` servicio, `224c87b` página, `081b175` enlace, `086158f` NOTE; cierre en HEAD. PR pendiente. |
 
 ## Aprobación
 
-🚧 Borrador. Pendiente de revisor indicado por el usuario y de la implementación con evidencia.
+🚧 Borrador con evidencia. Pendiente de revisor indicado por el usuario y del PR.

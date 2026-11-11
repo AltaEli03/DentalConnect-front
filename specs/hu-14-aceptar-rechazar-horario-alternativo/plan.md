@@ -47,7 +47,7 @@ Cada línea tiene su prueba en la tarea que implementa la página.
 | `src/types/api.ts`                                                     | `AppointmentProposal` con la forma real de `AppointmentResponse`.       |
 | `src/services/api.ts`                                                  | `ApiError` (mensaje + status) y los tres métodos del contrato.          |
 | `src/pages/AppointmentProposalPage.tsx`                                | Página privada: carga, compara horarios, acepta/rechaza y refresca.     |
-| `src/pages/AppointmentProposalPage.test.tsx`                           | 8 pruebas de contrato, error, vencimiento, concurrencia y autorización. |
+| `src/pages/AppointmentProposalPage.test.tsx`                           | 9 pruebas de contrato, error, vencimiento, concurrencia y autorización. |
 | `src/routes/App.tsx`                                                   | Ruta `/mi-solicitud/:appointmentId`.                                    |
 | `src/pages/AppointmentRequestPage.tsx`                                 | `id` en el resultado y enlace al estado; `NOTE (DENT-16)`.              |
 | `src/pages/AppointmentRequestPage.test.tsx`                            | 1 prueba del enlace de entrada (R8).                                    |
@@ -177,7 +177,7 @@ git commit -m "Sprint 7: agregar contrato de propuesta al servicio del front (HU
 **Interfaces:**
 
 - Consumes: `App`, `currentUser` y `currentIdToken` de `src/services/cognito`.
-- Produces: 8 pruebas que fijan el contrato de UI; se commitean con la página en Task 3.
+- Produces: 9 pruebas que fijan el contrato de UI; se commitean con la página en Task 3.
 
 - [ ] **Step 1: Crear el archivo de pruebas**
 
@@ -433,6 +433,33 @@ describe('HU-14 aceptar o rechazar un horario alternativo', () => {
     ).not.toBeInTheDocument();
   });
 
+  // DENT-14 R6
+  it('avisa cuando la propuesta está incompleta', async () => {
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async () =>
+        json({
+          data: proposed({
+            proposedStartsAt: null,
+            proposedEndsAt: null,
+            proposalExpiresAt: null,
+          }),
+        }),
+      ),
+    );
+    renderPage();
+
+    expect(
+      await screen.findByText(
+        'La propuesta está incompleta. Solicita un nuevo horario al consultorio.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Con propuesta')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Aceptar horario propuesto' }),
+    ).not.toBeInTheDocument();
+  });
+
   // DENT-14 R7
   it('no consulta el API sin sesión', async () => {
     vi.mocked(currentUser).mockResolvedValue(null);
@@ -484,7 +511,7 @@ describe('HU-14 aceptar o rechazar un horario alternativo', () => {
 npm test -- src/pages/AppointmentProposalPage.test.tsx
 ```
 
-Expected: los 8 casos fallan porque la ruta `/mi-solicitud/:appointmentId` y la página aún no existen; la app cae en `*` → `/clinics`. No debe fallar por imports ni por el mock de Cognito.
+Expected: los 9 casos fallan porque la ruta `/mi-solicitud/:appointmentId` y la página aún no existen; la app cae en `*` → `/clinics`. No debe fallar por imports ni por el mock de Cognito.
 
 - [ ] **Step 3: No commitear todavía**
 
@@ -738,13 +765,13 @@ import { AppointmentProposalPage } from '../pages/AppointmentProposalPage';
 
 No agregar enlace global en el header: el header no conoce el id de la solicitud.
 
-- [ ] **Step 3: Ejecutar las 8 pruebas**
+- [ ] **Step 3: Ejecutar las 9 pruebas**
 
 ```bash
 npm test -- src/pages/AppointmentProposalPage.test.tsx
 ```
 
-Expected: 8/8 en verde.
+Expected: 9/9 en verde.
 
 - [ ] **Step 4: Lint y build**
 
@@ -961,7 +988,7 @@ npm test
 npm run build
 ```
 
-Expected: lint 0, 21/21 pruebas y build OK.
+Expected: lint 0, 22/22 pruebas y build OK.
 
 - [ ] **Step 7: Commit**
 
@@ -979,14 +1006,17 @@ git commit -m "Sprint 7: enlazar la solicitud creada con su estado (HU-14 · DEN
 - Modify: `src/pages/AppointmentManagementPage.tsx`
 - Modify: `specs/hu-14-aceptar-rechazar-horario-alternativo/spec.md`
 - Modify: `specs/hu-14-aceptar-rechazar-horario-alternativo/task.md`
+- Modify: `specs/hu-13-proponer-horario-alternativo/spec.md`
+- Modify: `specs/hu-13-proponer-horario-alternativo/plan.md`
+- Modify: `specs/hu-13-proponer-horario-alternativo/task.md`
 
-- [ ] **Step 1: Retirar el `NOTE (DENT-14)` consumido**
+- [ ] **Step 1: Retirar el `NOTE (DENT-14)` consumido y reconciliar HU-13**
 
 ```bash
-grep -rn "NOTE (DENT-14)" src
+grep -rn "NOTE (DENT-14)" src specs/hu-13-proponer-horario-alternativo
 ```
 
-Expected: solo `src/pages/AppointmentManagementPage.tsx`. Eliminar esa línea y conservar `NOTE (DENT-31)`. Volver a ejecutar el `grep` y confirmar que no hay coincidencias.
+Expected: solo `src/pages/AppointmentManagementPage.tsx` y referencias históricas en HU-13. Eliminar la línea del código y conservar `NOTE (DENT-31)`. En HU-13, quitar la fila del pendiente, el `NOTE (DENT-14)` de `Límites`/`Global Constraints` y el fragmento del plan; dejar la respuesta del paciente como cubierta por HU-14. Volver a ejecutar el `grep` y confirmar que no hay coincidencias.
 
 - [ ] **Step 2: Formato y lint**
 
@@ -1004,7 +1034,7 @@ npm test
 npm run build
 ```
 
-Expected: 21/21 en verde y build OK. Registrar el conteo real; si difiere, corregir la spec antes de commitear.
+Expected: 22/22 en verde y build OK. Registrar el conteo real; si difiere, corregir la spec antes de commitear.
 
 - [ ] **Step 4: Guardas**
 
@@ -1026,8 +1056,8 @@ Consultar las transiciones de `DENT-14` con `listJiraIssueTransitions`; agregar 
 - [ ] **Step 7: Commit de limpieza**
 
 ```bash
-git add src/pages/AppointmentManagementPage.tsx
-git commit -m "Sprint 7: retirar NOTE consumida de respuesta a propuesta (HU-14 · DENT-14)"
+git add src/pages/AppointmentManagementPage.tsx specs/hu-13-proponer-horario-alternativo/spec.md specs/hu-13-proponer-horario-alternativo/plan.md specs/hu-13-proponer-horario-alternativo/task.md
+git commit -m "Sprint 7: retirar NOTE consumida y reconciliar HU-13 (HU-14 · DENT-14)"
 ```
 
 - [ ] **Step 8: Commit de specs**
@@ -1039,7 +1069,7 @@ git commit -m "Sprint 7: cerrar evidencia de respuesta a propuesta en front (HU-
 
 - [ ] **Step 9: PR**
 
-Título: `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 21)`. Cuerpo: enlace a la spec, al back (PR #17) y a `DENT-14`; conteos reales; límites (`NOTE (DENT-16)`). Abrir contra `main` para que corra `ci.yml`.
+Título: `Sprint 7: aceptar o rechazar un horario alternativo (HU-14 · DENT-14) (vitest 22)`. Cuerpo: enlace a la spec, al back (PR #17) y a `DENT-14`; conteos reales; límites (`NOTE (DENT-16)`). Abrir contra `main` para que corra `ci.yml`.
 
 ---
 
