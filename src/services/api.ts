@@ -1,7 +1,17 @@
-import type { ApiResponse, AvailabilitySlot, Clinic } from '../types/api';
+import type { ApiResponse, AppointmentProposal, AvailabilitySlot, Clinic } from '../types/api';
 import { currentIdToken } from './cognito';
 
 const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
 export function apiBaseUrl(): string {
   const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || developmentBaseUrl).replace(
@@ -23,11 +33,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const result = (await response.json().catch(() => null)) as {
       error?: { message?: string };
     } | null;
-    throw new Error(
+    throw new ApiError(
       result?.error?.message ??
         (response.status === 404
           ? 'No encontramos información disponible.'
           : 'No fue posible consultar la información.'),
+      response.status,
     );
   }
   return (await response.json()) as T;
@@ -71,6 +82,20 @@ export const api = {
       headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(body),
     }),
+  proposal: (appointmentId: string) =>
+    request<ApiResponse<AppointmentProposal>>(
+      `/appointments/${encodeURIComponent(appointmentId)}/proposal`,
+    ),
+  acceptProposal: (appointmentId: string) =>
+    request<ApiResponse<AppointmentProposal>>(
+      `/appointments/${encodeURIComponent(appointmentId)}/proposal/accept`,
+      { method: 'POST' },
+    ),
+  rejectProposal: (appointmentId: string) =>
+    request<ApiResponse<AppointmentProposal>>(
+      `/appointments/${encodeURIComponent(appointmentId)}/proposal/reject`,
+      { method: 'POST' },
+    ),
   register: (body: Record<string, string>) =>
     request<{ data: { message: string } }>('/auth/register', {
       method: 'POST',

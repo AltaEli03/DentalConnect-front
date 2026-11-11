@@ -5,6 +5,7 @@ import { DentistManagementPage } from '../pages/DentistManagementPage';
 import { DentistProfilePage } from '../pages/DentistProfilePage';
 import { AppointmentRequestPage } from '../pages/AppointmentRequestPage';
 import { AppointmentManagementPage } from '../pages/AppointmentManagementPage';
+import { AppointmentProposalPage } from '../pages/AppointmentProposalPage';
 import { AuthProvider } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 
@@ -12,10 +13,14 @@ export function App() {
   return (
     <AuthProvider>
       <header>
-        <Link to="/clinics" className="brand">Dental<span>Connect</span></Link>
+        <Link to="/clinics" className="brand">
+          Dental<span>Connect</span>
+        </Link>
         <p>Directorio de atención odontológica</p>
         <nav aria-label="Cuenta">
-          <Link to="/registro">Crear cuenta</Link> · <Link to="/iniciar-sesion">Iniciar sesión</Link> · <Link to="/administrar-solicitudes">Solicitudes del consultorio</Link>
+          <Link to="/registro">Crear cuenta</Link> ·{' '}
+          <Link to="/iniciar-sesion">Iniciar sesión</Link> ·{' '}
+          <Link to="/administrar-solicitudes">Solicitudes del consultorio</Link>
         </nav>
       </header>
       <Routes>
@@ -30,6 +35,7 @@ export function App() {
         <Route path="/mi-cuenta" element={<AccountPage />} />
         <Route path="/administrar-dentistas" element={<DentistManagementPage />} />
         <Route path="/administrar-solicitudes" element={<AppointmentManagementPage />} />
+        <Route path="/mi-solicitud/:appointmentId" element={<AppointmentProposalPage />} />
         <Route path="*" element={<Navigate to="/clinics" replace />} />
       </Routes>
       <footer>DentalConnect · Sprint 6 · Revisión y gestión de solicitudes</footer>

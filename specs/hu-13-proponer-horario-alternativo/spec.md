@@ -55,7 +55,7 @@ La consulta de disponibilidad se dispara cuando hay una solicitud `PENDING` sele
 2. `POST /appointments/{id}/propose` (base + ruta) con `{ proposedStartsAt: slot.startsAt }`.
 3. En éxito: aviso “Propuesta enviada…”, recargar lista y detalle.
 4. En error: mostrar el mensaje del API y recargar lista/detalle para no dejar la UI en un estado optimista.
-5. `NOTE (DENT-14)` junto a la visualización de `PROPOSED`: aceptar/rechazar es de HU-14.
+5. La respuesta del paciente (`aceptar`/`rechazar`) se implementó en HU-14/DENT-14 (front); esta pantalla no la ejecuta.
 
 ## Contratos
 
@@ -147,12 +147,12 @@ Archivo nuevo: `src/pages/AppointmentManagementPage.test.tsx` (vitest + @testing
 - `npm run build` → compilación y empaquetado correctos.
 - `npx prettier --check` sobre los archivos tocados.
 - `security-reviewer` PASS y `traceability-clerk` OK sobre el diff.
-- Sin `TODO`; diferidos marcados con `NOTE (DENT-14)`, `NOTE (DENT-15)` y `NOTE (DENT-31)` cuando apliquen.
+- Sin `TODO`; diferidos marcados con `NOTE (DENT-15)` y `NOTE (DENT-31)` cuando apliquen. El pendiente de aceptar/rechazar la propuesta se retiró al implementarse HU-14.
 - Diff limitado a `specs/`, `src/pages/AppointmentManagementPage.tsx`, `src/pages/AppointmentManagementPage.test.tsx`, `src/services/api.ts` y `.gitignore`.
 
 ## Límites
 
-- Aceptar o rechazar la propuesta desde el consultorio: HU-14/DENT-14.
+- Aceptar o rechazar la propuesta desde la pantalla del paciente: HU-14/DENT-14 (implementado en el front; PR pendiente).
 - Vencimiento, reversión a `PENDING` y aviso al consultorio: TEC-07/DENT-31.
 - Entrega de la notificación al paciente: HU-15/DENT-15.
 - Historial de propuestas y contrapropuesta del paciente: fuera de alcance.

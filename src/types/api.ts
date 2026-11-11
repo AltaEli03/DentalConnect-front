@@ -42,6 +42,20 @@ export interface AvailabilitySlot {
   startsAt: string;
   endsAt: string;
 }
+export interface AppointmentProposal {
+  id: string;
+  folio: string;
+  status: string;
+  clinicId: string;
+  dentistId: string;
+  dentalServiceId: string;
+  startsAt: string;
+  endsAt: string;
+  proposedStartsAt: string | null;
+  proposedEndsAt: string | null;
+  proposalExpiresAt: string | null;
+  timeZoneId: string;
+}
 export interface ApiResponse<T> {
   data: T;
 }

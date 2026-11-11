@@ -23,7 +23,7 @@
 - Errores del API: mostrar `error.message`; no inventar mensajes para códigos nuevos.
 - `409 PROPOSAL_ALREADY_ACTIVE` debe dejar la UI en el estado `PROPOSED` tras refrescar.
 - Accesibilidad: `label` asociado, botones nativos, `aria-pressed`, `role="alert"` y `role="status"`.
-- Sin `TODO`; usar `NOTE (DENT-14)`, `NOTE (DENT-15)` y `NOTE (DENT-31)` cuando aplique.
+- Sin `TODO`; usar `NOTE (DENT-15)` y `NOTE (DENT-31)` cuando aplique. La respuesta del paciente quedó cubierta por HU-14/DENT-14.
 - Prettier solo sobre los archivos tocados: `npx prettier --write src/pages/AppointmentManagementPage.tsx src/pages/AppointmentManagementPage.test.tsx src/services/api.ts`.
 - **Staging selectivo:** el árbol tiene cambios de fin de línea (CRLF) en casi todo el repo y `package-lock.json` modificado. No usar `git add -A`; agregar solo los archivos de la HU. No commitear `.agents/` ni `.opencode/`.
 - Rama: `Sprint-7-Eliuth` (convención `Sprint-NN-<integrante>`; el issue asignado es Eliuth). Si el equipo confirma otra rama, usar esa y citar `DENT-13` en commits.
@@ -379,9 +379,6 @@ En el detalle, después de “Horario”:
       </p>
     </>
   );
-}
-{
-  /* NOTE (DENT-14): aceptar/rechazar la propuesta es de HU-14. */
 }
 {
   /* NOTE (DENT-31): el vencimiento y la reversión a PENDING son de TEC-07. */
