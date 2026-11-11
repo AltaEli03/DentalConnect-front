@@ -278,6 +278,33 @@ describe('HU-14 aceptar o rechazar un horario alternativo', () => {
     );
   });
 
+  // DENT-14 R6
+  it('avisa cuando la propuesta está incompleta', async () => {
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async () =>
+        json({
+          data: proposed({
+            proposedStartsAt: null,
+            proposedEndsAt: null,
+            proposalExpiresAt: null,
+          }),
+        }),
+      ),
+    );
+    renderPage();
+
+    expect(
+      await screen.findByText(
+        'La propuesta está incompleta. Solicita un nuevo horario al consultorio.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Con propuesta')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Aceptar horario propuesto' }),
+    ).not.toBeInTheDocument();
+  });
+
   // DENT-14 R7
   it('oculta la solicitud de otra cuenta con 404', async () => {
     vi.stubGlobal(

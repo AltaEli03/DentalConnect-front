@@ -29,7 +29,6 @@
 
 | Pendiente                                                 | Dueño            | Capa    | Marca                                              |
 | --------------------------------------------------------- | ---------------- | ------- | -------------------------------------------------- |
-| Aceptar/rechazar la propuesta desde el consultorio        | HU-14 / DENT-14  | Front   | `NOTE (DENT-14)`                                   |
 | Vencimiento, reversión a `PENDING` y aviso al consultorio | TEC-07 / DENT-31 | Back    | `NOTE (DENT-31)`                                   |
 | Entrega de la notificación al paciente                    | HU-15 / DENT-15  | Back    | `NOTE (DENT-15)`                                   |
 | Historial de propuestas y contrapropuesta del paciente    | Fuera de alcance | —       | —                                                  |
