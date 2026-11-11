@@ -380,7 +380,6 @@ export function AppointmentManagementPage() {
                 El paciente debe aceptar o rechazar la propuesta. La propuesta no reserva el
                 horario.
               </p>
-              {/* NOTE (DENT-14): aceptar/rechazar la propuesta es de HU-14. */}
               {/* NOTE (DENT-31): el vencimiento y la reversión a PENDING son de TEC-07. */}
             </>
           ) : (
