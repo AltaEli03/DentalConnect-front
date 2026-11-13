@@ -94,6 +94,10 @@ export function AppointmentManagementPage() {
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
+  
+  // Estado para controlar la carga del panel derecho
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
   const [proposedDate, setProposedDate] = useState(localToday());
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -169,12 +173,15 @@ export function AppointmentManagementPage() {
     setSlots([]);
     setSelectedProposed('');
     setSlotError('');
+    setLoadingDetail(true);
     try {
       const data = await request('/appointments/' + encodeURIComponent(id));
       setSelected(normalizeAppointment(data?.data ?? data?.appointment ?? data));
     } catch (e) {
       setSelected(null);
       setError(e instanceof Error ? e.message : 'No se pudo abrir el detalle.');
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -241,7 +248,7 @@ export function AppointmentManagementPage() {
         
         <div className="filter-bar">
           <label>Estado
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="premium-select">
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="premium-input">
               <option value="">Todas</option>
               <option value="PENDING">Pendientes</option>
               <option value="CONFIRMED">Confirmadas</option>
@@ -255,14 +262,14 @@ export function AppointmentManagementPage() {
           <label>Hasta
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="premium-input" />
           </label>
-          <button onClick={() => void load()} disabled={loading} className="primary-btn">
+          <button onClick={() => void load()} disabled={loading} className="btn btn-primary">
             {loading ? 'Actualizando…' : 'Filtrar'}
           </button>
         </div>
       </section>
 
-      {error && <div className="notice error" role="alert"><p>{error}</p></div>}
-      {notice && <div className="notice" role="status"><p>{notice}</p></div>}
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {notice && <div className="alert alert-success" role="status">{notice}</div>}
 
       <div className="management-layout">
         {/* COLUMNA IZQUIERDA: LISTA DE SOLICITUDES */}
@@ -275,7 +282,7 @@ export function AppointmentManagementPage() {
           {loading && items.length === 0 ? (
             <div className="loading-state"><p>Cargando solicitudes…</p></div>
           ) : items.length === 0 ? (
-            <div className="empty-state"><p>No hay solicitudes con estos filtros.</p></div>
+            <div className="loading-state"><p>No hay solicitudes con estos filtros.</p></div>
           ) : (
             <div className="request-list">
               {items.map((item) => {
@@ -283,8 +290,9 @@ export function AppointmentManagementPage() {
                 return (
                   <button 
                     key={item.id} 
-                    className={`request-card ${selected?.id === item.id ? 'selected' : ''} border-${getStatusClass(s)}`}
+                    className={`request-card ${selected?.id === item.id ? 'active' : ''} border-${getStatusClass(s)}`}
                     onClick={() => void openDetail(item.id)}
+                    aria-current={selected?.id === item.id ? 'true' : 'false'}
                   >
                     <div className="request-card-top">
                       <strong>{patientName(item)}</strong>
@@ -304,7 +312,11 @@ export function AppointmentManagementPage() {
 
         {/* COLUMNA DERECHA: DETALLE DE LA SOLICITUD */}
         <section className="panel detail-panel">
-          {selected ? (
+          {loadingDetail ? (
+            <div className="loading-state" style={{ height: '100%' }}>
+              <p>Cargando detalle de la solicitud…</p>
+            </div>
+          ) : selected ? (
             <>
               {/* Cabecera del Detalle */}
               <div className="detail-header">
@@ -338,10 +350,9 @@ export function AppointmentManagementPage() {
 
               {/* Estado de Propuesta */}
               {selected.proposedStartsAt && (
-                <div className="proposal-status-box">
-                  <p><strong>Horario Propuesto:</strong> {dateTime(selected.proposedStartsAt)} – {dateTime(selected.proposedEndsAt)}</p>
-                  {selected.proposalExpiresAt && <p className="small-text">Vence: {dateTime(selected.proposalExpiresAt)}</p>}
-                  <p className="notice info">El paciente debe aceptar o rechazar. No reserva el horario.</p>
+                <div className="proposal-status-box" style={{ margin: '0 2rem 1.5rem', padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--color-accent)' }}>
+                  <p style={{ margin: 0 }}><strong>Horario Propuesto:</strong> {dateTime(selected.proposedStartsAt)} – {dateTime(selected.proposedEndsAt)}</p>
+                  {selected.proposalExpiresAt && <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Vence: {dateTime(selected.proposalExpiresAt)}</p>}
                 </div>
               )}
 
@@ -352,7 +363,7 @@ export function AppointmentManagementPage() {
                   
                   {/* 1. CONFIRMAR */}
                   <div className="action-block">
-                    <button type="button" className="primary-btn full-width confirm-btn" disabled={busy} onClick={() => void act('confirm')}>
+                    <button type="button" className="btn btn-primary btn-full confirm-btn" disabled={busy} onClick={() => void act('confirm')}>
                       {busy ? 'Guardando…' : '✓ Confirmar esta solicitud'}
                     </button>
                   </div>
@@ -362,26 +373,27 @@ export function AppointmentManagementPage() {
                   {/* 2. PROPONER NUEVO HORARIO */}
                   <div className="action-block propose-block">
                     <h4>Proponer un horario alternativo</h4>
-                    <label className="date-label">Selecciona una fecha</label>
-                    <input type="date" className="premium-date-input" min={localToday()} value={proposedDate} onChange={(e) => { setProposedDate(e.target.value); setSelectedProposed(''); }} />
+                    <label className="date-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Selecciona una fecha</label>
+                    <input type="date" className="premium-input btn-full" style={{ marginBottom: '1rem' }} min={localToday()} value={proposedDate} onChange={(e) => { setProposedDate(e.target.value); setSelectedProposed(''); }} />
                     
-                    {loadingSlots && <p className="small-text">Buscando disponibilidad…</p>}
-                    {slotError && <p className="notice error compact">{slotError}</p>}
-                    {!loadingSlots && !slotError && slots.length === 0 && <p className="notice compact">No hay horarios para esta fecha.</p>}
+                    {loadingSlots && <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Buscando disponibilidad…</p>}
+                    {slotError && <div className="alert alert-error" style={{ padding: '0.5rem', fontSize: '0.85rem' }}>{slotError}</div>}
+                    {!loadingSlots && !slotError && slots.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>No hay horarios para esta fecha.</p>}
                     
-                    <div className="slot-grid compact-slots">
+                    <div className="slots-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', marginBottom: '1rem' }}>
                       {slots.map((slot) => (
                         <button
                           type="button"
                           key={slot.startsAt}
-                          className={`time-slot ${selectedProposed === slot.startsAt ? 'selected' : ''}`}
+                          className={`slot-btn ${selectedProposed === slot.startsAt ? 'active' : ''}`}
+                          aria-pressed={selectedProposed === slot.startsAt}
                           onClick={() => setSelectedProposed(slot.startsAt)}
                         >
                           {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(new Date(slot.startsAt))}
                         </button>
                       ))}
                     </div>
-                    <button type="button" className="secondary-btn full-width" disabled={!selectedProposed || proposing} onClick={() => void propose()}>
+                    <button type="button" className="btn btn-outline btn-full" disabled={!selectedProposed || proposing} onClick={() => void propose()}>
                       {proposing ? 'Enviando…' : 'Proponer horario seleccionado'}
                     </button>
                   </div>
@@ -389,7 +401,7 @@ export function AppointmentManagementPage() {
                   <div className="action-divider"><span>o</span></div>
 
                   {/* 3. RECHAZAR */}
-                  <div className="action-block danger-block">
+                  <div className="action-block danger-block" style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
                     <h4>Rechazar solicitud</h4>
                     <textarea
                       className="premium-input"
@@ -399,8 +411,9 @@ export function AppointmentManagementPage() {
                       placeholder="Motivo del rechazo (10-250 caracteres)"
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
+                      style={{ marginBottom: '1rem', resize: 'none' }}
                     />
-                    <button type="button" className="danger-btn full-width" disabled={busy || reason.trim().length < 10} onClick={() => void act('reject')}>
+                    <button type="button" className="btn btn-danger btn-full" disabled={busy || reason.trim().length < 10} onClick={() => void act('reject')}>
                       Rechazar solicitud
                     </button>
                   </div>
@@ -408,16 +421,16 @@ export function AppointmentManagementPage() {
               )}
 
               {selected.rejectionReason && (
-                <div className="notice error">
+                <div className="alert alert-error" style={{ margin: '0 2rem 2rem' }}>
                   <strong>Motivo de rechazo:</strong> {selected.rejectionReason}
                 </div>
               )}
             </>
           ) : (
-            <div className="empty-detail">
-              <div className="empty-icon">📥</div>
-              <h2>Selecciona una solicitud</h2>
-              <p>Elige una cita de la bandeja izquierda para ver los detalles del paciente y gestionar la cita.</p>
+            <div className="empty-detail" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '400px', padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+              <div className="empty-icon" style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}>📥</div>
+              <h2 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Selecciona una solicitud</h2>
+              <p style={{ maxWidth: '300px' }}>Elige una cita de la bandeja izquierda para ver los detalles del paciente y gestionar la cita.</p>
             </div>
           )}
         </section>

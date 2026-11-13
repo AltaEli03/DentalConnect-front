@@ -5,8 +5,7 @@ import { api } from '../services/api';
 import type { AvailabilitySlot, Clinic } from '../types/api';
 
 const timeZone = 'America/Mexico_City';
-const mexico = (value: string) =>
-  new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeStyle: 'short', timeZone }).format(new Date(value));
+const mexico = (value: string) => new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value));
 const localToday = () => new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
 
 export function AppointmentRequestPage() {
@@ -16,305 +15,223 @@ export function AppointmentRequestPage() {
   
   const [clinic, setClinic] = useState<Clinic>();
   const [loadingClinic, setLoadingClinic] = useState(true);
-  const [clinicError, setClinicError] = useState('');
-  
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [slotError, setSlotError] = useState('');
   const [selectedSlot, setSelectedSlot] = useState('');
   const [selectedDate, setSelectedDate] = useState(localToday());
   
   const [requesting, setRequesting] = useState(false);
-  const [requestError, setRequestError] = useState('');
+  const [requestError, setRequestError] = useState(''); // NUEVO: Estado para errores
   const [requestResult, setRequestResult] = useState<{ id: string; folio: string; status: string; }>();
-  const [idempotencyKey, setIdempotencyKey] = useState('');
   
   const serviceId = params.get('serviceId') || '';
   const dentistId = params.get('dentistId') || '';
-  const selectedService = clinic?.services.find((service) => service.id === serviceId);
-  const dentists = useMemo(
-    () => clinic?.dentists?.filter((dentist) => dentist.services?.some((service) => service.id === serviceId)) || [],
-    [clinic, serviceId],
-  );
-  const selectedDentist = dentists.find((dentist) => dentist.id === dentistId);
+  const selectedService = clinic?.services.find((s) => s.id === serviceId);
+  const dentists = useMemo(() => clinic?.dentists?.filter((d) => d.services?.some((s) => s.id === serviceId)) || [], [clinic, serviceId]);
+  const selectedDentist = dentists.find((d) => d.id === dentistId);
 
   useEffect(() => {
-    let active = true;
-    api.clinic(clinicId).then(({ data }) => {
-      if (active) setClinic(data);
-    }).catch((cause: unknown) => {
-      if (active) setClinicError(cause instanceof Error ? cause.message : 'No se pudo cargar el consultorio.');
-    }).finally(() => {
-      if (active) setLoadingClinic(false);
-    });
-    return () => { active = false; };
+    api.clinic(clinicId).then(({ data }) => setClinic(data)).finally(() => setLoadingClinic(false));
   }, [clinicId]);
 
   useEffect(() => {
-    setSlots([]);
-    setSelectedSlot('');
-    setSlotError('');
-    setRequestError('');
-    setRequestResult(undefined);
-    setIdempotencyKey('');
     if (!clinic || !serviceId || !dentistId || !selectedService || !selectedDentist) return;
-    let active = true;
     setLoadingSlots(true);
-    api.availability(clinicId, dentistId, serviceId, selectedDate).then(({ data }) => {
-      if (active) setSlots(data);
-    }).catch((cause: unknown) => {
-      if (active) setSlotError(cause instanceof Error ? cause.message : 'No se pudieron consultar los horarios.');
-    }).finally(() => {
-      if (active) setLoadingSlots(false);
-    });
-    return () => { active = false; };
+    setSelectedSlot(''); // Limpiar slot al cambiar de fecha
+    api.availability(clinicId, dentistId, serviceId, selectedDate)
+      .then(({ data }) => setSlots(data))
+      .finally(() => setLoadingSlots(false));
   }, [clinic, clinicId, dentistId, selectedDate, selectedDentist, selectedService, serviceId]);
 
   function changeService(next: string) {
-    setSlots([]);
-    setSelectedSlot('');
-    setRequestResult(undefined);
-    setIdempotencyKey('');
-    setSlotError('');
     const nextParams = new URLSearchParams();
     if (next) nextParams.set('serviceId', next);
     setParams(nextParams);
+    setSelectedSlot('');
+    setRequestError('');
   }
   
   function changeDentist(next: string) {
-    setSlots([]);
-    setSelectedSlot('');
-    setRequestResult(undefined);
-    setIdempotencyKey('');
-    setSlotError('');
     const nextParams = new URLSearchParams();
     if (serviceId) nextParams.set('serviceId', serviceId);
     if (next) nextParams.set('dentistId', next);
     setParams(nextParams);
-  }
-  
-  function chooseSlot(slot: AvailabilitySlot) {
-    setSelectedSlot(slot.startsAt);
-    setRequestResult(undefined);
+    setSelectedSlot('');
     setRequestError('');
-    setIdempotencyKey(crypto.randomUUID());
   }
-  
+
   async function submitRequest() {
-    if (!user || !selectedService || !selectedDentist || !selectedSlot || !idempotencyKey) return;
+    if (!user || !selectedSlot) return;
     setRequesting(true);
     setRequestError('');
+    
     try {
-      const result = await api.createAppointment(
-        { clinicId, dentistId, dentalServiceId: serviceId, startsAt: selectedSlot },
-        idempotencyKey,
-      );
+      const result = await api.createAppointment({ clinicId, dentistId, dentalServiceId: serviceId, startsAt: selectedSlot }, crypto.randomUUID());
       setRequestResult({ id: result.data.id, folio: result.data.folio, status: result.data.status });
-    } catch (cause) {
-      setRequestError(cause instanceof Error ? cause.message : 'No se pudo enviar la solicitud.');
+    } catch (e) {
+      // En lugar de un alert, mostramos el error en el componente
+      setRequestError(e instanceof Error ? e.message : 'No se pudo agendar la cita. Intenta de nuevo.');
     } finally {
       setRequesting(false);
     }
   }
 
-  if (loadingClinic) return <main className="directory"><div className="loading-state"><p>Cargando consultorio…</p></div></main>;
-  if (clinicError || !clinic) return (
-    <main className="directory">
-      <div className="notice error"><p>{clinicError || 'Consultorio no disponible.'}</p><Link to="/clinics" className="button">Volver a búsqueda</Link></div>
-    </main>
-  );
+  if (loadingClinic) return <main className="booking-page"><div className="loading-state">Cargando consultorio…</div></main>;
 
   return (
     <main className="booking-page">
-      <nav className="breadcrumb-nav">
-        <Link to={'/clinics/' + clinic.id}>← Volver a {clinic.name}</Link>
+      <nav className="breadcrumb">
+        <Link to={`/clinics/${clinic?.id}`}>← Volver a {clinic?.name}</Link>
       </nav>
 
       <div className="booking-layout">
-        {/* COLUMNA IZQUIERDA: SELECCIÓN POR PASOS */}
-        <div className="booking-selection">
-          <div className="booking-header">
-            <p className="eyebrow">Solicitud de atención</p>
-            <h1>Agenda tu cita ideal</h1>
-            <p className="text-muted">Sigue los pasos para elegir el servicio, especialista y horario perfecto para ti.</p>
-          </div>
-
+        {/* IZQUIERDA: PASOS */}
+        <div className="booking-steps">
+          
           {/* PASO 1: SERVICIO */}
-          <section className="selection-step">
+          <div className="step-card">
             <div className="step-header">
-              <span className="step-number">1</span>
-              <h2>Selecciona el servicio</h2>
+              <div className="step-num">1</div>
+              <h3>Selecciona el servicio</h3>
             </div>
-            <div className="step-content">
+            <div className="input-group">
+              <label htmlFor="service-select">Servicio de interés</label>
               <select 
-                className="premium-select"
+                id="service-select" 
                 value={serviceId} 
                 onChange={(e) => changeService(e.target.value)}
               >
                 <option value="">¿Qué necesitas hoy?</option>
-                {clinic.services.map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name} · {service.estimatedDurationMinutes} min
-                  </option>
+                {clinic?.services.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} · Desde ${s.priceFrom}</option>
                 ))}
               </select>
-              {selectedService && (
-                <div className="service-info-box">
-                  <p>{selectedService.description}</p>
-                  <span className="service-time">⏱ Duración estimada: {selectedService.estimatedDurationMinutes} minutos</span>
-                </div>
-              )}
             </div>
-          </section>
+          </div>
 
           {/* PASO 2: DENTISTA */}
-          <section className={`selection-step ${!serviceId ? 'disabled-step' : ''}`}>
+          <div className={`step-card ${!serviceId ? 'disabled-step' : ''}`}>
             <div className="step-header">
-              <span className="step-number">2</span>
-              <h2>Elige a tu especialista</h2>
+              <div className="step-num">2</div>
+              <h3>Elige a tu especialista</h3>
             </div>
-            <div className="step-content">
-              <select
-                className="premium-select"
-                value={dentistId}
-                onChange={(e) => changeDentist(e.target.value)}
+            <div className="input-group">
+              <label htmlFor="dentist-select">Especialista</label>
+              <select 
+                id="dentist-select"
+                value={dentistId} 
+                onChange={(e) => changeDentist(e.target.value)} 
                 disabled={!serviceId}
               >
-                <option value="">Selecciona un dentista compatible</option>
-                {dentists.map((dentist) => (
-                  <option key={dentist.id} value={dentist.id}>
-                    {dentist.firstName} {dentist.lastName} · {dentist.specialty}
-                  </option>
+                <option value="">Selecciona un dentista</option>
+                {dentists.map(d => (
+                  <option key={d.id} value={d.id}>{d.firstName} {d.lastName}</option>
                 ))}
               </select>
-              {serviceId && !dentists.length && (
-                <p className="notice error compact">No hay dentistas activos que ofrezcan este servicio.</p>
+              {serviceId && dentists.length === 0 && (
+                <p className="alert alert-error" style={{ marginTop: '0.5rem', padding: '0.5rem', fontSize: '0.85rem' }}>
+                  No hay especialistas para este servicio.
+                </p>
               )}
             </div>
-          </section>
+          </div>
 
           {/* PASO 3: FECHA Y HORA */}
-          <section className={`selection-step ${!dentistId ? 'disabled-step' : ''}`}>
+          <div className={`step-card ${!dentistId ? 'disabled-step' : ''}`}>
             <div className="step-header">
-              <span className="step-number">3</span>
-              <h2>Selecciona fecha y hora</h2>
+              <div className="step-num">3</div>
+              <h3>Selecciona fecha y hora</h3>
             </div>
-            <div className="step-content">
-              <label className="date-label">Fecha de atención</label>
-              <input
-                type="date"
-                className="premium-date-input"
-                min={localToday()}
-                value={selectedDate}
-                onChange={(event) => {
-                  setSelectedDate(event.target.value);
-                  setSelectedSlot('');
-                  setRequestResult(undefined);
-                  setIdempotencyKey('');
-                }}
+            <div className="input-group">
+              <label htmlFor="date-input">Fecha de atención</label>
+              <input 
+                id="date-input"
+                type="date" 
+                value={selectedDate} 
+                onChange={e => { setSelectedDate(e.target.value); setSelectedSlot(''); }} 
+                min={localToday()} 
                 disabled={!dentistId}
               />
-              
-              {loadingSlots && <p className="loading-text">Consultando horarios disponibles…</p>}
-              {slotError && <p className="notice error compact" role="alert">{slotError}</p>}
-              {!loadingSlots && !slotError && !slots.length && dentistId && (
-                <p className="notice compact">No hay disponibilidad para esta fecha. Prueba con otro día.</p>
-              )}
-              
-              {slots.length > 0 && (
-                <div className="slot-grid">
-                  {slots.map((slot) => (
-                    <button
-                      className={`time-slot ${selectedSlot === slot.startsAt ? 'selected' : ''}`}
-                      type="button"
-                      key={slot.startsAt}
-                      aria-pressed={selectedSlot === slot.startsAt}
-                      onClick={() => chooseSlot(slot)}
-                    >
-                      {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(new Date(slot.startsAt))}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-
-        {/* COLUMNA DERECHA: RESUMEN STICKY (CHECKOUT) */}
-        <aside className="booking-summary-card">
-          <div className="ticket-header">
-            <h3>Resumen de tu cita</h3>
-            <span className="ticket-badge">Pendiente de confirmar</span>
-          </div>
-          
-          <div className="ticket-body">
-            <div className="ticket-item">
-              <span className="ticket-icon">🏥</span>
-              <div>
-                <small>Consultorio</small>
-                <p>{clinic.name}</p>
-              </div>
             </div>
             
-            <div className={`ticket-item ${!selectedService ? 'empty' : ''}`}>
-              <span className="ticket-icon">🦷</span>
-              <div>
-                <small>Servicio</small>
-                <p>{selectedService?.name || 'Por seleccionar'}</p>
-              </div>
-            </div>
-            
-            <div className={`ticket-item ${!selectedDentist ? 'empty' : ''}`}>
-              <span className="ticket-icon">👨‍⚕️</span>
-              <div>
-                <small>Especialista</small>
-                <p>{selectedDentist ? `${selectedDentist.firstName} ${selectedDentist.lastName}` : 'Por seleccionar'}</p>
-              </div>
-            </div>
-            
-            <div className={`ticket-item ${!selectedSlot ? 'empty' : ''}`}>
-              <span className="ticket-icon">📅</span>
-              <div>
-                <small>Fecha y Hora</small>
-                <p>{selectedSlot ? mexico(selectedSlot) : 'Por seleccionar'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="ticket-footer">
-            {requestResult ? (
-              <div className="success-state" role="status">
-                <div className="success-icon">✓</div>
-                <h4>¡Solicitud enviada!</h4>
-                <p>Folio: <strong>{requestResult.folio}</strong></p>
-                <p className="small-text">El consultorio debe confirmar la atención.</p>
-                <Link to={`/mi-solicitud/${encodeURIComponent(requestResult.id)}`} className="primary-btn full-width">
-                  Ver estado de mi solicitud
-                </Link>
+            {loadingSlots ? (
+              <p className="loading-state" style={{ padding: '1rem 0' }}>Consultando horarios disponibles…</p>
+            ) : slots.length === 0 && dentistId ? (
+              <div className="alert alert-error" style={{ fontSize: '0.9rem' }}>
+                No hay horarios disponibles para esta fecha. Por favor, elige otro día.
               </div>
             ) : (
-              <>
-                {!authLoading && !user && (
-                  <div className="auth-warning">
-                    <p>Inicia sesión para enviar la solicitud.</p>
-                    <Link to="/iniciar-sesion" className="secondary-btn full-width">Iniciar sesión</Link>
-                  </div>
-                )}
-                {requestError && <p className="notice error compact" role="alert">{requestError}</p>}
-                
-                <button
-                  type="button"
-                  className="primary-btn full-width checkout-btn"
-                  onClick={() => void submitRequest()}
-                  disabled={!user || authLoading || requesting || !selectedSlot}
-                >
-                  {requesting ? 'Enviando…' : 'Confirmar Solicitud'}
-                </button>
-                <p className="legal-text">
-                  Al enviar, se crea una solicitud pendiente. No se confirma ni se cobra una cita en este paso.
-                </p>
-              </>
+              <div className="slots-grid">
+                {slots.map(slot => (
+                  <button 
+                    key={slot.startsAt} 
+                    className={`slot-btn ${selectedSlot === slot.startsAt ? 'active' : ''}`}
+                    onClick={() => setSelectedSlot(slot.startsAt)}
+                    aria-pressed={selectedSlot === slot.startsAt}
+                    type="button"
+                  >
+                    {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(new Date(slot.startsAt))}
+                  </button>
+                ))}
+              </div>
             )}
+          </div>
+        </div>
+
+        {/* DERECHA: RESUMEN STICKY */}
+        <aside className="summary-card">
+          <div className="summary-header">
+            <h3>Resumen de cita</h3>
+          </div>
+          <div className="summary-body">
+            <div className="summary-item">
+              <span className="icon" aria-hidden="true">🏥</span>
+              <div><small>Consultorio</small><p>{clinic?.name}</p></div>
+            </div>
+            <div className="summary-item">
+              <span className="icon" aria-hidden="true">🦷</span>
+              <div><small>Servicio</small><p>{selectedService?.name || 'Por seleccionar'}</p></div>
+            </div>
+            <div className="summary-item">
+              <span className="icon" aria-hidden="true">👨‍⚕️</span>
+              <div><small>Especialista</small><p>{selectedDentist ? `${selectedDentist.firstName} ${selectedDentist.lastName}` : 'Por seleccionar'}</p></div>
+            </div>
+            <div className="summary-item">
+              <span className="icon" aria-hidden="true">📅</span>
+              <div><small>Fecha y Hora</small><p>{selectedSlot ? mexico(selectedSlot) : 'Por seleccionar'}</p></div>
+            </div>
+          </div>
+          <div className="summary-footer">
+            {/* Mostrar error si falla el agendamiento */}
+            {requestError && (
+              <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+                {requestError}
+              </div>
+            )}
+
+            {!user ? (
+              <Link to="/iniciar-sesion" className="btn btn-primary btn-full">Inicia sesión para agendar</Link>
+            ) : requestResult ? (
+              <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
+                <div>
+                  <strong>¡Cita solicitada!</strong><br/>
+                  Folio: {requestResult.folio}
+                </div>
+              </div>
+            ) : (
+              <button 
+                className="btn btn-coral btn-full" 
+                disabled={!selectedSlot || requesting} 
+                onClick={submitRequest}
+                type="button"
+              >
+                {requesting ? 'Enviando solicitud…' : 'Confirmar Cita'}
+              </button>
+            )}
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '1rem', marginBottom: 0 }}>
+              Al confirmar, se crea una solicitud pendiente. El consultorio deberá confirmarla.
+            </p>
           </div>
         </aside>
       </div>
