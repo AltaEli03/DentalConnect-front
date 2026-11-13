@@ -6,6 +6,7 @@ import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatDateTime } from '../lib/appointments';
+import { isClinicAdmin as hasClinicAdminRole } from '../lib/roles';
 import { clinicRequest } from '../services/clinicApi';
 
 type ClinicAppointment = {
@@ -49,8 +50,7 @@ export function ClinicAppointmentsPage() {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
 
-  const role = user?.role?.toUpperCase() ?? '';
-  const isClinicAdmin = Boolean(user) && role.includes('CLINIC_ADMIN');
+  const isClinicAdmin = Boolean(user) && hasClinicAdminRole(user?.role);
 
   const load = useCallback(async () => {
     setLoading(true);

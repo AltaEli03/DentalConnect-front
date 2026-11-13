@@ -12,6 +12,7 @@ import { AuthProvider } from '../auth/AuthContext';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { NetworkStatus } from '../components/NetworkStatus';
+import { isClinicAdmin, isPatientRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 import { ClinicLoginPage } from '../pages/ClinicLoginPage';
@@ -28,9 +29,8 @@ export function App() {
 
 function AppContent() {
   const { user } = useAuth();
-  const role = user?.role?.toLocaleUpperCase('es-MX');
-  const isPatient = role === 'PACIENTE' || role === 'PATIENT';
-  const hasClinicRole = Boolean(user) && !isPatient;
+  const isPatient = isPatientRole(user?.role);
+  const hasClinicRole = Boolean(user) && isClinicAdmin(user?.role);
 
   return (
     <>

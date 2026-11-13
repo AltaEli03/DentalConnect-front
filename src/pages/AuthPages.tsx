@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
 import { friendlyAuthError } from '../lib/authErrors';
+import { isClinicAdmin } from '../lib/roles';
 
 // ==========================================
 // 1. PÁGINA DE LOGIN
@@ -470,11 +471,9 @@ export function AccountPage() {
 
       <Link
         className="btn btn-outline btn-full"
-        to={user.role?.toUpperCase().includes('CLINIC_ADMIN') ? '/consultorio/citas' : '/mis-citas'}
+        to={isClinicAdmin(user.role) ? '/consultorio/citas' : '/mis-citas'}
       >
-        {user.role?.toUpperCase().includes('CLINIC_ADMIN')
-          ? 'Ver citas del consultorio'
-          : 'Ver mis citas'}
+        {isClinicAdmin(user.role) ? 'Ver citas del consultorio' : 'Ver mis citas'}
       </Link>
 
       <button

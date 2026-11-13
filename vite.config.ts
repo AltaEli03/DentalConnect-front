@@ -39,7 +39,17 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2,png,svg,ico}'],
         runtimeCaching: [
           {
-            urlPattern: /\/api\/clinics/,
+            // Only public directory reads may be cached. Dentist schedules,
+            // blocks and any other clinic admin endpoint stay network-only.
+            urlPattern: ({ url, request }) => {
+              if (request.method !== 'GET') return false;
+              const path = url.pathname;
+              return (
+                path === '/api/clinics' ||
+                /^\/api\/clinics\/[^/]+$/.test(path) ||
+                /^\/api\/clinics\/[^/]+\/dentists\/[^/]+\/availability$/.test(path)
+              );
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'public-clinics',
@@ -48,16 +58,12 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\/api\/(appointments|auth)/,
+            urlPattern: /\/api\/clinics\//,
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|webp|svg)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: { maxEntries: 60, maxAgeSeconds: 2592000 },
-            },
+            urlPattern: /\/api\/(appointments|auth)/,
+            handler: 'NetworkOnly',
           },
         ],
       },

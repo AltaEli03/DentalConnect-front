@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
 import { friendlyAuthError } from '../lib/authErrors';
+import { isClinicAdmin } from '../lib/roles';
 import { signIn, signOut } from '../services/cognito';
 
 export function ClinicLoginPage() {
@@ -20,8 +21,7 @@ export function ClinicLoginPage() {
     setError('');
     try {
       const profile = await signIn(email.trim(), password);
-      const role = profile.role?.toUpperCase() ?? '';
-      if (!role.includes('CLINIC_ADMIN')) {
+      if (!isClinicAdmin(profile.role)) {
         signOut();
         setError('Esta cuenta es de paciente. Usa el acceso de pacientes.');
         return;
