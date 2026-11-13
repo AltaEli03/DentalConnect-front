@@ -1,18 +1,12 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { signIn } from '../services/cognito';
 import { api } from '../services/api';
-
-function friendlyAuthError(cause: unknown, fallback: string) {
-  if (
-    cause instanceof TypeError ||
-    (cause instanceof Error && /failed to fetch|network|load failed/i.test(cause.message))
-  ) {
-    return 'No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.';
-  }
-  return cause instanceof Error ? cause.message : fallback;
-}
+import { AuthLayout } from '../components/auth/AuthLayout';
+import { PasswordField } from '../components/auth/PasswordField';
+import { friendlyAuthError } from '../lib/authErrors';
+import { isClinicAdmin } from '../lib/roles';
 
 // ==========================================
 // 1. PÁGINA DE LOGIN
@@ -73,19 +67,14 @@ export function LoginPage() {
             placeholder="tu@correo.com"
           />
         </div>
-        <div className="input-group">
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            placeholder="Escribe tu contraseña"
-          />
-        </div>
+        <PasswordField
+          id="password"
+          label="Contraseña"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          hint="Mínimo 12 caracteres."
+        />
         {error && (
           <div className="alert alert-error" role="alert">
             {error}
@@ -97,6 +86,9 @@ export function LoginPage() {
       </form>
       <p className="auth-footer-text">
         ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
+      </p>
+      <p className="auth-footer-text">
+        ¿Eres consultorio? <Link to="/consultorio/iniciar-sesion">Accede aquí</Link>
       </p>
     </AuthLayout>
   );
@@ -172,6 +164,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Crea tu cuenta"
+      wide
       visualTitle="Crea tu cuenta en DentalConnect."
       visualText="Registra tus datos para verificar tu correo y solicitar atención en los consultorios disponibles."
     >
@@ -230,40 +223,33 @@ export function RegisterPage() {
             required
             value={data.phone}
             onChange={(e) => setData({ ...data, phone: e.target.value })}
-            placeholder="Incluye lada si aplica"
+            placeholder="+52 55 1234 5678"
+            aria-describedby="phone-hint"
           />
+          <p id="phone-hint" className="field-hint">
+            Incluye lada. Ej. +52 55 1234 5678.
+          </p>
         </div>
-        <div className="form-row">
-          <div className="input-group">
-            <label htmlFor="password">Contraseña (12 caracteres mínimo)</label>
-            <input
-              id="password"
-              name="new-password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={12}
-              maxLength={128}
-              value={data.password}
-              onChange={(e) => setData({ ...data, password: e.target.value })}
-              placeholder="Mínimo 12 caracteres"
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              name="new-password-confirm"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={12}
-              maxLength={128}
-              value={data.confirmPassword}
-              onChange={(e) => setData({ ...data, confirmPassword: e.target.value })}
-              placeholder="Escribe la misma contraseña"
-            />
-          </div>
+        <div className="form-row form-row-passwords">
+          <PasswordField
+            id="password"
+            label="Contraseña"
+            value={data.password}
+            onChange={(value) => setData({ ...data, password: value })}
+            autoComplete="new-password"
+            showRequirements
+            minLength={12}
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirmar contraseña"
+            value={data.confirmPassword}
+            onChange={(value) => setData({ ...data, confirmPassword: value })}
+            autoComplete="new-password"
+            confirmValue={data.password}
+            showRequirements
+            minLength={12}
+          />
         </div>
         {error && (
           <div className="alert alert-error" role="alert">
@@ -395,21 +381,15 @@ export function VerifyPage() {
             placeholder="6 dígitos"
           />
         </div>
-        <div className="input-group">
-          <label htmlFor="vpass">Contraseña elegida al registrarte (12 caracteres mínimo)</label>
-          <input
-            id="vpass"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={12}
-            maxLength={128}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="La que usaste al registrarte"
-          />
-        </div>
+        <PasswordField
+          id="vpass"
+          label="Contraseña elegida al registrarte"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          hint="Mínimo 12 caracteres."
+          minLength={12}
+        />
         {notice && (
           <div
             className={`alert ${noticeIsError ? 'alert-error' : 'alert-success'}`}
@@ -489,6 +469,13 @@ export function AccountPage() {
         </div>
       </section>
 
+      <Link
+        className="btn btn-outline btn-full"
+        to={isClinicAdmin(user.role) ? '/consultorio/citas' : '/mis-citas'}
+      >
+        {isClinicAdmin(user.role) ? 'Ver citas del consultorio' : 'Ver mis citas'}
+      </Link>
+
       <button
         onClick={handleLogout}
         className="btn btn-outline btn-full"
@@ -504,35 +491,3 @@ export function AccountPage() {
 // ==========================================
 // WRAPPER (Contenedor Visual)
 // ==========================================
-function AuthLayout({
-  title,
-  visualTitle,
-  visualText,
-  children,
-  hideVisual = false,
-}: {
-  title: string;
-  visualTitle?: string;
-  visualText?: string;
-  children: ReactNode;
-  hideVisual?: boolean;
-}) {
-  return (
-    <main className={`auth-layout ${hideVisual ? 'no-visual' : ''}`}>
-      {!hideVisual && (
-        <div className="auth-visual">
-          <h2>{visualTitle || 'DentalConnect'}</h2>
-          <p>
-            {visualText || 'Consulta consultorios y organiza tus solicitudes de atención dental.'}
-          </p>
-        </div>
-      )}
-      <div className="auth-content">
-        <div className="auth-form-box">
-          <h1>{title}</h1>
-          {children}
-        </div>
-      </div>
-    </main>
-  );
-}

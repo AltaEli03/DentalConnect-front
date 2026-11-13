@@ -1,4 +1,10 @@
-import type { ApiResponse, AppointmentProposal, AvailabilitySlot, Clinic } from '../types/api';
+import type {
+  ApiResponse,
+  AppointmentProposal,
+  AvailabilitySlot,
+  Clinic,
+  PatientAppointment,
+} from '../types/api';
 import { currentIdToken } from './cognito';
 
 const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
@@ -82,6 +88,7 @@ export const api = {
       headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(body),
     }),
+  myAppointments: () => request<{ data: PatientAppointment[] }>('/appointments/mine'),
   proposal: (appointmentId: string) =>
     request<ApiResponse<AppointmentProposal>>(
       `/appointments/${encodeURIComponent(appointmentId)}/proposal`,

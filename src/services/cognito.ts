@@ -61,6 +61,14 @@ function profileFromSession(session: CognitoUserSession, user: CognitoUser): Cog
     firstName: String(claims.given_name || ''),
     lastName: String(claims.family_name || ''),
     role: String(claims['custom:role'] || claims.role || groups[0] || 'PACIENTE'),
+    clinicId:
+      String(
+        claims['clinic_id'] ||
+          claims['custom:clinic_id'] ||
+          claims['clinicId'] ||
+          claims['custom:clinicId'] ||
+          '',
+      ) || undefined,
     isEmailVerified: claims.email_verified === true || claims.email_verified === 'true',
   };
 }
@@ -101,6 +109,7 @@ export type CognitoProfile = {
   firstName: string;
   lastName: string;
   role?: string;
+  clinicId?: string;
   isEmailVerified?: boolean;
 };
 export function currentUser() {

@@ -6,6 +6,23 @@
 
     <!-- Color de la barra de estado en móviles (Theme Color VIP) -->
     <meta name="theme-color" content="#003B4A" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        try {
+          var preference = localStorage.getItem('dentalconnect-theme') || 'system';
+          var dark =
+            preference === 'dark' ||
+            (preference === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (error) {
+          /* Private mode: the app applies the system theme when it mounts. */
+        }
+      })();
+    </script>
 
     <!-- Información clara para buscadores y vistas previas -->
     <title>DentalConnect | Encuentra tu consultorio ideal</title>
@@ -24,8 +41,9 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Favicon (Pon aquí tu logo en formato .ico o .png pequeño) -->
-    <link rel="icon" type="image/png" href="./src/img/logodental.png" />
+    <!-- Iconos PWA generados desde public/icon-source.svg -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 
     <style>
       /* =========================================

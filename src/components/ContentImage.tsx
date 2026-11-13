@@ -16,7 +16,7 @@ export function ContentImage({ src, alt, className = '' }: ContentImageProps) {
         role="img"
         aria-label={`${alt}. Imagen no disponible`}
       >
-        <span className="font-display text-2xl font-bold text-brand/30" aria-hidden="true">
+        <span className="font-display text-2xl font-bold text-heading/30" aria-hidden="true">
           DC
         </span>
         <span className="text-xs font-medium">Imagen no disponible</span>

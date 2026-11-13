@@ -80,7 +80,7 @@ export function DentistProfilePage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              className="rounded-control border border-danger/40 px-3 py-2 text-sm font-semibold text-danger hover:bg-danger/5"
+              className="rounded-control border border-danger/40 px-3 py-2 text-sm font-semibold text-danger-text hover:bg-danger/5"
               onClick={() => setAttempt((current) => current + 1)}
             >
               Reintentar
@@ -128,7 +128,7 @@ export function DentistProfilePage() {
       </nav>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <div className="overflow-hidden rounded-card border border-line bg-white shadow-sm">
+        <div className="overflow-hidden rounded-card border border-line bg-surface shadow-sm">
           <div className="aspect-[4/5] w-full overflow-hidden bg-canvas">
             <ContentImage
               src={dentist.imageUrl}
@@ -140,7 +140,7 @@ export function DentistProfilePage() {
             <p className="text-sm font-semibold text-accent-strong">
               {dentist.specialty || 'Odontología general'}
             </p>
-            <h1 className="mt-1 font-display text-2xl font-semibold text-brand">
+            <h1 className="mt-1 font-display text-2xl font-semibold text-heading">
               {dentist.firstName} {dentist.lastName}
             </h1>
             {dentist.professionalLicense && (
@@ -153,20 +153,20 @@ export function DentistProfilePage() {
 
         <div className="grid gap-6">
           {dentist.biography && (
-            <section className="rounded-card border border-line bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="font-display text-xl font-semibold text-brand">Acerca de</h2>
+            <section className="rounded-card border border-line bg-surface p-5 shadow-sm sm:p-6">
+              <h2 className="font-display text-xl font-semibold text-heading">Acerca de</h2>
               <p className="mt-2 leading-relaxed text-muted">{dentist.biography}</p>
             </section>
           )}
 
-          <section className="rounded-card border border-line bg-white p-5 shadow-sm sm:p-6">
-            <h2 className="font-display text-xl font-semibold text-brand">Servicios activos</h2>
+          <section className="rounded-card border border-line bg-surface p-5 shadow-sm sm:p-6">
+            <h2 className="font-display text-xl font-semibold text-heading">Servicios activos</h2>
             {dentist.services?.length ? (
               <ul className="mt-4 grid gap-4">
                 {dentist.services.map((service) => (
                   <li key={service.id} className="rounded-control border border-line bg-canvas p-4">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="font-semibold text-brand">{service.name}</h3>
+                      <h3 className="font-semibold text-heading">{service.name}</h3>
                       <span className="text-sm font-semibold text-muted">
                         {service.estimatedDurationMinutes} min
                       </span>

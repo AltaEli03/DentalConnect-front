@@ -6,22 +6,31 @@ import { DentistProfilePage } from '../pages/DentistProfilePage';
 import { AppointmentRequestPage } from '../pages/AppointmentRequestPage';
 import { AppointmentManagementPage } from '../pages/AppointmentManagementPage';
 import { AppointmentProposalPage } from '../pages/AppointmentProposalPage';
+import { PatientAppointmentsPage } from '../pages/PatientAppointmentsPage';
+import { ClinicAppointmentsPage } from '../pages/ClinicAppointmentsPage';
 import { AuthProvider } from '../auth/AuthContext';
+import { ThemeProvider } from '../theme/ThemeProvider';
+import { ThemeToggle } from '../theme/ThemeToggle';
+import { NetworkStatus } from '../components/NetworkStatus';
+import { isClinicAdmin, isPatientRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
+import { ClinicLoginPage } from '../pages/ClinicLoginPage';
 
 export function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
 function AppContent() {
   const { user } = useAuth();
-  const role = user?.role?.toLocaleUpperCase('es-MX');
-  const hasClinicRole = Boolean(user) && role !== 'PACIENTE' && role !== 'PATIENT';
+  const isPatient = isPatientRole(user?.role);
+  const hasClinicRole = Boolean(user) && isClinicAdmin(user?.role);
 
   return (
     <>
@@ -39,10 +48,14 @@ function AppContent() {
               Consultorios
             </NavLink>
             {hasClinicRole && (
-              <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">
-                Solicitudes
-              </NavLink>
+              <>
+                <NavLink to="/consultorio/citas">Citas</NavLink>
+                <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">
+                  Solicitudes
+                </NavLink>
+              </>
             )}
+            {user && isPatient && <NavLink to="/mis-citas">Mis citas</NavLink>}
             {user ? (
               <NavLink to="/mi-cuenta" className="header-nav-primary">
                 Mi cuenta
@@ -55,9 +68,11 @@ function AppContent() {
                 </NavLink>
               </>
             )}
+            <ThemeToggle />
           </nav>
         </div>
       </header>
+      <NetworkStatus />
       <div id="main-content" className="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Navigate to="/clinics" replace />} />
@@ -68,9 +83,12 @@ function AppContent() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/verificar-correo" element={<VerifyPage />} />
           <Route path="/iniciar-sesion" element={<LoginPage />} />
+          <Route path="/consultorio/iniciar-sesion" element={<ClinicLoginPage />} />
           <Route path="/mi-cuenta" element={<AccountPage />} />
           <Route path="/administrar-dentistas" element={<DentistManagementPage />} />
+          <Route path="/consultorio/citas" element={<ClinicAppointmentsPage />} />
           <Route path="/administrar-solicitudes" element={<AppointmentManagementPage />} />
+          <Route path="/mis-citas" element={<PatientAppointmentsPage />} />
           <Route path="/mi-solicitud/:appointmentId" element={<AppointmentProposalPage />} />
           <Route path="*" element={<Navigate to="/clinics" replace />} />
         </Routes>
@@ -78,6 +96,7 @@ function AppContent() {
       <footer className="site-footer">
         <span>DentalConnect</span>
         <span>Información de consultorios para ayudarte a elegir con claridad.</span>
+        <Link to="/consultorio/iniciar-sesion">Acceso consultorio</Link>
       </footer>
     </>
   );

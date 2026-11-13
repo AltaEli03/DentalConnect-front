@@ -159,12 +159,12 @@ export function ClinicListPage() {
 
   return (
     <main>
-      <section className="border-b border-line bg-gradient-to-b from-white to-canvas">
+      <section className="border-b border-line bg-gradient-to-b from-surface to-canvas">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
           <p className="inline-flex rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-sm font-semibold text-accent-strong">
             Atención dental en tu zona
           </p>
-          <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold tracking-tight text-brand sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold tracking-tight text-heading sm:text-5xl lg:text-6xl">
             Encuentra un consultorio que se adapte a ti.
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
@@ -173,7 +173,7 @@ export function ClinicListPage() {
 
           <form
             onSubmit={submit}
-            className="mt-8 rounded-card border border-line bg-white p-4 shadow-sm sm:p-5"
+            className="mt-8 rounded-card border border-line bg-surface p-4 shadow-sm sm:p-5"
             aria-label="Buscar consultorios"
           >
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
@@ -188,7 +188,7 @@ export function ClinicListPage() {
                   placeholder="Ciudad, colonia o C.P."
                   maxLength={120}
                   autoComplete="postal-code"
-                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                  className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-ink">
@@ -198,7 +198,7 @@ export function ClinicListPage() {
                   name="serviceId"
                   value={selectedService}
                   onChange={(event) => setSelectedService(event.target.value)}
-                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                  className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
                 >
                   <option value="">Todos los servicios</option>
                   {services.map((service) => (
@@ -228,7 +228,7 @@ export function ClinicListPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-sm font-semibold text-accent-strong underline underline-offset-4 hover:text-brand"
+                className="text-sm font-semibold text-accent-strong underline underline-offset-4 hover:text-heading"
               >
                 Limpiar filtros
               </button>
@@ -248,7 +248,7 @@ export function ClinicListPage() {
         aria-busy={loading}
       >
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-          <h2 className="font-display text-2xl font-semibold text-brand">
+          <h2 className="font-display text-2xl font-semibold text-heading">
             {nearby ? 'Consultorios cercanos' : 'Consultorios disponibles'}
           </h2>
           {!loading && !error && (
@@ -281,7 +281,7 @@ export function ClinicListPage() {
             <Button
               variant="outline"
               size="sm"
-              className="mt-3 border-danger/40 text-danger hover:bg-danger/5"
+              className="mt-3 border-danger/40 text-danger-text hover:bg-danger/5"
               onClick={() => setAttempt((current) => current + 1)}
             >
               Reintentar

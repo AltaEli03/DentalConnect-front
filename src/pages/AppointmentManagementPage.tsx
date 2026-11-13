@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiBaseUrl } from '../services/api';
-import { currentIdToken } from '../services/cognito';
+import { useSearchParams } from 'react-router-dom';
+import { clinicRequest as request } from '../services/clinicApi';
 import type { AvailabilitySlot } from '../types/api';
 
 type Appointment = {
@@ -72,6 +72,13 @@ type AppointmentDto = Partial<Appointment> & {
   rejection?: { reason?: string };
 };
 
+type ClinicListResponse = {
+  data?: AppointmentDto[];
+  appointments?: AppointmentDto[];
+  items?: AppointmentDto[];
+};
+type ClinicDetailResponse = { data?: AppointmentDto; appointment?: AppointmentDto };
+
 const normalizeAppointment = (item: AppointmentDto): Appointment => ({
   ...item,
   id: item.id || '',
@@ -116,30 +123,6 @@ export function AppointmentManagementPage() {
   const [selectedProposed, setSelectedProposed] = useState('');
   const [proposing, setProposing] = useState(false);
 
-  const request = useCallback(async (path: string, init: RequestInit = {}) => {
-    const base = apiBaseUrl();
-    const token = await currentIdToken();
-    if (!token) throw new Error('Inicia sesión con una cuenta autorizada del consultorio.');
-    const headers = new Headers(init.headers);
-    headers.set('Authorization', 'Bearer ' + token);
-    if (init.body) headers.set('Content-Type', 'application/json');
-    const response = await fetch(base + path, { ...init, headers });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      const message =
-        body?.error?.message ||
-        body?.message ||
-        body?.title ||
-        (response.status === 403
-          ? 'Tu cuenta no tiene permisos...'
-          : response.status === 404
-            ? 'La solicitud no existe...'
-            : 'Error HTTP ' + response.status);
-      throw new Error(message);
-    }
-    return response.status === 204 ? null : response.json();
-  }, []);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -149,10 +132,16 @@ export function AppointmentManagementPage() {
       if (from) params.set('dateFrom', from);
       if (to) params.set('dateTo', to);
       const query = params.toString();
-      const data = await request('/appointments' + (query ? '?' + query : ''));
+      const data = await request<AppointmentDto[] | ClinicListResponse>(
+        '/appointments' + (query ? '?' + query : ''),
+      );
       const rows = (
         Array.isArray(data) ? data : (data?.data ?? data?.appointments ?? data?.items ?? [])
-      ).map(normalizeAppointment);
+      )
+        .map(normalizeAppointment)
+        .sort(
+          (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime(),
+        );
       setItems(rows);
       setSelected((current) => {
         if (!current) return current;
@@ -186,7 +175,7 @@ export function AppointmentManagementPage() {
     let active = true;
     setLoadingSlots(true);
     const params = new URLSearchParams({ serviceId: selected.dentalServiceId, date: proposedDate });
-    request(
+    request<{ data: AvailabilitySlot[] }>(
       '/clinics/' +
         encodeURIComponent(selected.clinicId) +
         '/dentists/' +
@@ -220,8 +209,8 @@ export function AppointmentManagementPage() {
     setSlotError('');
     setLoadingDetail(true);
     try {
-      const data = await request('/appointments/' + encodeURIComponent(id));
-      setSelected(normalizeAppointment(data?.data ?? data?.appointment ?? data));
+      const data = await request<ClinicDetailResponse>('/appointments/' + encodeURIComponent(id));
+      setSelected(normalizeAppointment(data?.data ?? data?.appointment ?? {}));
     } catch (e) {
       setSelected(null);
       setError(e instanceof Error ? e.message : 'No se pudo abrir el detalle.');
@@ -229,6 +218,12 @@ export function AppointmentManagementPage() {
       setLoadingDetail(false);
     }
   };
+
+  const [searchParams] = useSearchParams();
+  const appointmentFromUrl = searchParams.get('appointmentId');
+  useEffect(() => {
+    if (appointmentFromUrl) void openDetail(appointmentFromUrl);
+  }, [appointmentFromUrl]);
 
   const act = async (action: 'confirm' | 'reject') => {
     if (!selected) return;

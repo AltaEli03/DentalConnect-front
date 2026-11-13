@@ -207,13 +207,13 @@ export function AppointmentRequestPage() {
             <Button
               variant="outline"
               size="sm"
-              className="border-danger/40 text-danger hover:bg-danger/5"
+              className="border-danger/40 text-danger-text hover:bg-danger/5"
               onClick={() => setClinicAttempt((current) => current + 1)}
             >
               Reintentar
             </Button>
             <Link
-              className="inline-flex min-h-10 items-center px-3 text-sm font-semibold text-brand underline underline-offset-4"
+              className="inline-flex min-h-10 items-center px-3 text-sm font-semibold text-heading underline underline-offset-4"
               to="/clinics"
             >
               Volver al directorio
@@ -240,7 +240,7 @@ export function AppointmentRequestPage() {
       </nav>
 
       <header className="mt-4 max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-heading sm:text-4xl">
           Solicitar atención
         </h1>
         <p className="mt-2 leading-relaxed text-muted">
@@ -251,7 +251,7 @@ export function AppointmentRequestPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <ol className="grid gap-4">
-          <li className="rounded-card border border-line bg-white p-5 shadow-sm">
+          <li className="rounded-card border border-line bg-surface p-5 shadow-sm">
             <div className="flex items-center gap-3">
               <span
                 className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
@@ -259,7 +259,7 @@ export function AppointmentRequestPage() {
               >
                 1
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">
+              <h2 className="font-display text-xl font-semibold text-heading">
                 Selecciona el servicio
               </h2>
             </div>
@@ -272,7 +272,7 @@ export function AppointmentRequestPage() {
                 id="service-select"
                 value={serviceId}
                 onChange={(event) => changeService(event.target.value)}
-                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
               >
                 <option value="">Elige un servicio</option>
                 {clinic.services.map((service) => (
@@ -285,7 +285,7 @@ export function AppointmentRequestPage() {
           </li>
 
           <li
-            className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDentist ? '' : 'opacity-60'}`}
+            className={`rounded-card border border-line bg-surface p-5 shadow-sm ${canChooseDentist ? '' : 'opacity-60'}`}
           >
             <div className="flex items-center gap-3">
               <span
@@ -294,7 +294,7 @@ export function AppointmentRequestPage() {
               >
                 2
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">
+              <h2 className="font-display text-xl font-semibold text-heading">
                 Elige a tu especialista
               </h2>
             </div>
@@ -308,7 +308,7 @@ export function AppointmentRequestPage() {
                 value={dentistId}
                 onChange={(event) => changeDentist(event.target.value)}
                 disabled={!canChooseDentist}
-                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
+                className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
               >
                 <option value="">Selecciona un dentista</option>
                 {dentists.map((dentist) => (
@@ -326,7 +326,7 @@ export function AppointmentRequestPage() {
           </li>
 
           <li
-            className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDate ? '' : 'opacity-60'}`}
+            className={`rounded-card border border-line bg-surface p-5 shadow-sm ${canChooseDate ? '' : 'opacity-60'}`}
           >
             <div className="flex items-center gap-3">
               <span
@@ -335,7 +335,7 @@ export function AppointmentRequestPage() {
               >
                 3
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">
+              <h2 className="font-display text-xl font-semibold text-heading">
                 Selecciona fecha y hora
               </h2>
             </div>
@@ -357,7 +357,7 @@ export function AppointmentRequestPage() {
                 }}
                 min={localToday()}
                 disabled={!canChooseDate}
-                className="min-h-11 max-w-sm rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
+                className="min-h-11 max-w-sm rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
               />
             </label>
 
@@ -378,7 +378,7 @@ export function AppointmentRequestPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-3 border-danger/40 text-danger hover:bg-danger/5"
+                  className="mt-3 border-danger/40 text-danger-text hover:bg-danger/5"
                   onClick={() => setAvailabilityAttempt((current) => current + 1)}
                 >
                   Reintentar horarios
@@ -405,7 +405,7 @@ export function AppointmentRequestPage() {
                     className={`min-h-11 rounded-control border px-2 text-sm font-semibold transition-colors ${
                       selectedSlot === slot.startsAt
                         ? 'border-brand bg-brand text-white'
-                        : 'border-line-strong bg-white text-brand hover:border-accent hover:bg-canvas'
+                        : 'border-control bg-surface text-heading hover:border-accent hover:bg-canvas'
                     }`}
                   >
                     {formatTime(slot.startsAt)}
@@ -417,7 +417,7 @@ export function AppointmentRequestPage() {
         </ol>
 
         <aside
-          className="rounded-card border border-line bg-white shadow-md lg:sticky lg:top-24"
+          className="rounded-card border border-line bg-surface shadow-md lg:sticky lg:top-24"
           aria-labelledby="summary-title"
         >
           <div className="rounded-t-card bg-brand p-5 text-white">

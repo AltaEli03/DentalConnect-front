@@ -49,7 +49,7 @@ describe('Sprint 2 account flow', () => {
       target: { value: 'paciente@example.com' },
     });
     fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '+522221234567' } });
-    fireEvent.change(screen.getByLabelText('Contraseña (12 caracteres mínimo)'), {
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
       target: { value: 'DentConnect123!' },
     });
     fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
@@ -72,12 +72,9 @@ describe('Sprint 2 account flow', () => {
     fireEvent.change(screen.getByLabelText('Código de 6 dígitos'), {
       target: { value: '123456' },
     });
-    fireEvent.change(
-      screen.getByLabelText('Contraseña elegida al registrarte (12 caracteres mínimo)'),
-      {
-        target: { value: 'DentConnect123!' },
-      },
-    );
+    fireEvent.change(screen.getByLabelText('Contraseña elegida al registrarte'), {
+      target: { value: 'DentConnect123!' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Verificar cuenta' }));
 
     await screen.findByRole('heading', { name: 'Inicia sesión' });
@@ -217,6 +214,22 @@ describe('Sprint 2 account flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/mi-cuenta'));
+  });
+
+  it('shows and hides the password and explains requirements', () => {
+    renderApp('/registro');
+
+    const password = screen.getByLabelText('Contraseña');
+    expect(password).toHaveAttribute('type', 'password');
+    expect(screen.getAllByText('12 caracteres como mínimo')).toHaveLength(2);
+    expect(screen.getByLabelText('Teléfono')).toHaveAttribute('type', 'tel');
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Mostrar contraseña' })[0]);
+    expect(password).toHaveAttribute('type', 'text');
+    expect(screen.getByRole('button', { name: 'Ocultar contraseña' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('clears the resend countdown when leaving the page', async () => {
