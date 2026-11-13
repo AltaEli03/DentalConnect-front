@@ -772,6 +772,56 @@ legend { color: var(--color-primary); font-weight: 700; }
   .dashboard-page, .booking-page, .page-container, .detail { padding-inline: 1rem; }
   .patient-contact, .action-buttons { flex-direction: column; }
 }
+
+/* =========================================
+   14. ADMINISTRACIÓN: COMPLEMENTOS DEL CSS LEGADO
+   ========================================= */
+.panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.list-panel { padding: 0; overflow: hidden; }
+.form-panel { padding: var(--space-5); }
+.text-muted { color: var(--color-text-muted); }
+.primary-btn { background: var(--color-primary); color: #fff; }
+.primary-btn:hover { background: var(--color-primary-hover); }
+.secondary-btn { background: #fff; border: 1px solid var(--color-border-strong); color: var(--color-primary); }
+.secondary-btn:hover { border-color: var(--color-primary); background: var(--color-bg); }
+.danger-btn { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+.danger-btn:hover { background: #FEE2E2; }
+.success-btn { background: #ECFDF5; border: 1px solid #A6D3BD; color: #065F46; }
+.full-width { width: 100%; }
+.clinic-selector-form { display: flex; flex-direction: column; gap: var(--space-2); min-width: min(100%, 280px); }
+.input-with-button { display: flex; gap: var(--space-2); }
+.input-with-button input { flex: 1; min-width: 0; }
+.dentist-list { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.dentist-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface); }
+.dentist-card.selected { border-color: var(--color-accent); box-shadow: 0 2px 8px rgb(0 124 131 / 12%); }
+.dentist-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); }
+.dentist-card-header h3 { margin: 0; font-size: 1.05rem; }
+.dentist-specialty, .dentist-services { color: var(--color-text-muted); font-size: 0.85rem; margin: 0.35rem 0; }
+.dentist-actions, .form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.status-badge.active { background: #ECFDF5; border: 1px solid #A6D3BD; color: #065F46; }
+.status-badge.inactive { background: #F1F5F9; border: 1px solid #CBD5E1; color: #475569; }
+.schedule-panel { padding: var(--space-5); }
+.schedule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.schedule-column { min-width: 0; }
+.schedule-column h3 { margin-top: 0; }
+.compact-form label { display: flex; flex-direction: column; gap: var(--space-1); font-size: 0.9rem; font-weight: 600; }
+.form-grid-compact { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2); margin-bottom: var(--space-2); }
+.schedule-list { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.schedule-item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); font-size: 0.85rem; }
+.schedule-item.block { background: #FFF7ED; border-color: #FED7AA; }
+.schedule-item span, .schedule-item small { display: block; color: var(--color-text-muted); }
+.icon-btn { min-width: 2rem; min-height: 2rem; padding: 0.35rem 0.55rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #fff; color: var(--color-text-muted); }
+.icon-btn.danger { border-color: #FECACA; color: #991B1B; }
+.services-fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); margin: var(--space-3) 0; }
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.checkbox-pill { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0.35rem 0.6rem; font-size: 0.85rem; cursor: pointer; }
+.checkbox-pill.checked { background: var(--color-primary-soft); border-color: var(--color-accent); color: var(--color-primary); }
+.icon { flex-shrink: 0; }
+
+@media (max-width: 900px) {
+  .schedule-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

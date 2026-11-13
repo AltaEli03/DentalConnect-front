@@ -42,14 +42,14 @@ const fetchMock = (handler: (url: string, init?: RequestInit) => Promise<Respons
   vi.fn((input: RequestInfo | URL, init?: RequestInit) => handler(String(input), init));
 
 const openDetail = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: 'Ver detalle' }));
-  return screen.findByRole('heading', { name: /Detalle ·/ });
+  fireEvent.click(await screen.findByRole('button', { name: /Ana Pérez/ }));
+  return screen.findByRole('heading', { name: 'Ana Pérez' });
 };
 
 const chooseAlternative = async () => {
-  const slot = await screen.findByRole('button', { name: /21 nov 2026/i });
+  const slot = await screen.findByRole('button', { name: /12:00/ });
   fireEvent.click(slot);
-  fireEvent.click(screen.getByRole('button', { name: 'Proponer este horario' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Proponer horario seleccionado' }));
   return slot;
 };
 
@@ -86,12 +86,12 @@ describe('HU-13 proponer horario alternativo', () => {
     await openDetail();
 
     expect(
-      await screen.findByRole('heading', { name: 'Proponer horario alternativo' }),
+      await screen.findByRole('heading', { name: /Proponer (un )?horario alternativo/ }),
     ).toBeInTheDocument();
-    const dateInput = screen.getByLabelText('Fecha alternativa');
+    const dateInput = screen.getByLabelText('Selecciona una fecha');
     expect(dateInput).toHaveAttribute('min');
     expect(dateInput.getAttribute('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(screen.queryByRole('button', { name: /20 nov 2026/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '11:00 a.m.' })).not.toBeInTheDocument();
 
     const availabilityCall = vi
       .mocked(fetch)
@@ -113,10 +113,10 @@ describe('HU-13 proponer horario alternativo', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent(/Propuesta enviada/);
     const detail = screen.getByLabelText('Detalle de solicitud');
-    expect(within(detail).getByText('Horario original:')).toBeInTheDocument();
-    expect(within(detail).getByText('Propuesta:')).toBeInTheDocument();
+    expect(within(detail).getByText('Fecha Solicitada:')).toBeInTheDocument();
+    expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
     expect(within(detail).getByText('Vence:')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer este horario' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
   });
 
   // DENT-13 R2
@@ -170,14 +170,14 @@ describe('HU-13 proponer horario alternativo', () => {
 
     const detail = screen.getByLabelText('Detalle de solicitud');
     expect(within(detail).getByText('Con propuesta')).toBeInTheDocument();
-    expect(screen.getByText(/^Propuesta: /)).toBeInTheDocument();
-    expect(within(detail).getByText('Horario original:')).toBeInTheDocument();
-    expect(within(detail).getByText('Propuesta:')).toBeInTheDocument();
+    expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
+    expect(within(detail).getByText('Fecha Solicitada:')).toBeInTheDocument();
+    expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
     expect(within(detail).getByText('Vence:')).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: 'Proponer horario alternativo' }),
+      screen.queryByRole('heading', { name: /Proponer (un )?horario alternativo/ }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer este horario' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Con propuesta' })).toBeInTheDocument();
   });
 
@@ -189,7 +189,7 @@ describe('HU-13 proponer horario alternativo', () => {
     );
 
     render(<AppointmentManagementPage />);
-    await screen.findByRole('button', { name: 'Ver detalle' });
+    await screen.findByRole('button', { name: /Ana Pérez/ });
     fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'PROPOSED' } });
 
     await waitFor(() =>
@@ -238,8 +238,8 @@ describe('HU-13 proponer horario alternativo', () => {
       'Ya existe una propuesta activa para esta solicitud',
     );
     const detail = screen.getByLabelText('Detalle de solicitud');
-    expect(within(detail).getByText('Horario original:')).toBeInTheDocument();
-    expect(within(detail).getByText('Propuesta:')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer este horario' })).not.toBeInTheDocument();
+    expect(within(detail).getByText('Fecha Solicitada:')).toBeInTheDocument();
+    expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
   });
 });

@@ -296,7 +296,7 @@ export function AppointmentManagementPage() {
                   >
                     <div className="request-card-top">
                       <strong>{patientName(item)}</strong>
-                      <span className={`status-dot ${getStatusClass(s)}`} title={statusLabels[s] || s}></span>
+                      <span className={`status-dot ${getStatusClass(s)}`} title={statusLabels[s] || s}><span className="sr-only">{statusLabels[s] || s}</span></span>
                     </div>
                     <p className="request-service">{item.serviceName || 'Servicio'}</p>
                     <div className="request-meta">
@@ -311,7 +311,7 @@ export function AppointmentManagementPage() {
         </aside>
 
         {/* COLUMNA DERECHA: DETALLE DE LA SOLICITUD */}
-        <section className="panel detail-panel">
+        <section className="panel detail-panel" aria-label="Detalle de solicitud">
           {loadingDetail ? (
             <div className="loading-state" style={{ height: '100%' }}>
               <p>Cargando detalle de la solicitud…</p>
@@ -352,7 +352,7 @@ export function AppointmentManagementPage() {
               {selected.proposedStartsAt && (
                 <div className="proposal-status-box" style={{ margin: '0 2rem 1.5rem', padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--color-accent)' }}>
                   <p style={{ margin: 0 }}><strong>Horario Propuesto:</strong> {dateTime(selected.proposedStartsAt)} – {dateTime(selected.proposedEndsAt)}</p>
-                  {selected.proposalExpiresAt && <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Vence: {dateTime(selected.proposalExpiresAt)}</p>}
+                  {selected.proposalExpiresAt && <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}><strong>Vence:</strong> {dateTime(selected.proposalExpiresAt)}</p>}
                 </div>
               )}
 
@@ -373,8 +373,8 @@ export function AppointmentManagementPage() {
                   {/* 2. PROPONER NUEVO HORARIO */}
                   <div className="action-block propose-block">
                     <h4>Proponer un horario alternativo</h4>
-                    <label className="date-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Selecciona una fecha</label>
-                    <input type="date" className="premium-input btn-full" style={{ marginBottom: '1rem' }} min={localToday()} value={proposedDate} onChange={(e) => { setProposedDate(e.target.value); setSelectedProposed(''); }} />
+                    <label htmlFor="proposed-date" className="date-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Selecciona una fecha</label>
+                    <input id="proposed-date" type="date" className="premium-input btn-full" style={{ marginBottom: '1rem' }} min={localToday()} value={proposedDate} onChange={(e) => { setProposedDate(e.target.value); setSelectedProposed(''); }} />
                     
                     {loadingSlots && <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Buscando disponibilidad…</p>}
                     {slotError && <div className="alert alert-error" style={{ padding: '0.5rem', fontSize: '0.85rem' }}>{slotError}</div>}
