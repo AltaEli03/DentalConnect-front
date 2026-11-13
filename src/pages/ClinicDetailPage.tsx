@@ -1,13 +1,33 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { api, ApiError } from '../services/api';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ContentImage } from '../components/ContentImage';
+import { Button, buttonStyles } from '../components/ui/Button';
+import { Notice } from '../components/ui/Notice';
+import { Skeleton } from '../components/ui/Skeleton';
+import { api, ApiError } from '../services/api';
 import type { Clinic } from '../types/api';
 
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
+function detailMessage(cause: unknown) {
+  if (cause instanceof ApiError) {
+    if (cause.status === 404) return 'No encontramos ese consultorio. Puede que ya no esté publicado.';
+    if (cause.status >= 500) return 'El detalle tiene un problema temporal. Inténtalo de nuevo en unos minutos.';
+    return cause.message;
+  }
+  if (
+    cause instanceof TypeError ||
+    (cause instanceof Error && /failed to fetch|network|load failed/i.test(cause.message))
+  ) {
+    return 'No pudimos conectar con DentalConnect. Revisa tu conexión e inténtalo de nuevo.';
+  }
+  return cause instanceof Error ? cause.message : 'No fue posible cargar el consultorio.';
+}
+
 export function ClinicDetailPage() {
   const { id = '' } = useParams();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? '';
   const [clinic, setClinic] = useState<Clinic>();
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -22,181 +42,236 @@ export function ClinicDetailPage() {
         if (active) setClinic(data);
       })
       .catch((cause: unknown) => {
-        if (!active) return;
-        if (cause instanceof ApiError && cause.status === 404) {
-          setError('No encontramos ese consultorio. Puede que ya no esté publicado.');
-        } else if (cause instanceof ApiError && cause.status >= 500) {
-          setError('El detalle tiene un problema temporal. Intenta de nuevo en unos minutos.');
-        } else if (
-          cause instanceof TypeError ||
-          (cause instanceof Error && /failed to fetch|network|load failed/i.test(cause.message))
-        ) {
-          setError(
-            'No pudimos conectar con DentalConnect. Revisa tu conexión e inténtalo de nuevo.',
-          );
-        } else {
-          setError(
-            cause instanceof Error ? cause.message : 'No fue posible cargar el consultorio.',
-          );
-        }
+        if (active) setError(detailMessage(cause));
       });
     return () => {
       active = false;
     };
   }, [attempt, id]);
 
-  if (error)
+  if (error) {
     return (
-      <main className="page-container">
-        <div className="alert alert-error" role="alert">
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <Notice tone="error" title="No pudimos cargar el consultorio">
           <p>{error}</p>
-          <div className="error-actions">
-            <button
-              type="button"
-              className="button-retry"
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-danger/40 text-danger hover:bg-danger/5"
               onClick={() => setAttempt((current) => current + 1)}
             >
               Reintentar
-            </button>
-            <Link to="/clinics" className="button-outline">
+            </Button>
+            <Link className={buttonStyles('ghost', 'sm')} to="/clinics">
               Volver al directorio
             </Link>
           </div>
+        </Notice>
+      </main>
+    );
+  }
+
+  if (!clinic) {
+    return (
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6" role="status" aria-live="polite">
+        <p className="sr-only">Cargando consultorio…</p>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
+          <div className="grid gap-6">
+            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+          <Skeleton className="h-64 w-full" />
         </div>
       </main>
     );
-  if (!clinic)
-    return (
-      <main className="page-container">
-        <p className="loading-state" role="status" aria-live="polite">
-          Cargando consultorio…
-        </p>
-      </main>
-    );
+  }
 
   return (
-    <main className="page-container">
-      <nav className="breadcrumb">
-        <Link to="/clinics">← Volver al directorio</Link>
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+      <nav aria-label="Migas de pan" className="text-sm font-semibold">
+        <Link
+          className="text-accent-strong underline-offset-4 hover:underline"
+          to={from ? `/clinics${from}` : '/clinics'}
+        >
+          Volver al directorio
+        </Link>
       </nav>
 
-      {/* HERO: Imagen a la izquierda, Info a la derecha */}
-      <section className="clinic-hero" aria-labelledby="clinic-name">
-        <div className="clinic-hero-img">
-          <ContentImage src={clinic.imageUrl} alt={`Instalaciones de ${clinic.name}`} />
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] lg:items-start">
+        <div className="grid gap-6">
+          <section className="overflow-hidden rounded-card border border-line bg-white shadow-sm">
+            <div className="aspect-[16/9] w-full overflow-hidden bg-canvas">
+              <ContentImage
+                src={clinic.imageUrl}
+                alt={`Instalaciones de ${clinic.name}`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="p-5 sm:p-6">
+              <p className="text-sm font-semibold text-accent-strong">
+                {clinic.municipality}, {clinic.state}
+              </p>
+              <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+                {clinic.name}
+              </h1>
+              <p className="mt-3 max-w-2xl leading-relaxed text-muted">
+                {clinic.description || 'Consulta los datos de contacto y servicios disponibles.'}
+              </p>
+
+              <dl className="mt-5 grid gap-3 rounded-control border border-line bg-canvas p-4 text-sm">
+                <div>
+                  <dt className="font-semibold text-brand">Dirección</dt>
+                  <dd className="text-muted">
+                    {[
+                      clinic.address,
+                      clinic.municipality,
+                      clinic.state,
+                      clinic.postalCode ? `C.P. ${clinic.postalCode}` : '',
+                    ]
+                      .filter(Boolean)
+                      .join(', ') || 'Dirección no disponible'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-brand">Teléfono</dt>
+                  <dd>
+                    {clinic.phone ? (
+                      <a className="text-accent-strong underline underline-offset-4" href={`tel:${clinic.phone}`}>
+                        {clinic.phone}
+                      </a>
+                    ) : (
+                      <span className="text-muted">Teléfono no disponible</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-brand">Correo</dt>
+                  <dd>
+                    {clinic.email ? (
+                      <a className="break-all text-accent-strong underline underline-offset-4" href={`mailto:${clinic.email}`}>
+                        {clinic.email}
+                      </a>
+                    ) : (
+                      <span className="text-muted">Correo no disponible</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <section aria-labelledby="services-title">
+            <h2 id="services-title" className="font-display text-2xl font-semibold text-brand">
+              Servicios disponibles
+            </h2>
+            {clinic.services.length === 0 ? (
+              <Notice tone="info" className="mt-4">
+                Este consultorio aún no publica servicios.
+              </Notice>
+            ) : (
+              <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                {clinic.services.map((service) => (
+                  <li
+                    key={service.id}
+                    className="flex flex-col rounded-card border border-line bg-white p-5 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-display text-lg font-semibold text-brand">{service.name}</h3>
+                      <span className="whitespace-nowrap rounded-full border border-accent/30 bg-accent/5 px-2.5 py-1 text-xs font-bold text-accent-strong">
+                        Desde {money.format(service.priceFrom)}
+                      </span>
+                    </div>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
+                      {service.description || 'Descripción no disponible.'}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-4">
+                      <span className="text-sm font-semibold text-brand">
+                        {service.estimatedDurationMinutes} min
+                      </span>
+                      <Link
+                        className={buttonStyles('primary', 'sm')}
+                        to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}`}
+                        aria-label={`Solicitar ${service.name} en ${clinic.name}`}
+                      >
+                        Solicitar atención
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {clinic.dentists && clinic.dentists.length > 0 && (
+            <section aria-labelledby="team-title">
+              <h2 id="team-title" className="font-display text-2xl font-semibold text-brand">
+                Equipo dental
+              </h2>
+              <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                {clinic.dentists.map((dentist) => (
+                  <li
+                    key={dentist.id}
+                    className="overflow-hidden rounded-card border border-line bg-white shadow-sm"
+                  >
+                    <div className="h-44 w-full overflow-hidden bg-canvas">
+                      <ContentImage
+                        src={dentist.imageUrl}
+                        alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <p className="text-sm font-semibold text-accent-strong">
+                        {dentist.specialty || 'Odontología general'}
+                      </p>
+                      <h3 className="mt-1 font-display text-lg font-semibold text-brand">
+                        {dentist.firstName} {dentist.lastName}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
+                        {dentist.biography || 'Biografía profesional no disponible.'}
+                      </p>
+                      <Link
+                        className={`${buttonStyles('outline', 'sm')} mt-4 w-full`}
+                        to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
+                      >
+                        Ver perfil
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
 
-        <div className="clinic-hero-info">
-          <h1 id="clinic-name">{clinic.name}</h1>
-          <p className="clinic-description">{clinic.description}</p>
-
-          <div className="contact-info" aria-label="Datos de contacto">
-            <p>
-              <span aria-hidden="true">⌖</span>{' '}
-              {[
-                clinic.address,
-                clinic.municipality,
-                clinic.state,
-                clinic.postalCode ? `C.P. ${clinic.postalCode}` : '',
-              ]
-                .filter(Boolean)
-                .join(', ') || 'Dirección no disponible'}
-            </p>
-            <p>
-              <span aria-hidden="true">Tel.</span>{' '}
-              {clinic.phone ? (
-                <a href={`tel:${clinic.phone}`}>{clinic.phone}</a>
-              ) : (
-                'Teléfono no disponible'
-              )}
-            </p>
-            <p>
-              <span aria-hidden="true">Email</span>{' '}
-              {clinic.email ? (
-                <a href={`mailto:${clinic.email}`}>{clinic.email}</a>
-              ) : (
-                'Correo no disponible'
-              )}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SERVICIOS */}
-      <section className="services-section">
-        <h2 className="section-title" id="clinic-services">
-          Servicios disponibles
-        </h2>
-
-        {clinic.services.length === 0 ? (
-          <p className="notice info" role="status">
-            Este consultorio aún no publica servicios.
+        <aside className="rounded-card border border-line bg-white p-5 shadow-sm lg:sticky lg:top-24">
+          <h2 className="font-display text-xl font-semibold text-brand">Solicita tu cita</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Elige un servicio y consulta horarios. Enviar la solicitud no confirma ni cobra la cita.
           </p>
-        ) : (
-          <div className="services-grid">
-            {clinic.services.map((service) => (
-              <div className="service-card" key={service.id}>
-                <div className="service-card-header">
-                  <h3>{service.name}</h3>
-                  <span className="price">Desde {money.format(service.priceFrom)}</span>
-                </div>
-                <p className="service-description">
-                  {service.description || 'Descripción no disponible.'}
-                </p>
-                <div className="service-card-footer">
-                  <span className="duration">⏱ {service.estimatedDurationMinutes} min</span>
-                  <Link
-                    to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}`}
-                    className="btn btn-primary btn-sm"
-                    aria-label={`Solicitar ${service.name} en ${clinic.name}`}
-                  >
-                    Solicitar atención
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* EQUIPO DENTAL (El Plus que faltaba) */}
-      {clinic.dentists && clinic.dentists.length > 0 && (
-        <section className="team-section" aria-labelledby="team-title">
-          <h2 className="section-title" id="team-title">
-            Equipo dental
-          </h2>
-          <div className="card-grid" style={{ marginTop: '1.5rem' }}>
-            {clinic.dentists.map((dentist) => (
-              <div className="clinic-card" key={dentist.id}>
-                <div className="clinic-card-img">
-                  <ContentImage
-                    src={dentist.imageUrl}
-                    alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
-                  />
-                </div>
-                <div className="clinic-card-body">
-                  <span className="tag" style={{ alignSelf: 'flex-start', marginBottom: '0.5rem' }}>
-                    {dentist.specialty || 'Odontología General'}
-                  </span>
-                  <h3>
-                    {dentist.firstName} {dentist.lastName}
-                  </h3>
-                  <p className="dentist-biography">
-                    {dentist.biography || 'Biografía profesional no disponible.'}
-                  </p>
-
-                  <Link
-                    to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
-                    className="btn btn-outline"
-                  >
-                    Ver perfil
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+          <ol className="mt-4 grid gap-3 text-sm text-ink">
+            <li className="flex gap-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">1</span>
+              Elige servicio y dentista.
+            </li>
+            <li className="flex gap-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">2</span>
+              Consulta los horarios disponibles.
+            </li>
+            <li className="flex gap-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">3</span>
+              El consultorio confirma tu cita.
+            </li>
+          </ol>
+          <a
+            className={`${buttonStyles('coral', 'md')} mt-5 w-full`}
+            href="#services-title"
+          >
+            Elegir servicio
+          </a>
+        </aside>
+      </div>
     </main>
   );
 }
