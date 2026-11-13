@@ -12,14 +12,14 @@ export function ContentImage({ src, alt, className = '' }: ContentImageProps) {
   if (!src || failedSource === src) {
     return (
       <div
-        className={`media-placeholder ${className}`}
+        className={`flex min-h-40 w-full flex-col items-center justify-center gap-2 bg-canvas text-subtle ${className}`}
         role="img"
         aria-label={`${alt}. Imagen no disponible`}
       >
-        <span className="media-placeholder-mark" aria-hidden="true">
+        <span className="font-display text-2xl font-bold text-brand/30" aria-hidden="true">
           DC
         </span>
-        <span>Imagen no disponible</span>
+        <span className="text-xs font-medium">Imagen no disponible</span>
       </div>
     );
   }
