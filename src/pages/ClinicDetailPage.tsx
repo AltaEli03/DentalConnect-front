@@ -18,18 +18,22 @@ export function ClinicDetailPage() {
   if (error) return <main className="page-container"><div className="alert alert-error">{error}</div></main>;
   if (!clinic) return <main className="page-container"><div className="loading-state">Cargando consultorio…</div></main>;
 
+  const fallbackImage = 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=900&q=80';
+  const dentistFallback = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80';
+
   return (
     <main className="page-container">
       <nav className="breadcrumb">
         <Link to="/clinics">← Volver al directorio</Link>
       </nav>
 
-      {/* HERO: Imagen a la izquierda, Info a la derecha */}
+      {/* HERO: La imagen está estrictamente contenida aquí */}
       <header className="clinic-hero">
         <div className="clinic-hero-img">
           <img 
-            src={clinic.imageUrl || 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=900&q=80'} 
+            src={clinic.imageUrl || fallbackImage} 
             alt={`Instalaciones de ${clinic.name}`} 
+            onError={(e) => { e.currentTarget.src = fallbackImage; }}
           />
         </div>
         
@@ -77,17 +81,18 @@ export function ClinicDetailPage() {
         )}
       </section>
 
-      {/* EQUIPO DENTAL (El Plus que faltaba) */}
+      {/* EQUIPO DENTAL */}
       {clinic.dentists && clinic.dentists.length > 0 && (
         <section className="team-section">
           <h2 className="section-title">Nuestro Equipo Dental</h2>
           <div className="card-grid" style={{ marginTop: '1.5rem' }}>
             {clinic.dentists.map(dentist => (
               <div className="clinic-card" key={dentist.id}>
-                <div className="clinic-card-img" style={{ height: '180px' }}>
+                <div className="clinic-card-img-wrapper" style={{ height: '200px' }}>
                   <img 
-                    src={dentist.imageUrl || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80'} 
+                    src={dentist.imageUrl || dentistFallback} 
                     alt={`Dr. ${dentist.firstName} ${dentist.lastName}`} 
+                    onError={(e) => { e.currentTarget.src = dentistFallback; }}
                   />
                 </div>
                 <div className="clinic-card-body">
@@ -95,12 +100,12 @@ export function ClinicDetailPage() {
                     {dentist.specialty || 'Odontología General'}
                   </span>
                   <h3>{dentist.firstName} {dentist.lastName}</h3>
-                  <p style={{ flex: 1 }}>{dentist.biography || 'Especialista certificado de DentalConnect.'}</p>
+                  <p className="clinic-desc">{dentist.biography || 'Especialista certificado de DentalConnect.'}</p>
                   
                   <Link 
                     to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
-                    className="btn btn-outline"
-                    style={{ width: '100%', marginTop: '1rem', padding: '0.6rem' }}
+                    className="btn btn-outline btn-full"
+                    style={{ marginTop: 'auto' }}
                   >
                     Ver perfil
                   </Link>
