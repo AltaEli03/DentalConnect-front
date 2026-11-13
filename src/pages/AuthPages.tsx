@@ -21,7 +21,11 @@ export function LoginPage() {
   const { user, acceptLogin } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
-  const redirect = (location.state as { from?: string } | null)?.from || '/mi-cuenta';
+  const requestedRedirect = (location.state as { from?: string } | null)?.from;
+  const redirect =
+    requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
+      ? requestedRedirect
+      : '/mi-cuenta';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

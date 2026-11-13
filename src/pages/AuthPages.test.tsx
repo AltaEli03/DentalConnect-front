@@ -186,6 +186,39 @@ describe('Sprint 2 account flow', () => {
     setSpy.mockRestore();
   });
 
+  it('ignores an external redirect after signing in', async () => {
+    vi.mocked(signIn).mockResolvedValue(profile);
+    function LocationDisplay() {
+      const location = useLocation();
+      return <output data-testid="location">{location.pathname}</output>;
+    }
+    render(
+      <MemoryRouter
+        initialEntries={[
+          { pathname: '/iniciar-sesion', state: { from: 'https://evil.example/steal' } },
+        ]}
+      >
+        <AuthProvider>
+          <Routes>
+            <Route path="/iniciar-sesion" element={<LoginPage />} />
+            <Route path="*" element={<p>Destino</p>} />
+          </Routes>
+          <LocationDisplay />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: profile.email },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'DentConnect123!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/mi-cuenta'));
+  });
+
   it('clears the resend countdown when leaving the page', async () => {
     vi.mocked(api.resend).mockResolvedValue({ data: { message: 'Código reenviado' } });
     const setSpy = vi.spyOn(window, 'setInterval');
