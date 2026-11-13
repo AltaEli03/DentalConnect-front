@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
+import { ContentImage } from '../components/ContentImage';
 import type { Clinic, Dentist } from '../types/api';
 
 export function DentistProfilePage() {
@@ -9,29 +10,54 @@ export function DentistProfilePage() {
   const [dentist, setDentist] = useState<Dentist>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
-    setLoading(true); 
-    setError(''); 
+    setLoading(true);
+    setError('');
     setDentist(undefined);
-    
-    api.clinic(clinicId).then(({ data }) => {
-      if (!active) return;
-      setClinic(data);
-      setDentist(data.dentists?.find((item) => item.id === dentistId));
-    }).catch((cause: unknown) => { 
-      if (active) setError(cause instanceof Error ? cause.message : 'No fue posible cargar el perfil.'); 
-    })
-    .finally(() => { if (active) setLoading(false); });
-    
-    return () => { active = false; };
-  }, [clinicId, dentistId]);
+    setClinic(undefined);
+
+    api
+      .clinic(clinicId)
+      .then(({ data }) => {
+        if (!active) return;
+        setClinic(data);
+        setDentist(data.dentists?.find((item) => item.id === dentistId));
+      })
+      .catch((cause: unknown) => {
+        if (!active) return;
+        if (cause instanceof ApiError && cause.status === 404) {
+          setError('No encontramos este consultorio. Puede que ya no esté publicado.');
+        } else if (cause instanceof ApiError && cause.status >= 500) {
+          setError('El perfil tiene un problema temporal. Intenta de nuevo en unos minutos.');
+        } else if (
+          cause instanceof TypeError ||
+          (cause instanceof Error && /failed to fetch|network|load failed/i.test(cause.message))
+        ) {
+          setError(
+            'No pudimos conectar con DentalConnect. Revisa tu conexión e inténtalo de nuevo.',
+          );
+        } else {
+          setError(cause instanceof Error ? cause.message : 'No fue posible cargar el perfil.');
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [attempt, clinicId, dentistId]);
 
   if (loading) {
     return (
       <main className="directory">
-        <div className="loading-state"><p>Cargando perfil del especialista…</p></div>
+        <div className="loading-state">
+          <p>Cargando perfil del especialista…</p>
+        </div>
       </main>
     );
   }
@@ -39,9 +65,18 @@ export function DentistProfilePage() {
   if (error) {
     return (
       <main className="directory">
-        <div className="notice error">
+        <div className="notice error" role="alert">
           <p>{error}</p>
-          <Link to={`/clinics/${clinicId}`} className="button">Volver al consultorio</Link>
+          <button
+            type="button"
+            className="button-retry"
+            onClick={() => setAttempt((current) => current + 1)}
+          >
+            Reintentar
+          </button>
+          <Link to={`/clinics/${clinicId}`} className="button">
+            Volver al consultorio
+          </Link>
         </div>
       </main>
     );
@@ -53,7 +88,9 @@ export function DentistProfilePage() {
         <div className="notice">
           <h1>Perfil no disponible</h1>
           <p>Este dentista ya no está disponible en el consultorio seleccionado.</p>
-          <Link to={`/clinics/${clinicId}`} className="button">Volver al consultorio</Link>
+          <Link to={`/clinics/${clinicId}`} className="button">
+            Volver al consultorio
+          </Link>
         </div>
       </main>
     );
@@ -69,16 +106,17 @@ export function DentistProfilePage() {
       {/* Cabecera del Perfil (Layout de dos columnas) */}
       <header className="dentist-header">
         <div className="dentist-image-wrapper">
-          {dentist.imageUrl ? (
-            <img src={dentist.imageUrl} alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`} />
-          ) : (
-            <div className="dentist-image-placeholder">👨‍⚕️</div>
-          )}
+          <ContentImage
+            src={dentist.imageUrl}
+            alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
+          />
         </div>
-        
+
         <div className="dentist-info">
           <p className="eyebrow">Perfil profesional · {clinic.name}</p>
-          <h1>{dentist.firstName} {dentist.lastName}</h1>
+          <h1>
+            {dentist.firstName} {dentist.lastName}
+          </h1>
           {dentist.specialty && <p className="lead">{dentist.specialty}</p>}
         </div>
       </header>
@@ -103,8 +141,8 @@ export function DentistProfilePage() {
                   <span className="service-time">⏱ {service.estimatedDurationMinutes} min</span>
                 </div>
                 <p className="service-description">{service.description}</p>
-                <Link 
-                  className="button service-button" 
+                <Link
+                  className="button service-button"
                   to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}&dentistId=${encodeURIComponent(dentist.id)}`}
                 >
                   Elegir este servicio
@@ -118,7 +156,8 @@ export function DentistProfilePage() {
       </section>
 
       <p className="notice info-notice">
-        ℹ️ Elegir a un profesional conserva tu selección para consultar horarios; todavía no confirma una cita.
+        ℹ️ Elegir a un profesional conserva tu selección para consultar horarios; todavía no
+        confirma una cita.
       </p>
     </main>
   );
