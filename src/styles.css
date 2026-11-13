@@ -1,72 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800;900&display=swap');
 
 /* =========================================
-   VARIABLES GLOBALES Y PALETA DE COLORES VIP
+   VARIABLES GLOBALES (THE "CHIDO" EDITION)
    ========================================= */
 :root {
-  /* Tipografía Premium */
   --font-body: 'Inter', system-ui, sans-serif;
   --font-heading: 'Outfit', system-ui, sans-serif;
   
-  /* Colores Principales (Deep Teal & Ocean) */
-  --color-primary: #003B4A; /* Azul muy profundo, elegante */
-  --color-primary-hover: #002A36;
-  --color-accent: #00D2D3; /* Aqua vibrante (Acción) */
-  --color-coral: #FF7E67; /* Coral cálido (Emoción/Energía) */
+  /* Paleta Cyber-Clinical */
+  --color-primary: #0B132B; /* Azul medianoche profundo */
+  --color-primary-light: #1C2541;
+  --color-accent-aqua: #00F0FF; /* Aqua Neón */
+  --color-accent-purple: #7B2CBF; /* Púrpura vibrante */
+  --color-accent-coral: #FF3366; /* Coral eléctrico */
   
-  /* Colores Neutrales y de Fondo */
-  --color-bg: #F4F7F9; /* Blanco perla, no lastima la vista */
-  --color-surface: #FFFFFF;
+  /* Superficies */
+  --color-bg: #F4F7F9;
+  --color-surface: rgba(255, 255, 255, 0.85); /* Cristal */
   --color-text-main: #1D2D35;
   --color-text-muted: #5E718D;
-  --color-border: #E2E8F0;
+  --color-border: rgba(255, 255, 255, 0.6);
   
-  /* Estados */
-  --color-error-bg: #FEF2F2;
-  --color-error-text: #B91C1C;
+  /* Sombras Multicapa y Neón */
+  --shadow-glass: 0 8px 32px 0 rgba(11, 19, 43, 0.08);
+  --shadow-hover: 0 20px 40px -10px rgba(11, 19, 43, 0.15);
+  --shadow-glow-aqua: 0 0 20px rgba(0, 240, 255, 0.5);
+  --shadow-glow-coral: 0 0 20px rgba(255, 51, 102, 0.5);
+  --shadow-focus: 0 0 0 4px rgba(0, 240, 255, 0.3);
 
-  /* Radios y Espaciados (Bordes muy suaves = Lujo) */
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  /* Radios */
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
   --radius-pill: 100px;
-  
-  /* Sombras Multicapa (Efecto de elevación real) */
-  --shadow-sm: 0 2px 4px rgba(0, 59, 74, 0.04);
-  --shadow-md: 0 8px 24px -4px rgba(0, 59, 74, 0.08), 0 4px 8px -2px rgba(0, 59, 74, 0.04);
-  --shadow-lg: 0 20px 40px -8px rgba(0, 59, 74, 0.12), 0 10px 20px -8px rgba(0, 59, 74, 0.08);
-  --shadow-glow: 0 0 20px rgba(0, 210, 211, 0.4);
-  --shadow-focus: 0 0 0 4px rgba(0, 210, 211, 0.3);
 
-  /* Transiciones (Curva bezier para sensación de fluidez Apple) */
+  /* Animaciones */
   --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* =========================================
-   PLUS PREMIUM: Scrollbar y Selección
+   FONDO AURORA MESH (El toque mágico)
    ========================================= */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
-
-::selection {
-  background: var(--color-coral);
-  color: white;
-}
-
-/* =========================================
-   RESET Y ESTILOS BASE
-   ========================================= */
-*, *::before, *::after { box-sizing: border-box; }
-
 body {
   margin: 0;
   font-family: var(--font-body);
   color: var(--color-text-main);
   background-color: var(--color-bg);
+  background-image: 
+    radial-gradient(at 10% 20%, rgba(0, 240, 255, 0.15) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(123, 44, 191, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(255, 51, 102, 0.08) 0px, transparent 50%);
+  background-attachment: fixed;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -75,9 +59,9 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
   color: var(--color-primary);
-  line-height: 1.1;
+  line-height: 1.05;
   margin-top: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 a {
@@ -85,10 +69,8 @@ a {
   text-decoration: none;
   font-weight: 600;
   transition: var(--transition);
-  position: relative;
 }
-
-a:hover { color: var(--color-accent); }
+a:hover { color: var(--color-accent-purple); }
 
 *:focus-visible {
   outline: none;
@@ -97,22 +79,24 @@ a:hover { color: var(--color-accent); }
 }
 
 /* =========================================
-   HEADER (Glassmorphism Puro)
+   HEADER (Flotante y de Cristal)
    ========================================= */
 header {
-  padding: 1.2rem max(1.5rem, calc((100% - 1120px) / 2));
+  margin: 1rem auto;
+  width: min(100% - 2rem, 1200px);
+  padding: 0.8rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   position: sticky;
-  top: 0;
+  top: 1rem;
   z-index: 100;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
-  animation: fadeInDown 0.8s var(--transition) forwards;
+  box-shadow: 0 10px 30px -10px rgba(11, 19, 43, 0.1);
 }
 
 .brand {
@@ -120,117 +104,75 @@ header {
   font-size: 1.6rem;
   font-weight: 900;
   color: var(--color-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
 }
-.brand span { color: var(--color-accent); }
+.brand span { color: var(--color-accent-purple); }
 
 header nav { display: flex; align-items: center; gap: 2rem; }
-
 header nav a {
-  color: var(--color-text-main);
-  font-weight: 600;
   font-size: 0.95rem;
-  padding-bottom: 4px;
+  color: var(--color-primary);
+  position: relative;
 }
-
-/* Efecto línea animada en los links del nav */
-header nav a::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background: var(--color-accent);
-  transition: var(--transition);
-  border-radius: 2px;
-}
-header nav a:hover::after { width: 100%; }
 
 /* =========================================
-   HERO SECTION (Luces, Profundidad y Emoción)
+   HERO SECTION (El impacto visual)
    ========================================= */
 .hero {
-  padding: 7rem max(1.5rem, calc((100% - 1120px) / 2));
-  background: #F4F7F9;
+  padding: 8rem max(1.5rem, calc((100% - 1200px) / 2));
   position: relative;
-  overflow: hidden;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-height: 80vh;
+  align-items: center;
 }
-
-/* PLUS: Esferas de luz de fondo (Glowing Orbs) */
-.hero::before, .hero::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 0;
-}
-.hero::before {
-  width: 500px;
-  height: 500px;
-  background: rgba(0, 210, 211, 0.15); /* Aqua glow */
-  top: -100px;
-  left: -100px;
-}
-.hero::after {
-  width: 400px;
-  height: 400px;
-  background: rgba(255, 126, 103, 0.1); /* Coral glow */
-  bottom: -50px;
-  right: -50px;
-}
-
-/* El contenido del hero debe estar por encima de las luces */
-.hero > * { position: relative; z-index: 1; }
 
 .eyebrow {
-  color: var(--color-primary);
+  color: var(--color-accent-purple);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   font-size: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(123, 44, 191, 0.08);
   padding: 0.5rem 1.2rem;
   border-radius: var(--radius-pill);
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(0, 210, 211, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 210, 211, 0.1);
-  backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(123, 44, 191, 0.2);
 }
 
 .hero h1 {
-  font-size: clamp(2.8rem, 6vw, 4.5rem);
-  max-width: 850px;
-  margin: 0 0 2.5rem;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  max-width: 1000px;
+  margin: 0 0 2rem;
   font-weight: 900;
-  background: linear-gradient(135deg, var(--color-primary) 30%, var(--color-accent) 100%);
+  line-height: 1;
+  /* Texto con gradiente metálico/neón */
+  background: linear-gradient(135deg, #0B132B 30%, #7B2CBF 70%, #00F0FF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: fadeInUp 0.8s var(--transition) 0.2s forwards;
-  opacity: 0;
+  animation: floatText 6s ease-in-out infinite;
 }
 
-/* Buscador Estilo "Command Palette" (Ultra Premium) */
+@keyframes floatText {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Buscador "Command Palette" (Flotante y Luminoso) */
 .hero form {
-  max-width: 760px;
-  animation: fadeInUp 0.8s var(--transition) 0.4s forwards;
-  opacity: 0;
+  width: 100%;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
 }
 
 .hero label {
   display: block;
-  font-weight: 700;
-  margin-bottom: 0.8rem;
-  color: var(--color-text-main);
-  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+  font-size: 1rem;
 }
 
 .search {
@@ -239,35 +181,39 @@ header nav a:hover::after { width: 100%; }
   background: rgba(255, 255, 255, 0.7);
   padding: 0.6rem;
   border-radius: var(--radius-pill);
-  box-shadow: 0 10px 40px -10px rgba(0, 59, 74, 0.15), inset 0 1px 0 rgba(255,255,255,0.8);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 20px 40px -15px rgba(11, 19, 43, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   transition: var(--transition);
 }
 
 .search:focus-within {
   background: #FFFFFF;
-  box-shadow: 0 15px 50px -10px rgba(0, 210, 211, 0.3), inset 0 1px 0 rgba(255,255,255,1);
-  transform: translateY(-2px);
-  border-color: var(--color-accent);
+  box-shadow: 
+    0 25px 50px -12px rgba(11, 19, 43, 0.15),
+    0 0 0 4px rgba(0, 240, 255, 0.2);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .search input {
   flex: 1;
   min-width: 0;
-  padding: 1rem 1.5rem;
+  padding: 1.2rem 1.5rem;
   border: none;
   background: transparent;
   font-family: var(--font-body);
   font-size: 1.1rem;
-  color: var(--color-text-main);
+  font-weight: 500;
+  color: var(--color-primary);
 }
 .search input:focus { outline: none; }
-.search input::placeholder { color: #94A3B8; font-weight: 400; }
+.search input::placeholder { color: #94A3B8; }
 
 /* =========================================
-   BOTONES "JUGOSOS" (Efecto 3D)
+   BOTONES (Estilo Cyberpunk/Neón)
    ========================================= */
 button, .button {
   display: inline-flex;
@@ -275,199 +221,128 @@ button, .button {
   align-items: center;
   border: none;
   border-radius: var(--radius-md);
-  padding: 1rem 1.75rem;
-  background: linear-gradient(180deg, #005A71 0%, #003B4A 100%);
+  padding: 1.1rem 2rem;
+  background: var(--color-primary);
   color: white;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 
-    0 4px 14px rgba(0, 59, 74, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 20px -5px rgba(11, 19, 43, 0.3);
 }
 
-/* Brillo que cruza el botón al hacer hover */
-button::before, .button::before {
+/* El brillo que cruza el botón */
+button::after, .button::after {
   content: '';
   position: absolute;
   top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: skewX(-25deg);
   transition: 0.7s;
 }
 
 button:hover, .button:hover {
   transform: translateY(-3px);
-  box-shadow: 
-    0 8px 25px rgba(0, 210, 211, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  background: linear-gradient(180deg, #006B85 0%, #004A5C 100%);
+  box-shadow: 0 15px 30px -5px rgba(123, 44, 191, 0.4);
+  background: var(--color-accent-purple);
 }
+button:hover::after, .button:hover::after { left: 150%; }
 
-button:hover::before, .button:hover::before {
-  left: 150%;
-}
-
-button:active, .button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 5px rgba(0, 59, 74, 0.3);
-}
-
-button:disabled {
-  background: #CBD5E1;
-  color: #94A3B8;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
+/* El botón de buscar es Coral Eléctrico */
 .search button {
   border-radius: var(--radius-pill);
-  padding: 1rem 2.5rem;
-  font-size: 1.05rem;
-  background: linear-gradient(135deg, var(--color-coral) 0%, #FF5E45 100%);
-  box-shadow: 0 4px 15px rgba(255, 126, 103, 0.4);
+  padding: 1.1rem 3rem;
+  background: linear-gradient(135deg, #FF3366 0%, #FF6B3D 100%);
+  box-shadow: 0 10px 25px -5px rgba(255, 51, 102, 0.4);
 }
 .search button:hover {
-  background: linear-gradient(135deg, #FF8F7B 0%, #FF6A53 100%);
-  box-shadow: 0 8px 25px rgba(255, 126, 103, 0.6);
+  box-shadow: 0 15px 35px -5px rgba(255, 51, 102, 0.6);
+  background: linear-gradient(135deg, #FF4D7A 0%, #FF7A4D 100%);
 }
 
 /* =========================================
-   FORMULARIOS (Inputs de Cristal)
-   ========================================= */
-.auth-page {
-  width: min(100% - 2rem, 480px);
-  margin: 5rem auto;
-  padding: clamp(2rem, 5vw, 3.5rem);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 25px 50px -12px rgba(0, 59, 74, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  animation: fadeInUp 0.6s var(--transition) forwards;
-}
-
-.auth-page h1 {
-  font-weight: 900;
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.auth-page form { display: grid; gap: 1.25rem; }
-
-.auth-page label {
-  display: grid;
-  gap: 0.5rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--color-text-main);
-}
-
-.auth-page input {
-  width: 100%;
-  padding: 1rem 1.2rem;
-  border: 2px solid transparent;
-  border-radius: var(--radius-md);
-  background: #F1F5F9;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  transition: var(--transition);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.auth-page input:hover { background: #E2E8F0; }
-.auth-page input:focus {
-  outline: none;
-  background: #FFFFFF;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgba(0, 210, 211, 0.15), inset 0 2px 4px transparent;
-}
-
-.auth-page form button {
-  width: 100%;
-  padding: 1.1rem;
-  font-size: 1.1rem;
-  margin-top: 1rem;
-}
-
-/* =========================================
-   DIRECTORIO DE CLÍNICAS (Tarjetas 3D con Brillo)
+   TARJETAS DIRECTORIO (Efecto Tilt 3D y Cristal)
    ========================================= */
 .directory, .detail {
-  max-width: 1120px;
+  max-width: 1200px;
   margin: auto;
-  padding: 4rem 1.5rem;
+  padding: 5rem 1.5rem;
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 2.5rem;
+  perspective: 1000px; /* Necesario para el efecto 3D */
 }
 
 .clinic-card {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(226, 232, 240, 0.5);
-  transition: var(--transition);
-  position: relative;
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--color-border);
+  transition: transform 0.1s ease, box-shadow 0.4s var(--transition);
   transform-style: preserve-3d;
 }
 
-/* Efecto de levitación 3D */
 .clinic-card:hover {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 30px 60px -15px rgba(0, 59, 74, 0.15);
-  border-color: rgba(0, 210, 211, 0.3);
-  z-index: 10;
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(0, 240, 255, 0.5);
 }
 
+/* Contenedor de imagen con gradiente superpuesto */
 .clinic-card .img-container {
   overflow: hidden;
   position: relative;
+  height: 220px;
 }
+
+.clinic-card .img-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11, 19, 43, 0.6) 0%, transparent 50%);
+  opacity: 0.8;
+  transition: var(--transition);
+}
+
+.clinic-card:hover .img-container::after { opacity: 0.4; }
 
 .clinic-card img {
   width: 100%;
-  height: 240px;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.clinic-card:hover img { transform: scale(1.08); }
+.clinic-card:hover img { transform: scale(1.1); }
 
 .clinic-card > div {
-  padding: 1.8rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   flex: 1;
-  background: linear-gradient(to bottom, #FFFFFF 0%, #F8FAFC 100%);
+  transform: translateZ(30px); /* Efecto 3D interno */
 }
 
 .clinic-card h2 {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.6rem;
+  font-weight: 900;
   margin: 0.5rem 0 1rem;
 }
 
 .clinic-card .eyebrow {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   padding: 0.3rem 0.8rem;
-  background: #E0F2FE;
-  color: #0369A1;
+  background: var(--color-primary);
+  color: white;
   margin-bottom: 0.5rem;
   align-self: flex-start;
-  border: none;
-  box-shadow: none;
 }
 
 .services {
@@ -475,242 +350,272 @@ button:disabled {
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
   flex-grow: 1;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-/* Botón secundario (Outline) elegante */
 .clinic-card .button {
   width: 100%;
   margin-top: auto;
   background: transparent;
   color: var(--color-primary);
-  border: 2px solid var(--color-border);
+  border: 2px solid rgba(11, 19, 43, 0.1);
   box-shadow: none;
 }
 .clinic-card .button:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;
-  transform: translateY(0);
 }
 
 /* =========================================
-   DETALLE DE LA CLÍNICA (Revista Editorial)
+   FORMULARIOS (Ultra Glass)
    ========================================= */
-.detail { max-width: 900px; }
+.auth-page {
+  width: min(100% - 2rem, 500px);
+  margin: 5rem auto;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: var(--radius-lg);
+  box-shadow: 
+    0 30px 60px -15px rgba(11, 19, 43, 0.15),
+    inset 0 1px 0 rgba(255,255,255,1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.auth-page h1 {
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-size: 2.5rem;
+}
+
+.auth-page form { display: grid; gap: 1.5rem; }
+
+.auth-page label {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-page input {
+  width: 100%;
+  padding: 1.1rem 1.2rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  transition: var(--transition);
+  box-shadow: inset 0 2px 4px rgba(11, 19, 43, 0.05);
+}
+
+.auth-page input:focus {
+  outline: none;
+  background: #FFFFFF;
+  border-color: var(--color-accent-aqua);
+  box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.15);
+}
+
+.auth-page form button {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-purple) 100%);
+}
+
+/* =========================================
+   DETALLE CLÍNICA (Editorial de Lujo)
+   ========================================= */
+.detail { max-width: 1000px; }
 
 .detail-image {
   width: 100%;
-  height: 450px;
+  height: 500px;
   object-fit: cover;
   border-radius: var(--radius-lg);
   margin: 2rem 0;
-  box-shadow: 0 25px 50px -12px rgba(0, 59, 74, 0.2);
+  box-shadow: 0 30px 60px -15px rgba(11, 19, 43, 0.2);
+  border: 4px solid white;
 }
 
 .lead {
-  font-size: 1.35rem;
-  line-height: 1.6;
+  font-size: 1.5rem;
+  line-height: 1.5;
   color: var(--color-text-muted);
-  margin-bottom: 3rem;
-  font-weight: 300;
+  margin-bottom: 4rem;
+  font-weight: 400;
+  max-width: 800px;
 }
 
 .detail h2 {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 900;
   margin-top: 4rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-/* Línea decorativa bajo los títulos */
-.detail h2::after {
+
+.detail h2::before {
   content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 40px;
-  height: 4px;
-  background: var(--color-coral);
-  border-radius: 2px;
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: var(--color-accent-coral);
+  border-radius: 50%;
+  box-shadow: var(--shadow-glow-coral);
 }
 
 .detail ul {
   list-style: none;
   padding: 0;
   display: grid;
-  gap: 1.2rem;
+  gap: 1.5rem;
   margin: 2rem 0;
 }
 
 .detail li {
-  background: var(--color-surface);
-  padding: 1.8rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: var(--shadow-glass);
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
   transition: var(--transition);
 }
 
 .detail li:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-accent);
-  transform: translateX(4px);
+  transform: translateX(10px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-accent-aqua);
 }
 
 .detail li strong {
   color: var(--color-primary);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 800;
 }
 
 .detail li a {
   align-self: flex-start;
-  margin-top: 0.5rem;
-  font-size: 0.95rem;
-  padding: 0.7rem 1.5rem;
-  background: #F0FDF4;
-  color: #166534;
+  padding: 0.8rem 1.8rem;
+  background: var(--color-accent-aqua);
+  color: var(--color-primary);
   border-radius: var(--radius-pill);
-  font-weight: 700;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3);
 }
 .detail li a:hover {
-  background: #166534;
-  color: white;
-  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
+  background: var(--color-primary);
+  color: var(--color-accent-aqua);
+  box-shadow: 0 8px 25px rgba(11, 19, 43, 0.3);
+  transform: translateY(-2px);
 }
 
 /* =========================================
-   PANELES (AGENDAMIENTO / CITAS)
+   PANELES (Citas/Agendamiento)
    ========================================= */
-.page-shell { width: min(100% - 2rem, 900px); margin: 4rem auto; display: grid; gap: 2rem; }
-
 .panel { 
-  padding: clamp(2rem, 5vw, 3rem); 
-  background: var(--color-surface); 
+  padding: 3rem; 
+  background: rgba(255, 255, 255, 0.9); 
+  backdrop-filter: blur(20px);
   border-radius: var(--radius-lg); 
-  box-shadow: var(--shadow-lg); 
+  box-shadow: var(--shadow-glass); 
   border: 1px solid var(--color-border);
 }
 
-/* Horarios Disponibles (Slots) */
+/* Slots de tiempo (Tipo Boleto VIP) */
 .slot-list { 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-  gap: 1rem; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 1.2rem; 
   margin: 2rem 0; 
 }
 
 .slot-list .slot { 
   text-align: center; 
-  background: var(--color-bg); 
-  color: var(--color-text-main); 
+  background: rgba(244, 247, 249, 0.8); 
+  color: var(--color-primary); 
   border: 2px solid transparent; 
-  padding: 1.2rem 1rem;
+  padding: 1.2rem;
   border-radius: var(--radius-md);
-  font-weight: 700;
+  font-weight: 800;
   transition: var(--transition);
   cursor: pointer;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  position: relative;
+  overflow: hidden;
 }
 
 .slot-list .slot:hover {
-  background: #E0F2FE;
-  color: var(--color-primary);
-  transform: translateY(-2px);
+  background: #FFFFFF;
+  border-color: var(--color-accent-aqua);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 240, 255, 0.2);
 }
 
 .slot-list .slot.selected { 
-  background: linear-gradient(135deg, var(--color-primary) 0%, #007A96 100%);
-  color: white; 
+  background: var(--color-primary);
+  color: var(--color-accent-aqua); 
   border-color: var(--color-primary); 
-  box-shadow: 0 8px 20px rgba(0, 59, 74, 0.25);
+  box-shadow: var(--shadow-glow-aqua);
   transform: scale(1.05);
 }
 
-/* Alertas */
-.notice {
-  padding: 1.2rem 1.5rem;
-  background: #ECFDF5;
-  color: #065F46;
-  border-radius: var(--radius-md);
-  border-left: 4px solid #10B981;
-  font-weight: 500;
-}
-.notice.error {
-  background: var(--color-error-bg);
-  color: var(--color-error-text);
-  border-left-color: #EF4444;
-}
-
 /* =========================================
-   ANIMACIONES (El toque mágico)
-   ========================================= */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =========================================
-   RESPONSIVE (Adaptación perfecta)
+   RESPONSIVE
    ========================================= */
 @media (max-width: 768px) {
   header {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    top: 0;
+    padding: 1rem;
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem;
   }
+
+  .hero { padding-top: 5rem; text-align: left; }
   
-  header nav { flex-wrap: wrap; justify-content: center; gap: 1.2rem; }
+  .hero h1 { font-size: 3rem; }
 
-  .hero {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
-    min-height: auto;
-  }
-
-  /* En móvil, el buscador se vuelve vertical */
   .search {
     flex-direction: column;
     border-radius: var(--radius-lg);
     padding: 0.8rem;
-    gap: 0.8rem;
   }
-
-  .search input { padding: 0.8rem; text-align: center; }
+  
+  .search input, .search button { border-radius: var(--radius-md); }
   .search button { width: 100%; padding: 1.2rem; }
 
   .auth-page {
     margin: 2rem auto;
-    padding: 1.5rem;
-    box-shadow: none;
-    background: transparent;
-    border: none;
-    backdrop-filter: none;
+    padding: 2rem;
+    border-radius: var(--radius-md);
   }
 
-  .detail-image { height: 250px; }
-  
-  .clinic-card .button { padding: 1rem; }
+  .detail-image { height: 300px; }
+}
+
+/* Accesibilidad: Respeto a usuarios que no quieren animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
