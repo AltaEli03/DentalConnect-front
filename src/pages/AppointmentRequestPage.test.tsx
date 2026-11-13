@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../routes/App';
 import { currentUser } from '../services/cognito';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
   currentUser: vi.fn(),
@@ -11,11 +11,23 @@ vi.mock('../services/cognito', () => ({
   signOut: vi.fn(),
 }));
 vi.mock('../services/api', () => {
-  class ApiError extends Error {}
+  class MockApiError extends Error {
+    constructor(
+      message: string,
+      readonly status: number,
+    ) {
+      super(message);
+    }
+  }
   return {
     apiBaseUrl: () => 'http://localhost:3000/api',
-    ApiError,
-    api: { clinic: vi.fn(), availability: vi.fn(), createAppointment: vi.fn() },
+    ApiError: MockApiError,
+    api: {
+      clinic: vi.fn(),
+      availability: vi.fn(),
+      createAppointment: vi.fn(),
+      proposal: vi.fn(),
+    },
   };
 });
 
@@ -58,6 +70,18 @@ const clinic = {
   ],
 };
 
+const renderPage = () =>
+  render(
+    <MemoryRouter
+      initialEntries={['/clinics/clinic-1/solicitar?serviceId=service-1&dentistId=dentist-1']}
+    >
+      <App />
+    </MemoryRouter>,
+  );
+
+const chooseSlot = async () =>
+  fireEvent.click(await screen.findByRole('button', { name: /20 nov 2026/i }));
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(currentUser).mockResolvedValue({
@@ -65,11 +89,11 @@ beforeEach(() => {
     firstName: 'Ana',
     lastName: 'Pérez',
   });
-  vi.mocked(api.clinic).mockResolvedValue({ data: clinic });
+  vi.mocked(api.clinic).mockResolvedValue({ data: clinic } as never);
   vi.mocked(api.availability).mockResolvedValue({
     data: [{ startsAt: '2026-11-20T17:00:00Z', endsAt: '2026-11-20T17:30:00Z' }],
     timeZone: 'America/Mexico_City',
-  });
+  } as never);
   vi.mocked(api.createAppointment).mockResolvedValue({
     data: {
       id: 'apt-1',
@@ -82,7 +106,7 @@ beforeEach(() => {
       endsAt: '2026-11-20T17:30:00Z',
       timeZoneId: 'America/Mexico_City',
     },
-  });
+  } as never);
   vi.stubGlobal('crypto', { randomUUID: () => 'test-key-123' });
 });
 
@@ -91,19 +115,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('HU-14 enlace al estado de la solicitud', () => {
-  // DENT-14 R8
-  it('muestra el enlace al estado de la solicitud creada', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/clinics/clinic-1/solicitar?serviceId=service-1&dentistId=dentist-1']}
-      >
-        <App />
-      </MemoryRouter>,
-    );
+describe('AppointmentRequestPage', () => {
+  it('sends the request with an idempotency key and links to its status', async () => {
+    renderPage();
 
-    fireEvent.click(await screen.findByRole('button', { name: /20 de noviembre de 2026/i }));
-    const submit = await screen.findByRole('button', { name: 'Enviar solicitud pendiente' });
+    await chooseSlot();
+    const submit = await screen.findByRole('button', { name: 'Enviar solicitud' });
     await waitFor(() => expect(submit).toBeEnabled());
     fireEvent.click(submit);
 
@@ -118,5 +135,48 @@ describe('HU-14 enlace al estado de la solicitud', () => {
       },
       'test-key-123',
     );
+  });
+
+  it('explains a taken slot and keeps the request available', async () => {
+    vi.mocked(api.createAppointment).mockRejectedValueOnce(
+      new ApiError('Ese horario ya no está disponible', 409),
+    );
+    renderPage();
+
+    await chooseSlot();
+    fireEvent.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ese horario ya no está disponible. Elige otra opción.',
+    );
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeInTheDocument();
+  });
+
+  it('invites the person to sign in before sending', async () => {
+    vi.mocked(currentUser).mockResolvedValue(null);
+    renderPage();
+
+    await chooseSlot();
+    expect(await screen.findByRole('link', { name: 'Inicia sesión para agendar' })).toHaveAttribute(
+      'href',
+      '/iniciar-sesion',
+    );
+  });
+
+  it('retries availability without losing the chosen service and dentist', async () => {
+    vi.mocked(api.availability)
+      .mockRejectedValueOnce(new ApiError('No pudimos consultar los horarios', 500))
+      .mockResolvedValueOnce({
+        data: [{ startsAt: '2026-11-20T17:00:00Z', endsAt: '2026-11-20T17:30:00Z' }],
+        timeZone: 'America/Mexico_City',
+      } as never);
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'El servicio tiene un problema temporal',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar horarios' }));
+
+    expect(await screen.findByRole('button', { name: /20 nov 2026/i })).toBeInTheDocument();
   });
 });
