@@ -269,4 +269,23 @@ describe('HU-13 proponer horario alternativo', () => {
       screen.queryByRole('button', { name: 'Proponer horario seleccionado' }),
     ).not.toBeInTheDocument();
   });
+
+  it('opens the appointment requested from the URL', async () => {
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async (url) => {
+        if (url.endsWith('/appointments/apt-1')) return json({ data: appointment() });
+        return json({ data: [appointment()] });
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/administrar-solicitudes?appointmentId=apt-1']}>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Detalle de solicitud')).toBeInTheDocument();
+  });
 });
