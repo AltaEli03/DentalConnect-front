@@ -11,7 +11,7 @@ const tones: Record<NoticeTone, string> = {
 type NoticeProps = {
   tone?: NoticeTone;
   title?: string;
-  role?: 'alert' | 'status';
+  role?: 'alert' | 'status' | 'note';
   className?: string;
   children: ReactNode;
 };

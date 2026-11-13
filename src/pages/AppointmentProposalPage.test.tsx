@@ -133,6 +133,10 @@ describe('HU-14 aceptar o rechazar un horario alternativo', () => {
     renderPage();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Rechazar propuesta' }));
+    expect(
+      screen.getByText('¿Seguro que quieres rechazar la propuesta?'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, rechazar propuesta' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Rechazaste la propuesta. La solicitud quedó rechazada.',
