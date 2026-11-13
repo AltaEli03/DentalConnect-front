@@ -28,7 +28,7 @@ export function ClinicCard({ clinic, from = '' }: { clinic: ClinicWithDistance; 
         {location && <p className="text-sm font-semibold text-accent-strong">{location}</p>}
         <h3
           id={`clinic-${clinic.id}-name`}
-          className="mt-1 font-display text-xl font-semibold text-brand"
+          className="mt-1 font-display text-xl font-semibold text-heading"
         >
           {clinic.name}
         </h3>

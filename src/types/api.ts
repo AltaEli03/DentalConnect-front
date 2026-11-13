@@ -59,3 +59,34 @@ export interface AppointmentProposal {
 export interface ApiResponse<T> {
   data: T;
 }
+
+export interface PatientAppointment {
+  id: string;
+  folio: string;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  proposedStartsAt?: string | null;
+  proposedEndsAt?: string | null;
+  proposalExpiresAt?: string | null;
+  createdAt?: string;
+  timeZoneId?: string;
+  rejectionReason?: string | null;
+  clinic: {
+    id: string;
+    name: string;
+    municipality?: string;
+    state?: string;
+    phone?: string;
+  };
+  dentist: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  service: {
+    id: string;
+    name: string;
+    estimatedDurationMinutes?: number;
+  };
+}

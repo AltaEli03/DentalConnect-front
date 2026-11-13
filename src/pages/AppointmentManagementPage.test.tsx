@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AppointmentManagementPage } from './AppointmentManagementPage';
 import { currentIdToken } from '../services/cognito';
 
@@ -82,7 +83,11 @@ describe('HU-13 proponer horario alternativo', () => {
       }),
     );
 
-    render(<AppointmentManagementPage />);
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
     await openDetail();
 
     expect(
@@ -143,7 +148,11 @@ describe('HU-13 proponer horario alternativo', () => {
       }),
     );
 
-    render(<AppointmentManagementPage />);
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
     await openDetail();
     await chooseAlternative();
 
@@ -167,7 +176,11 @@ describe('HU-13 proponer horario alternativo', () => {
       }),
     );
 
-    render(<AppointmentManagementPage />);
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
     await openDetail();
 
     const detail = screen.getByLabelText('Detalle de solicitud');
@@ -192,7 +205,11 @@ describe('HU-13 proponer horario alternativo', () => {
       fetchMock(async () => json({ data: [appointment()] })),
     );
 
-    render(<AppointmentManagementPage />);
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
     await screen.findByRole('button', { name: /Ana Pérez/ });
     fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'PROPOSED' } });
 
@@ -234,7 +251,11 @@ describe('HU-13 proponer horario alternativo', () => {
       }),
     );
 
-    render(<AppointmentManagementPage />);
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
     await openDetail();
     await chooseAlternative();
 

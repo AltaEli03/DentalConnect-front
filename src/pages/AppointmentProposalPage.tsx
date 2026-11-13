@@ -111,8 +111,8 @@ export function AppointmentProposalPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <section className="rounded-card border border-line bg-white p-6 shadow-sm">
-          <h1 className="font-display text-3xl font-semibold text-brand">Mi solicitud</h1>
+        <section className="rounded-card border border-line bg-surface p-6 shadow-sm">
+          <h1 className="font-display text-3xl font-semibold text-heading">Mi solicitud</h1>
           {error ? (
             <Notice tone="error" className="mt-4">
               {error}
@@ -143,14 +143,14 @@ export function AppointmentProposalPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
       <section
-        className="overflow-hidden rounded-card border border-line bg-white shadow-sm"
+        className="overflow-hidden rounded-card border border-line bg-surface shadow-sm"
         aria-label="Mi solicitud"
       >
-        <header className="border-b border-dashed border-line bg-gradient-to-b from-white to-canvas p-5 sm:p-6">
+        <header className="border-b border-dashed border-line bg-gradient-to-b from-surface to-canvas p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-accent-strong">Respuesta a propuesta</p>
-              <h1 className="mt-1 font-display text-3xl font-semibold text-brand">
+              <h1 className="mt-1 font-display text-3xl font-semibold text-heading">
                 {appointment ? `Solicitud ${appointment.folio}` : 'Solicitud de cita'}
               </h1>
             </div>
@@ -174,7 +174,7 @@ export function AppointmentProposalPage() {
               <p>{error}</p>
               {errorStatus === 401 ? (
                 <Link
-                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  className="mt-3 inline-block text-sm font-semibold text-danger-text underline underline-offset-4"
                   to="/iniciar-sesion"
                   state={{ from: `${location.pathname}${location.search}` }}
                 >
@@ -182,7 +182,7 @@ export function AppointmentProposalPage() {
                 </Link>
               ) : errorStatus === 404 ? (
                 <Link
-                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  className="mt-3 inline-block text-sm font-semibold text-danger-text underline underline-offset-4"
                   to="/clinics"
                 >
                   Volver al directorio
@@ -190,7 +190,7 @@ export function AppointmentProposalPage() {
               ) : (
                 <button
                   type="button"
-                  className="mt-3 text-sm font-semibold text-danger underline underline-offset-4"
+                  className="mt-3 text-sm font-semibold text-danger-text underline underline-offset-4"
                   onClick={() => void load()}
                 >
                   Reintentar
@@ -218,20 +218,20 @@ export function AppointmentProposalPage() {
 
           {appointment && hasProposal && (
             <div className="grid gap-5">
-              <h2 className="font-display text-xl font-semibold text-brand">
+              <h2 className="font-display text-xl font-semibold text-heading">
                 Revisa el cambio de horario
               </h2>
 
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-control border border-dashed border-line-strong bg-canvas p-4">
                   <dt className="text-sm font-semibold text-muted">Horario original:</dt>
-                  <dd className="mt-1 font-semibold text-brand">
+                  <dd className="mt-1 font-semibold text-heading">
                     {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </dd>
                 </div>
                 <div className="rounded-control border border-accent/40 bg-accent/5 p-4">
                   <dt className="text-sm font-semibold text-accent-strong">Horario propuesto:</dt>
-                  <dd className="mt-1 font-semibold text-brand">
+                  <dd className="mt-1 font-semibold text-heading">
                     {formatDateTime(appointment.proposedStartsAt)} –{' '}
                     {formatDateTime(appointment.proposedEndsAt)}
                   </dd>
@@ -248,7 +248,7 @@ export function AppointmentProposalPage() {
                 className="rounded-card border border-line bg-canvas p-4"
                 aria-label="Responder propuesta"
               >
-                <h2 className="font-display text-lg font-semibold text-brand">
+                <h2 className="font-display text-lg font-semibold text-heading">
                   ¿Aceptas el nuevo horario?
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
@@ -296,7 +296,7 @@ export function AppointmentProposalPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="sm:flex-1 border-danger/40 text-danger hover:bg-danger/5"
+                      className="sm:flex-1 border-danger/40 text-danger-text hover:bg-danger/5"
                       disabled={busy}
                       onClick={() => setConfirmingReject(true)}
                     >
@@ -312,7 +312,7 @@ export function AppointmentProposalPage() {
             <div className="grid gap-4">
               {status === 'CONFIRMED' && (
                 <>
-                  <p className="font-semibold text-brand">Horario confirmado:</p>
+                  <p className="font-semibold text-heading">Horario confirmado:</p>
                   <p className="text-muted">
                     {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </p>
@@ -320,7 +320,7 @@ export function AppointmentProposalPage() {
               )}
               {status === 'PENDING' && (
                 <>
-                  <p className="font-semibold text-brand">Horario:</p>
+                  <p className="font-semibold text-heading">Horario:</p>
                   <p className="text-muted">
                     {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </p>
@@ -342,7 +342,7 @@ export function AppointmentProposalPage() {
               )}
               {status === 'REJECTED' && (
                 <>
-                  <p className="font-semibold text-brand">Horario original:</p>
+                  <p className="font-semibold text-heading">Horario original:</p>
                   <p className="text-muted">
                     {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </p>
