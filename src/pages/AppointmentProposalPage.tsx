@@ -1,33 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { Button } from '../components/ui/Button';
+import { Notice } from '../components/ui/Notice';
+import { Skeleton } from '../components/ui/Skeleton';
+import { StatusBadge } from '../components/ui/StatusBadge';
 import { api, ApiError } from '../services/api';
+import { formatDateTime } from '../lib/appointments';
 import type { AppointmentProposal } from '../types/api';
-
-const timeZone = 'America/Mexico_City';
-const statusLabels: Record<string, string> = {
-  PENDING: 'Pendiente',
-  PROPOSED: 'Con propuesta',
-  CONFIRMED: 'Confirmada',
-  REJECTED: 'Rechazada',
-  CANCELLED: 'Cancelada',
-};
-
-// Función para obtener las clases CSS del badge según el estado
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'CONFIRMED': return 'status-confirmed';
-    case 'PROPOSED': return 'status-proposed';
-    case 'REJECTED':
-    case 'CANCELLED': return 'status-cancelled';
-    default: return 'status-pending';
-  }
-};
-
-const dateTime = (value?: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value))
-    : 'No disponible';
 
 const message = (cause: unknown) => {
   if (cause instanceof ApiError) {
@@ -35,47 +15,62 @@ const message = (cause: unknown) => {
     if (cause.status === 404) return 'La solicitud no existe o no pertenece a tu cuenta.';
     return cause.message;
   }
+  if (
+    cause instanceof TypeError ||
+    (cause instanceof Error && /failed to fetch|network|load failed/i.test(cause.message))
+  ) {
+    return 'No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.';
+  }
   return cause instanceof Error ? cause.message : 'No fue posible consultar la solicitud.';
 };
 
 export function AppointmentProposalPage() {
   const { appointmentId = '' } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const location = useLocation();
   const [appointment, setAppointment] = useState<AppointmentProposal>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [errorStatus, setErrorStatus] = useState<number>();
+  const [notFound, setNotFound] = useState(false);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmingReject, setConfirmingReject] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.proposal(appointmentId);
-      setAppointment(data);
-    } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 404) setAppointment(undefined);
-      setError(message(cause));
-    } finally {
-      setLoading(false);
-    }
-  }, [appointmentId]);
+  const load = useCallback(
+    async (clearError = true) => {
+      setLoading(true);
+      if (clearError) setError('');
+      try {
+        const { data } = await api.proposal(appointmentId);
+        setAppointment(data);
+        setNotFound(false);
+        setErrorStatus(undefined);
+      } catch (cause) {
+        if (cause instanceof ApiError && cause.status === 404) {
+          setAppointment(undefined);
+          setNotFound(true);
+        } else {
+          setNotFound(false);
+        }
+        setErrorStatus(cause instanceof ApiError ? cause.status : undefined);
+        setError(message(cause));
+        if (cause instanceof ApiError && cause.status === 401) void logout();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [appointmentId, logout],
+  );
 
   useEffect(() => {
     if (!user || !appointmentId) return;
-    let active = true;
-    setLoading(true);
     setError('');
-    api.proposal(appointmentId).then(({ data }) => {
-      if (active) setAppointment(data);
-    }).catch((cause) => {
-      if (!active) return;
-      if (cause instanceof ApiError && cause.status === 404) setAppointment(undefined);
-      setError(message(cause));
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
-  }, [appointmentId, user]);
+    setErrorStatus(undefined);
+    setNotFound(false);
+    setNotice('');
+    void load();
+  }, [appointmentId, load, user]);
 
   const respond = async (accept: boolean) => {
     setBusy(true);
@@ -83,178 +78,293 @@ export function AppointmentProposalPage() {
     setNotice('');
     let failure = '';
     try {
-      const { data } = await (accept ? api.acceptProposal(appointmentId) : api.rejectProposal(appointmentId));
+      const { data } = await (accept
+        ? api.acceptProposal(appointmentId)
+        : api.rejectProposal(appointmentId));
       setAppointment(data);
-      setNotice(accept ? 'Aceptaste el horario propuesto. Tu cita quedó confirmada.' : 'Rechazaste la propuesta. La solicitud quedó rechazada.');
+      setConfirmingReject(false);
+      setNotice(
+        accept
+          ? 'Aceptaste el horario propuesto. Tu cita quedó confirmada.'
+          : 'Rechazaste la propuesta. La solicitud quedó rechazada.',
+      );
       return;
     } catch (cause) {
       failure = message(cause);
+      if (cause instanceof ApiError && cause.status === 401) void logout();
     } finally {
       setBusy(false);
     }
     setError(failure);
-    await load();
+    await load(false);
   };
 
-  // --- ESTADOS DE CARGA / LOGIN ---
   if (authLoading) {
-    return <main className="page-shell"><div className="loading-state"><p>Cargando sesión…</p></div></main>;
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6" role="status" aria-live="polite">
+        <p className="sr-only">Cargando sesión…</p>
+        <Skeleton className="h-64 w-full" />
+      </main>
+    );
   }
 
   if (!user) {
     return (
-      <main className="page-shell">
-        <section className="panel auth-required-panel">
-          <div className="auth-icon">🔒</div>
-          <h1>Acceso Restringido</h1>
-          <p className="text-muted">Inicia sesión con la cuenta que creó la solicitud para ver los detalles.</p>
-          <Link to="/iniciar-sesion" className="primary-btn">Iniciar sesión</Link>
+      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <section className="rounded-card border border-line bg-white p-6 shadow-sm">
+          <h1 className="font-display text-3xl font-semibold text-brand">Mi solicitud</h1>
+          {error ? (
+            <Notice tone="error" className="mt-4">
+              {error}
+            </Notice>
+          ) : (
+            <Notice tone="info" className="mt-4">
+              Inicia sesión con la cuenta que creó la solicitud.
+            </Notice>
+          )}
+          <Link
+            className="mt-4 inline-block font-semibold text-accent-strong underline underline-offset-4"
+            to="/iniciar-sesion"
+            state={{ from: `${location.pathname}${location.search}` }}
+          >
+            Iniciar sesión para consultar mi solicitud
+          </Link>
         </section>
       </main>
     );
   }
 
   const status = appointment?.status?.toUpperCase() ?? '';
-  const hasProposal = status === 'PROPOSED' && Boolean(appointment?.proposedStartsAt) && Boolean(appointment?.proposedEndsAt);
+  const hasProposal =
+    status === 'PROPOSED' &&
+    Boolean(appointment?.proposedStartsAt) &&
+    Boolean(appointment?.proposedEndsAt);
 
   return (
-    <main className="page-shell proposal-page-shell">
-      <section className="panel proposal-panel" aria-label="Mi solicitud">
-        
-        {/* CABECERA DEL TICKET */}
-        <div className="proposal-header">
-          <div>
-            <p className="eyebrow">Detalle de la Solicitud</p>
-            <h1>{appointment ? `Folio ${appointment.folio}` : 'Solicitud de cita'}</h1>
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
+      <section
+        className="overflow-hidden rounded-card border border-line bg-white shadow-sm"
+        aria-label="Mi solicitud"
+      >
+        <header className="border-b border-dashed border-line bg-gradient-to-b from-white to-canvas p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-accent-strong">Respuesta a propuesta</p>
+              <h1 className="mt-1 font-display text-3xl font-semibold text-brand">
+                {appointment ? `Solicitud ${appointment.folio}` : 'Solicitud de cita'}
+              </h1>
+            </div>
+            {appointment && <StatusBadge status={status} />}
           </div>
-          {appointment && (
-            <span className={`status-badge ${getStatusClass(status)}`}>
-              {statusLabels[status] || appointment.status}
-            </span>
+        </header>
+
+        <div className="p-5 sm:p-6">
+          {loading && !appointment && (
+            <div role="status" aria-live="polite">
+              <p className="sr-only">Cargando tu solicitud…</p>
+              <div className="grid gap-3">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            </div>
           )}
-        </div>
 
-        {loading && !appointment && <p className="loading-text">Cargando tu solicitud…</p>}
-        
-        {error && <div className="notice error" role="alert"><p>{error}</p></div>}
-        {notice && <div className="notice" role="status"><p>{notice}</p></div>}
-        
-        {!appointment && !loading && (
-          <div className="empty-state">
-            <p>No pudimos encontrar esta solicitud.</p>
-            <Link to="/clinics" className="secondary-btn">Volver al directorio</Link>
-          </div>
-        )}
+          {error && (
+            <Notice tone="error" className="mb-4">
+              <p>{error}</p>
+              {errorStatus === 401 ? (
+                <Link
+                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  to="/iniciar-sesion"
+                  state={{ from: `${location.pathname}${location.search}` }}
+                >
+                  Iniciar sesión de nuevo
+                </Link>
+              ) : errorStatus === 404 ? (
+                <Link
+                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  to="/clinics"
+                >
+                  Volver al directorio
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="mt-3 text-sm font-semibold text-danger underline underline-offset-4"
+                  onClick={() => void load()}
+                >
+                  Reintentar
+                </button>
+              )}
+            </Notice>
+          )}
+          {notice && (
+            <Notice tone="success" className="mb-4">
+              {notice}
+            </Notice>
+          )}
 
-        {appointment && (
-          <>
-            {hasProposal ? (
-              <div className="proposal-content">
-                <h2 className="section-title">Revisa el cambio de horario</h2>
-                
-                {/* COMPARACIÓN VISUAL DE HORARIOS */}
-                <div className="time-comparison">
-                  {/* Horario Original */}
-                  <div className="time-card original">
-                    <span className="time-label">Horario Original</span>
-                    <div className="time-value">
-                      {dateTime(appointment.startsAt)}
-                    </div>
-                    <div className="time-value end">
-                      hasta {dateTime(appointment.endsAt)}
-                    </div>
-                  </div>
-                  
-                  {/* Flecha de transición */}
-                  <div className="time-arrow">➔</div>
-                  
-                  {/* Horario Propuesto */}
-                  <div className="time-card proposed">
-                    <span className="time-label">Nuevo Horario Propuesto</span>
-                    <div className="time-value highlight">
-                      {dateTime(appointment.proposedStartsAt)}
-                    </div>
-                    <div className="time-value end">
-                      hasta {dateTime(appointment.proposedEndsAt)}
-                    </div>
-                  </div>
+          {!appointment && !loading && notFound && (
+            <div className="grid gap-4">
+              <p className="text-muted">No pudimos encontrar esta solicitud.</p>
+              <Link
+                className="font-semibold text-accent-strong underline underline-offset-4"
+                to="/clinics"
+              >
+                Volver al directorio
+              </Link>
+            </div>
+          )}
+
+          {appointment && hasProposal && (
+            <div className="grid gap-5">
+              <h2 className="font-display text-xl font-semibold text-brand">
+                Revisa el cambio de horario
+              </h2>
+
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-control border border-dashed border-line-strong bg-canvas p-4">
+                  <dt className="text-sm font-semibold text-muted">Horario original:</dt>
+                  <dd className="mt-1 font-semibold text-brand">
+                    {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
+                  </dd>
                 </div>
+                <div className="rounded-control border border-accent/40 bg-accent/5 p-4">
+                  <dt className="text-sm font-semibold text-accent-strong">Horario propuesto:</dt>
+                  <dd className="mt-1 font-semibold text-brand">
+                    {formatDateTime(appointment.proposedStartsAt)} –{' '}
+                    {formatDateTime(appointment.proposedEndsAt)}
+                  </dd>
+                </div>
+              </dl>
 
-                {/* Alerta de Expiración */}
-                {appointment.proposalExpiresAt && (
-                  <div className="expiration-alert">
-                    <span className="alert-icon">⏳</span>
-                    <div>
-                      <strong>Responde antes del:</strong>
-                      <p>{dateTime(appointment.proposalExpiresAt)}</p>
+              {appointment.proposalExpiresAt && (
+                <Notice tone="info" role="note" title="Vence:">
+                  {formatDateTime(appointment.proposalExpiresAt)}
+                </Notice>
+              )}
+
+              <section
+                className="rounded-card border border-line bg-canvas p-4"
+                aria-label="Responder propuesta"
+              >
+                <h2 className="font-display text-lg font-semibold text-brand">
+                  ¿Aceptas el nuevo horario?
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Si aceptas, la cita queda confirmada en el horario propuesto. Si rechazas, la
+                  solicitud queda rechazada y no se reserva ningún horario.
+                </p>
+
+                {confirmingReject ? (
+                  <div className="mt-4 rounded-control border border-danger/30 bg-danger/5 p-4">
+                    <p className="font-semibold text-ink">
+                      ¿Seguro que quieres rechazar la propuesta?
+                    </p>
+                    <p className="mt-1 text-sm text-muted">
+                      La solicitud quedará rechazada y no se reservará ningún horario.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        autoFocus
+                        loading={busy}
+                        onClick={() => void respond(false)}
+                      >
+                        Sí, rechazar propuesta
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => setConfirmingReject(false)}
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </div>
-                )}
-
-                {/* Acciones */}
-                <section className="proposal-actions" aria-label="Responder propuesta">
-                  <h3>¿Aceptas el nuevo horario?</h3>
-                  <p className="action-description">
-                    Si aceptas, la cita quedará confirmada en el horario propuesto. Si rechazas, la solicitud se cancelará y no se reservará ningún horario.
-                  </p>
-                  <div className="action-buttons">
-                    <button 
-                      className="primary-btn accept-btn" 
-                      type="button" 
-                      disabled={busy} 
+                ) : (
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      className="sm:flex-1"
+                      disabled={busy}
+                      loading={busy}
                       onClick={() => void respond(true)}
                     >
-                      {busy ? 'Procesando…' : '✓ Aceptar horario propuesto'}
-                    </button>
-                    <button 
-                      className="secondary-btn reject-btn" 
-                      type="button" 
-                      disabled={busy} 
-                      onClick={() => void respond(false)}
+                      Aceptar horario propuesto
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="sm:flex-1 border-danger/40 text-danger hover:bg-danger/5"
+                      disabled={busy}
+                      onClick={() => setConfirmingReject(true)}
                     >
-                      ✕ Rechazar propuesta
-                    </button>
+                      Rechazar propuesta
+                    </Button>
                   </div>
-                </section>
-              </div>
-            ) : (
-              /* ESTADOS SIN PROPUESTA (Confirmada, Pendiente, Rechazada) */
-              <div className="proposal-static-content">
-                <div className="static-info-card">
-                  <div className="static-icon">
-                    {status === 'CONFIRMED' ? '🎉' : status === 'REJECTED' ? '❌' : '⏳'}
-                  </div>
-                  <div>
-                    <h3>
-                      {status === 'CONFIRMED' ? '¡Cita Confirmada!' : 
-                       status === 'REJECTED' ? 'Solicitud Rechazada' : 'Solicitud en Revisión'}
-                    </h3>
-                    <p className="static-date">
-                      {dateTime(appointment.startsAt)} – {dateTime(appointment.endsAt)}
-                    </p>
-                  </div>
-                </div>
+                )}
+              </section>
+            </div>
+          )}
 
-                {status === 'PENDING' && (
-                  <p className="notice info">No hay una propuesta activa. Tu solicitud sigue pendiente con el horario original.</p>
-                )}
-                {status === 'PROPOSED' && (
-                  <p className="notice error">La propuesta está incompleta. Solicita un nuevo horario al consultorio.</p>
-                )}
-                {status === 'CANCELLED' && <p className="notice error">La solicitud fue cancelada.</p>}
-                {status === 'REJECTED' && appointment.proposedStartsAt && (
-                  <p className="notice">
-                    Se rechazó la propuesta de cambio al horario: <strong>{dateTime(appointment.proposedStartsAt)}</strong>.
+          {appointment && !hasProposal && (
+            <div className="grid gap-4">
+              {status === 'CONFIRMED' && (
+                <>
+                  <p className="font-semibold text-brand">Horario confirmado:</p>
+                  <p className="text-muted">
+                    {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </p>
-                )}
-                
-                <div className="static-actions">
-                  <Link to="/clinics" className="secondary-btn">Volver al directorio</Link>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+                </>
+              )}
+              {status === 'PENDING' && (
+                <>
+                  <p className="font-semibold text-brand">Horario:</p>
+                  <p className="text-muted">
+                    {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
+                  </p>
+                  <Notice tone="info" role="note">
+                    No hay una propuesta activa. Tu solicitud sigue pendiente con el horario
+                    original.
+                  </Notice>
+                </>
+              )}
+              {status === 'PROPOSED' && (
+                <Notice tone="error" role="note">
+                  La propuesta está incompleta. Solicita un nuevo horario al consultorio.
+                </Notice>
+              )}
+              {status === 'CANCELLED' && (
+                <Notice tone="info" role="note">
+                  La solicitud fue cancelada.
+                </Notice>
+              )}
+              {status === 'REJECTED' && (
+                <>
+                  <p className="font-semibold text-brand">Horario original:</p>
+                  <p className="text-muted">
+                    {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
+                  </p>
+                  {appointment.proposedStartsAt && (
+                    <p className="text-sm text-muted">
+                      <strong className="text-ink">Horario propuesto rechazado:</strong>{' '}
+                      {formatDateTime(appointment.proposedStartsAt)} –{' '}
+                      {formatDateTime(appointment.proposedEndsAt)}
+                    </p>
+                  )}
+                </>
+              )}
+
+              <Link
+                className="font-semibold text-accent-strong underline underline-offset-4"
+                to="/clinics"
+              >
+                Volver al directorio
+              </Link>
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );

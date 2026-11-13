@@ -1,42 +1,77 @@
 import { Link } from 'react-router-dom';
+import { ContentImage } from './ContentImage';
+import { buttonStyles } from './ui/Button';
 import type { Clinic } from '../types/api';
 
 type ClinicWithDistance = Clinic & { distanceKm?: number };
 
-export function ClinicCard({ clinic }: { clinic: ClinicWithDistance }) {
-  // Imagen por defecto en caso de que la API no devuelva ninguna o falle
-  const fallbackImage = 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=900&q=80';
+export function ClinicCard({ clinic, from = '' }: { clinic: ClinicWithDistance; from?: string }) {
+  const location = [clinic.municipality, clinic.state].filter(Boolean).join(', ');
+  const address = [clinic.address, clinic.postalCode ? `C.P. ${clinic.postalCode}` : '']
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <article className="clinic-card">
-      {/* 1. Contenedor de imagen con altura fija */}
-      <div className="clinic-card-img-wrapper">
-        <img 
-          src={clinic.imageUrl || fallbackImage} 
-          alt={`Fachada de ${clinic.name}`} 
-          onError={(e) => { e.currentTarget.src = fallbackImage; }}
+    <article
+      className="grid gap-4 py-5 sm:grid-cols-[10rem_minmax(0,1fr)_auto] sm:items-center"
+      aria-labelledby={`clinic-${clinic.id}-name`}
+    >
+      <div className="h-44 overflow-hidden rounded-control bg-canvas sm:h-32">
+        <ContentImage
+          src={clinic.imageUrl}
+          alt={`Consultorio ${clinic.name}`}
+          className="h-full w-full object-cover"
         />
-        <div className="clinic-rating">⭐ 4.9</div>
       </div>
-      
-      <div className="clinic-card-body">
-        <p className="clinic-location">{clinic.municipality}, {clinic.state}</p>
-        <h3>{clinic.name}</h3>
-        
-        <p className="clinic-desc">{clinic.description}</p>
-        
-        {/* 2. Mapeo de servicios (Arregla el texto amontonado) */}
-        <div className="tags">
+
+      <div className="min-w-0">
+        {location && <p className="text-sm font-semibold text-accent-strong">{location}</p>}
+        <h3
+          id={`clinic-${clinic.id}-name`}
+          className="mt-1 font-display text-xl font-semibold text-brand"
+        >
+          {clinic.name}
+        </h3>
+        {address && <p className="mt-1 text-sm text-muted">{address}</p>}
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
+          {clinic.description || 'Consulta los datos de contacto y servicios disponibles.'}
+        </p>
+
+        <ul className="mt-3 flex flex-wrap gap-2" aria-label="Servicios publicados">
           {clinic.services.slice(0, 3).map((service) => (
-            <span key={service.id} className="tag">{service.name}</span>
+            <li
+              key={service.id}
+              className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink"
+            >
+              {service.name}
+            </li>
           ))}
           {clinic.services.length > 3 && (
-            <span className="tag">+{clinic.services.length - 3} más</span>
+            <li className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
+              y {clinic.services.length - 3} más
+            </li>
           )}
-        </div>
-        
-        {/* 3. Botón estilizado */}
-        <Link className="btn btn-outline btn-full" to={`/clinics/${clinic.id}`}>
+          {clinic.services.length === 0 && (
+            <li className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
+              Servicios por confirmar
+            </li>
+          )}
+        </ul>
+
+        {Number.isFinite(clinic.distanceKm) && (
+          <p className="mt-2 text-sm font-semibold text-accent-strong">
+            A {clinic.distanceKm!.toFixed(1)} km aproximadamente
+          </p>
+        )}
+      </div>
+
+      <div className="sm:justify-self-end">
+        <Link
+          className={buttonStyles('outline', 'sm')}
+          to={`/clinics/${clinic.id}`}
+          state={from ? { from } : undefined}
+          aria-label={`Ver consultorio ${clinic.name}`}
+        >
           Ver consultorio
         </Link>
       </div>
