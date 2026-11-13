@@ -322,6 +322,7 @@ export function AppointmentRequestPage() {
                     className={`slot-btn ${selectedSlot === slot.startsAt ? 'active' : ''}`}
                     onClick={() => setSelectedSlot(slot.startsAt)}
                     aria-pressed={selectedSlot === slot.startsAt}
+                    aria-label={`${new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeZone }).format(new Date(slot.startsAt))}, ${new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(new Date(slot.startsAt))}`}
                     type="button"
                   >
                     {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(
@@ -403,6 +404,10 @@ export function AppointmentRequestPage() {
                   <strong>Solicitud enviada · pendiente de confirmación</strong>
                   <br />
                   Folio: {requestResult.folio}
+                  <br />
+                  <Link to={`/mi-solicitud/${encodeURIComponent(requestResult.id)}`}>
+                    Ver el estado de mi solicitud
+                  </Link>
                 </div>
               </div>
             ) : (
@@ -412,7 +417,7 @@ export function AppointmentRequestPage() {
                 onClick={submitRequest}
                 type="button"
               >
-                {requesting ? 'Enviando solicitud…' : 'Enviar solicitud'}
+                {requesting ? 'Enviando solicitud…' : 'Enviar solicitud pendiente'}
               </button>
             )}
 

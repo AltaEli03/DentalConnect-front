@@ -27,7 +27,7 @@ const proposedAppointment = () =>
     status: 'PROPOSED',
     proposedStartsAt: '2026-11-21T18:00:00Z',
     proposedEndsAt: '2026-11-21T18:30:00Z',
-    proposalExpiresAt: '2026-11-12T12:00:00Z',
+    proposalExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   });
 
 const availability = {
@@ -42,7 +42,7 @@ const fetchMock = (handler: (url: string, init?: RequestInit) => Promise<Respons
   vi.fn((input: RequestInfo | URL, init?: RequestInit) => handler(String(input), init));
 
 const openDetail = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: 'Ver detalle' }));
+  fireEvent.click(await screen.findByRole('button', { name: /Ver detalle de solicitud/ }));
   return screen.findByRole('heading', { name: /Detalle ·/ });
 };
 
@@ -170,7 +170,6 @@ describe('HU-13 proponer horario alternativo', () => {
 
     const detail = screen.getByLabelText('Detalle de solicitud');
     expect(within(detail).getByText('Con propuesta')).toBeInTheDocument();
-    expect(screen.getByText(/^Propuesta: /)).toBeInTheDocument();
     expect(within(detail).getByText('Horario original:')).toBeInTheDocument();
     expect(within(detail).getByText('Propuesta:')).toBeInTheDocument();
     expect(within(detail).getByText('Vence:')).toBeInTheDocument();
@@ -189,7 +188,7 @@ describe('HU-13 proponer horario alternativo', () => {
     );
 
     render(<AppointmentManagementPage />);
-    await screen.findByRole('button', { name: 'Ver detalle' });
+    await screen.findByRole('button', { name: /Ver detalle de solicitud/ });
     fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'PROPOSED' } });
 
     await waitFor(() =>

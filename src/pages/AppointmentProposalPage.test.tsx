@@ -27,7 +27,7 @@ const proposed = (overrides: Record<string, unknown> = {}) => ({
   endsAt: '2026-11-20T17:30:00Z',
   proposedStartsAt: '2026-11-21T18:00:00Z',
   proposedEndsAt: '2026-11-21T18:30:00Z',
-  proposalExpiresAt: '2026-11-12T12:00:00Z',
+  proposalExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   timeZoneId: 'America/Mexico_City',
   ...overrides,
 });
