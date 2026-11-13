@@ -93,9 +93,7 @@ describe('ClinicDetailPage', () => {
 
     renderPage();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No encontramos ese consultorio',
-    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('No encontramos ese consultorio');
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(await screen.findByRole('heading', { name: 'Clínica Sonrisa' })).toBeInTheDocument();

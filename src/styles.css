@@ -717,7 +717,7 @@ legend { color: var(--color-primary); font-weight: 700; }
 .input-group input:focus-visible, .input-group select:focus-visible, .compact-form input:focus-visible,
 .compact-form select:focus-visible, .compact-form textarea:focus-visible, .premium-input:focus-visible {
   border-color: var(--color-accent-text);
-  outline: 3px solid rgba(0, 91, 99, 0.25);
+  outline: 3px solid var(--color-accent-text);
   outline-offset: 1px;
   box-shadow: none;
 }

@@ -4,7 +4,7 @@ export type ButtonVariant = 'primary' | 'coral' | 'outline' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line-strong disabled:text-subtle';
+  'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line-strong disabled:text-subtle';
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-brand text-white hover:bg-brand-strong',

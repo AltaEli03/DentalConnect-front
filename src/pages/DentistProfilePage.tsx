@@ -9,8 +9,10 @@ import type { Clinic, Dentist } from '../types/api';
 
 function profileMessage(cause: unknown) {
   if (cause instanceof ApiError) {
-    if (cause.status === 404) return 'No encontramos este consultorio. Puede que ya no esté publicado.';
-    if (cause.status >= 500) return 'El perfil tiene un problema temporal. Inténtalo de nuevo en unos minutos.';
+    if (cause.status === 404)
+      return 'No encontramos este consultorio. Puede que ya no esté publicado.';
+    if (cause.status >= 500)
+      return 'El perfil tiene un problema temporal. Inténtalo de nuevo en unos minutos.';
     return cause.message;
   }
   if (
@@ -131,7 +133,9 @@ export function DentistProfilePage() {
               {dentist.firstName} {dentist.lastName}
             </h1>
             {dentist.professionalLicense && (
-              <p className="mt-2 text-sm text-muted">Cédula profesional: {dentist.professionalLicense}</p>
+              <p className="mt-2 text-sm text-muted">
+                Cédula profesional: {dentist.professionalLicense}
+              </p>
             )}
           </div>
         </div>
@@ -149,10 +153,7 @@ export function DentistProfilePage() {
             {dentist.services?.length ? (
               <ul className="mt-4 grid gap-4">
                 {dentist.services.map((service) => (
-                  <li
-                    key={service.id}
-                    className="rounded-control border border-line bg-canvas p-4"
-                  >
+                  <li key={service.id} className="rounded-control border border-line bg-canvas p-4">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <h3 className="font-semibold text-brand">{service.name}</h3>
                       <span className="text-sm font-semibold text-muted">
@@ -170,7 +171,9 @@ export function DentistProfilePage() {
                 ))}
               </ul>
             ) : (
-              <p className="mt-3 text-sm text-muted">Este perfil no tiene servicios activos publicados.</p>
+              <p className="mt-3 text-sm text-muted">
+                Este perfil no tiene servicios activos publicados.
+              </p>
             )}
           </section>
 

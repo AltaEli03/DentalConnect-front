@@ -5,12 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
-import {
-  formatDateTime,
-  formatTime,
-  localToday,
-  statusLabels,
-} from '../lib/appointments';
+import { formatDateTime, formatTime, localToday, statusLabels } from '../lib/appointments';
 import type { AvailabilitySlot, Clinic } from '../types/api';
 
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
@@ -205,7 +200,10 @@ export function AppointmentRequestPage() {
             >
               Reintentar
             </Button>
-            <Link className="inline-flex min-h-10 items-center px-3 text-sm font-semibold text-brand underline underline-offset-4" to="/clinics">
+            <Link
+              className="inline-flex min-h-10 items-center px-3 text-sm font-semibold text-brand underline underline-offset-4"
+              to="/clinics"
+            >
               Volver al directorio
             </Link>
           </div>
@@ -242,18 +240,26 @@ export function AppointmentRequestPage() {
         <ol className="grid gap-4">
           <li className="rounded-card border border-line bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white" aria-hidden="true">
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
+                aria-hidden="true"
+              >
                 1
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">Selecciona el servicio</h2>
+              <h2 className="font-display text-xl font-semibold text-brand">
+                Selecciona el servicio
+              </h2>
             </div>
-            <label className="mt-4 grid gap-1.5 text-sm font-semibold text-ink" htmlFor="service-select">
+            <label
+              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
+              htmlFor="service-select"
+            >
               Servicio de interés
               <select
                 id="service-select"
                 value={serviceId}
                 onChange={(event) => changeService(event.target.value)}
-                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
+                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
               >
                 <option value="">Elige un servicio</option>
                 {clinic.services.map((service) => (
@@ -265,21 +271,31 @@ export function AppointmentRequestPage() {
             </label>
           </li>
 
-          <li className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDentist ? '' : 'opacity-60'}`}>
+          <li
+            className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDentist ? '' : 'opacity-60'}`}
+          >
             <div className="flex items-center gap-3">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white" aria-hidden="true">
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
+                aria-hidden="true"
+              >
                 2
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">Elige a tu especialista</h2>
+              <h2 className="font-display text-xl font-semibold text-brand">
+                Elige a tu especialista
+              </h2>
             </div>
-            <label className="mt-4 grid gap-1.5 text-sm font-semibold text-ink" htmlFor="dentist-select">
+            <label
+              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
+              htmlFor="dentist-select"
+            >
               Especialista
               <select
                 id="dentist-select"
                 value={dentistId}
                 onChange={(event) => changeDentist(event.target.value)}
                 disabled={!canChooseDentist}
-                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent/30 disabled:cursor-not-allowed"
+                className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
               >
                 <option value="">Selecciona un dentista</option>
                 {dentists.map((dentist) => (
@@ -296,14 +312,24 @@ export function AppointmentRequestPage() {
             )}
           </li>
 
-          <li className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDate ? '' : 'opacity-60'}`}>
+          <li
+            className={`rounded-card border border-line bg-white p-5 shadow-sm ${canChooseDate ? '' : 'opacity-60'}`}
+          >
             <div className="flex items-center gap-3">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white" aria-hidden="true">
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
+                aria-hidden="true"
+              >
                 3
               </span>
-              <h2 className="font-display text-xl font-semibold text-brand">Selecciona fecha y hora</h2>
+              <h2 className="font-display text-xl font-semibold text-brand">
+                Selecciona fecha y hora
+              </h2>
             </div>
-            <label className="mt-4 grid gap-1.5 text-sm font-semibold text-ink" htmlFor="date-input">
+            <label
+              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
+              htmlFor="date-input"
+            >
               Fecha de atención
               <input
                 id="date-input"
@@ -317,7 +343,7 @@ export function AppointmentRequestPage() {
                 }}
                 min={localToday()}
                 disabled={!canChooseDate}
-                className="min-h-11 max-w-sm rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent/30 disabled:cursor-not-allowed"
+                className="min-h-11 max-w-sm rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
               />
             </label>
 
@@ -376,7 +402,10 @@ export function AppointmentRequestPage() {
           </li>
         </ol>
 
-        <aside className="rounded-card border border-line bg-white shadow-md lg:sticky lg:top-24" aria-labelledby="summary-title">
+        <aside
+          className="rounded-card border border-line bg-white shadow-md lg:sticky lg:top-24"
+          aria-labelledby="summary-title"
+        >
           <div className="rounded-t-card bg-brand p-5 text-white">
             <h2 id="summary-title" className="font-display text-xl font-semibold">
               Resumen de solicitud
@@ -389,12 +418,16 @@ export function AppointmentRequestPage() {
             </div>
             <div>
               <dt className="font-semibold text-muted">Servicio</dt>
-              <dd className="mt-1 font-semibold text-ink">{selectedService?.name ?? 'Por seleccionar'}</dd>
+              <dd className="mt-1 font-semibold text-ink">
+                {selectedService?.name ?? 'Por seleccionar'}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-muted">Especialista</dt>
               <dd className="mt-1 font-semibold text-ink">
-                {selectedDentist ? `${selectedDentist.firstName} ${selectedDentist.lastName}` : 'Por seleccionar'}
+                {selectedDentist
+                  ? `${selectedDentist.firstName} ${selectedDentist.lastName}`
+                  : 'Por seleccionar'}
               </dd>
             </div>
             <div>
@@ -418,7 +451,7 @@ export function AppointmentRequestPage() {
               </p>
             ) : !user ? (
               <Link
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white hover:bg-brand-strong focus-visible:ring-4 focus-visible:ring-accent/30"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white hover:bg-brand-strong focus-visible:ring-4 focus-visible:ring-accent"
                 to="/iniciar-sesion"
               >
                 Inicia sesión para agendar
@@ -427,7 +460,9 @@ export function AppointmentRequestPage() {
               <Notice tone="success" title="Solicitud enviada" className="mb-3">
                 <p>
                   Folio <strong>{requestResult.folio}</strong> · estado{' '}
-                  <strong>{statusLabels[requestResult.status?.toUpperCase()] ?? requestResult.status}</strong>
+                  <strong>
+                    {statusLabels[requestResult.status?.toUpperCase()] ?? requestResult.status}
+                  </strong>
                 </p>
                 <Link
                   className="mt-2 inline-block font-semibold text-accent-strong underline underline-offset-4"

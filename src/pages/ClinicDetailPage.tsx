@@ -11,8 +11,10 @@ const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN
 
 function detailMessage(cause: unknown) {
   if (cause instanceof ApiError) {
-    if (cause.status === 404) return 'No encontramos ese consultorio. Puede que ya no esté publicado.';
-    if (cause.status >= 500) return 'El detalle tiene un problema temporal. Inténtalo de nuevo en unos minutos.';
+    if (cause.status === 404)
+      return 'No encontramos ese consultorio. Puede que ya no esté publicado.';
+    if (cause.status >= 500)
+      return 'El detalle tiene un problema temporal. Inténtalo de nuevo en unos minutos.';
     return cause.message;
   }
   if (
@@ -137,7 +139,10 @@ export function ClinicDetailPage() {
                   <dt className="font-semibold text-brand">Teléfono</dt>
                   <dd>
                     {clinic.phone ? (
-                      <a className="text-accent-strong underline underline-offset-4" href={`tel:${clinic.phone}`}>
+                      <a
+                        className="text-accent-strong underline underline-offset-4"
+                        href={`tel:${clinic.phone}`}
+                      >
                         {clinic.phone}
                       </a>
                     ) : (
@@ -149,7 +154,10 @@ export function ClinicDetailPage() {
                   <dt className="font-semibold text-brand">Correo</dt>
                   <dd>
                     {clinic.email ? (
-                      <a className="break-all text-accent-strong underline underline-offset-4" href={`mailto:${clinic.email}`}>
+                      <a
+                        className="break-all text-accent-strong underline underline-offset-4"
+                        href={`mailto:${clinic.email}`}
+                      >
                         {clinic.email}
                       </a>
                     ) : (
@@ -177,7 +185,9 @@ export function ClinicDetailPage() {
                     className="flex flex-col rounded-card border border-line bg-white p-5 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-display text-lg font-semibold text-brand">{service.name}</h3>
+                      <h3 className="font-display text-lg font-semibold text-brand">
+                        {service.name}
+                      </h3>
                       <span className="whitespace-nowrap rounded-full border border-accent/30 bg-accent/5 px-2.5 py-1 text-xs font-bold text-accent-strong">
                         Desde {money.format(service.priceFrom)}
                       </span>
@@ -252,22 +262,25 @@ export function ClinicDetailPage() {
           </p>
           <ol className="mt-4 grid gap-3 text-sm text-ink">
             <li className="flex gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">1</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">
+                1
+              </span>
               Elige servicio y dentista.
             </li>
             <li className="flex gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">2</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">
+                2
+              </span>
               Consulta los horarios disponibles.
             </li>
             <li className="flex gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">3</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">
+                3
+              </span>
               El consultorio confirma tu cita.
             </li>
           </ol>
-          <a
-            className={`${buttonStyles('coral', 'md')} mt-5 w-full`}
-            href="#services-title"
-          >
+          <a className={`${buttonStyles('coral', 'md')} mt-5 w-full`} href="#services-title">
             Elegir servicio
           </a>
         </aside>

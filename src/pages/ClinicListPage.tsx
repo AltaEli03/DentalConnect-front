@@ -187,7 +187,7 @@ export function ClinicListPage() {
                   placeholder="Ciudad, colonia o C.P."
                   maxLength={120}
                   autoComplete="postal-code"
-                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
+                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-ink">
@@ -197,7 +197,7 @@ export function ClinicListPage() {
                   name="serviceId"
                   value={selectedService}
                   onChange={(event) => setSelectedService(event.target.value)}
-                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
+                  className="min-h-11 rounded-control border border-line-strong bg-white px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
                 >
                   <option value="">Todos los servicios</option>
                   {services.map((service) => (
@@ -241,7 +241,11 @@ export function ClinicListPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6" aria-live="polite" aria-busy={loading}>
+      <section
+        className="mx-auto max-w-6xl px-4 py-10 sm:px-6"
+        aria-live="polite"
+        aria-busy={loading}
+      >
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
           <h2 className="font-display text-2xl font-semibold text-brand">
             {nearby ? 'Consultorios cercanos' : 'Consultorios disponibles'}
@@ -306,7 +310,10 @@ export function ClinicListPage() {
                 {clinics.length}
               </p>
               {totalPages > 1 && (
-                <nav aria-label="Paginación de consultorios" className="flex flex-wrap items-center justify-center gap-2">
+                <nav
+                  aria-label="Paginación de consultorios"
+                  className="flex flex-wrap items-center justify-center gap-2"
+                >
                   <button
                     type="button"
                     className={buttonStyles('ghost', 'sm')}

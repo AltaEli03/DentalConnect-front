@@ -116,7 +116,10 @@ export function AppointmentProposalPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
-      <section className="overflow-hidden rounded-card border border-line bg-white shadow-sm" aria-label="Mi solicitud">
+      <section
+        className="overflow-hidden rounded-card border border-line bg-white shadow-sm"
+        aria-label="Mi solicitud"
+      >
         <header className="border-b border-dashed border-line bg-gradient-to-b from-white to-canvas p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -161,7 +164,10 @@ export function AppointmentProposalPage() {
           {!appointment && !loading && (
             <div className="grid gap-4">
               <p className="text-muted">No pudimos encontrar esta solicitud.</p>
-              <Link className="font-semibold text-accent-strong underline underline-offset-4" to="/clinics">
+              <Link
+                className="font-semibold text-accent-strong underline underline-offset-4"
+                to="/clinics"
+              >
                 Volver al directorio
               </Link>
             </div>
@@ -169,7 +175,9 @@ export function AppointmentProposalPage() {
 
           {appointment && hasProposal && (
             <div className="grid gap-5">
-              <h2 className="font-display text-xl font-semibold text-brand">Revisa el cambio de horario</h2>
+              <h2 className="font-display text-xl font-semibold text-brand">
+                Revisa el cambio de horario
+              </h2>
 
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-control border border-dashed border-line-strong bg-canvas p-4">
@@ -193,7 +201,10 @@ export function AppointmentProposalPage() {
                 </Notice>
               )}
 
-              <section className="rounded-card border border-line bg-canvas p-4" aria-label="Responder propuesta">
+              <section
+                className="rounded-card border border-line bg-canvas p-4"
+                aria-label="Responder propuesta"
+              >
                 <h2 className="font-display text-lg font-semibold text-brand">
                   ¿Aceptas el nuevo horario?
                 </h2>
@@ -204,7 +215,9 @@ export function AppointmentProposalPage() {
 
                 {confirmingReject ? (
                   <div className="mt-4 rounded-control border border-danger/30 bg-danger/5 p-4">
-                    <p className="font-semibold text-ink">¿Seguro que quieres rechazar la propuesta?</p>
+                    <p className="font-semibold text-ink">
+                      ¿Seguro que quieres rechazar la propuesta?
+                    </p>
                     <p className="mt-1 text-sm text-muted">
                       La solicitud quedará rechazada y no se reservará ningún horario.
                     </p>
@@ -278,7 +291,11 @@ export function AppointmentProposalPage() {
                   La propuesta está incompleta. Solicita un nuevo horario al consultorio.
                 </Notice>
               )}
-              {status === 'CANCELLED' && <Notice tone="info" role="note">La solicitud fue cancelada.</Notice>}
+              {status === 'CANCELLED' && (
+                <Notice tone="info" role="note">
+                  La solicitud fue cancelada.
+                </Notice>
+              )}
               {status === 'REJECTED' && (
                 <>
                   <p className="font-semibold text-brand">Horario original:</p>
@@ -295,7 +312,10 @@ export function AppointmentProposalPage() {
                 </>
               )}
 
-              <Link className="font-semibold text-accent-strong underline underline-offset-4" to="/clinics">
+              <Link
+                className="font-semibold text-accent-strong underline underline-offset-4"
+                to="/clinics"
+              >
                 Volver al directorio
               </Link>
             </div>

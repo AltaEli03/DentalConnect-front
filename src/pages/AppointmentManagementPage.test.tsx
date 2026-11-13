@@ -116,7 +116,9 @@ describe('HU-13 proponer horario alternativo', () => {
     expect(within(detail).getByText('Fecha Solicitada:')).toBeInTheDocument();
     expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
     expect(within(detail).getByText('Vence:')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Proponer horario seleccionado' }),
+    ).not.toBeInTheDocument();
   });
 
   // DENT-13 R2
@@ -177,7 +179,9 @@ describe('HU-13 proponer horario alternativo', () => {
     expect(
       screen.queryByRole('heading', { name: /Proponer (un )?horario alternativo/ }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Proponer horario seleccionado' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Con propuesta' })).toBeInTheDocument();
   });
 
@@ -240,6 +244,8 @@ describe('HU-13 proponer horario alternativo', () => {
     const detail = screen.getByLabelText('Detalle de solicitud');
     expect(within(detail).getByText('Fecha Solicitada:')).toBeInTheDocument();
     expect(within(detail).getByText('Horario Propuesto:')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Proponer horario seleccionado' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Proponer horario seleccionado' }),
+    ).not.toBeInTheDocument();
   });
 });

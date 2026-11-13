@@ -10,7 +10,9 @@ vi.mock('../services/cognito', () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));
-vi.mock('../services/api', () => ({ api: { register: vi.fn(), verify: vi.fn(), resend: vi.fn() } }));
+vi.mock('../services/api', () => ({
+  api: { register: vi.fn(), verify: vi.fn(), resend: vi.fn() },
+}));
 
 const profile = {
   email: 'paciente@example.com',
@@ -67,13 +69,20 @@ describe('Sprint 2 account flow', () => {
     fireEvent.change(screen.getByLabelText('Código de 6 dígitos'), {
       target: { value: '123456' },
     });
-    fireEvent.change(screen.getByLabelText('Contraseña elegida al registrarte (12 caracteres mínimo)'), {
-      target: { value: 'DentConnect123!' },
-    });
+    fireEvent.change(
+      screen.getByLabelText('Contraseña elegida al registrarte (12 caracteres mínimo)'),
+      {
+        target: { value: 'DentConnect123!' },
+      },
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Verificar cuenta' }));
 
     await screen.findByRole('heading', { name: 'Inicia sesión' });
-    expect(api.verify).toHaveBeenCalledWith({ email: 'paciente@example.com', code: '123456', password: 'DentConnect123!' });
+    expect(api.verify).toHaveBeenCalledWith({
+      email: 'paciente@example.com',
+      code: '123456',
+      password: 'DentConnect123!',
+    });
   });
 
   it('takes a verified patient to My Account and closes the session', async () => {
@@ -94,7 +103,9 @@ describe('Sprint 2 account flow', () => {
     expect(screen.getByText('Rol: PACIENTE')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible());
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible(),
+    );
     expect(signOut).toHaveBeenCalledOnce();
   });
 

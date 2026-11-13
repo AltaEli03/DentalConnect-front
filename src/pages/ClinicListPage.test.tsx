@@ -66,9 +66,7 @@ describe('ClinicListPage', () => {
     vi.mocked(api.clinics).mockResolvedValue({ data: [clinic(1)] } as never);
     renderPage('/clinics?q=Puebla&servicio=service-1');
 
-    await waitFor(() =>
-      expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1'),
-    );
+    await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1'));
     expect(await screen.findByRole('heading', { name: 'Clínica 1' })).toBeInTheDocument();
     expect(screen.getByLabelText('Zona o código postal')).toHaveValue('Puebla');
     expect(screen.getByLabelText('Servicio dental')).toHaveValue('service-1');

@@ -58,10 +58,7 @@ describe('DentistProfilePage', () => {
     render(
       <MemoryRouter initialEntries={['/clinics/clinic-1/dentistas/dentist-1']}>
         <Routes>
-          <Route
-            path="/clinics/:clinicId/dentistas/:dentistId"
-            element={<DentistProfilePage />}
-          />
+          <Route path="/clinics/:clinicId/dentistas/:dentistId" element={<DentistProfilePage />} />
         </Routes>
       </MemoryRouter>,
     );
