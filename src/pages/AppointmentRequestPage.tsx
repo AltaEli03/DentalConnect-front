@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
@@ -33,7 +33,9 @@ function requestMessage(cause: unknown) {
 export function AppointmentRequestPage() {
   const { clinicId = '' } = useParams();
   const [params, setParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? '';
+  const { user, loading: authLoading, logout } = useAuth();
 
   const [clinic, setClinic] = useState<Clinic>();
   const [loadingClinic, setLoadingClinic] = useState(true);
@@ -88,7 +90,14 @@ export function AppointmentRequestPage() {
   }, [clinicAttempt, clinicId]);
 
   useEffect(() => {
-    if (!clinic || !serviceId || !dentistId || !selectedService || !selectedDentist) {
+    if (
+      !clinic ||
+      !serviceId ||
+      !dentistId ||
+      !selectedService ||
+      !selectedDentist ||
+      !selectedDate
+    ) {
       setSlots([]);
       setAvailabilityError('');
       setLoadingSlots(false);
@@ -147,14 +156,16 @@ export function AppointmentRequestPage() {
   }
 
   function chooseSlot(slot: AvailabilitySlot) {
+    if (slot.startsAt !== selectedSlot) {
+      setIdempotencyKey(crypto.randomUUID());
+    }
     setSelectedSlot(slot.startsAt);
-    setIdempotencyKey(crypto.randomUUID());
     setRequestError('');
     setRequestResult(undefined);
   }
 
   async function submitRequest() {
-    if (!user || !selectedSlot || !serviceId || !dentistId) return;
+    if (requesting || !user || !selectedSlot || !serviceId || !dentistId) return;
     setRequesting(true);
     setRequestError('');
     try {
@@ -169,6 +180,7 @@ export function AppointmentRequestPage() {
       });
     } catch (cause) {
       setRequestError(requestMessage(cause));
+      if (cause instanceof ApiError && cause.status === 401) void logout();
     } finally {
       setRequesting(false);
     }
@@ -221,6 +233,7 @@ export function AppointmentRequestPage() {
         <Link
           className="text-accent-strong underline-offset-4 hover:underline"
           to={`/clinics/${clinic.id}`}
+          state={from ? { from } : undefined}
         >
           Volver a {clinic.name}
         </Link>
@@ -334,6 +347,7 @@ export function AppointmentRequestPage() {
               <input
                 id="date-input"
                 type="date"
+                required
                 value={selectedDate}
                 onChange={(event) => {
                   setSelectedDate(event.target.value);
@@ -453,6 +467,7 @@ export function AppointmentRequestPage() {
               <Link
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white hover:bg-brand-strong focus-visible:ring-4 focus-visible:ring-accent"
                 to="/iniciar-sesion"
+                state={{ from: `${location.pathname}${location.search}` }}
               >
                 Inicia sesión para agendar
               </Link>

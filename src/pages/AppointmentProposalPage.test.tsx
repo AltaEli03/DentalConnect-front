@@ -278,6 +278,43 @@ describe('HU-14 aceptar o rechazar un horario alternativo', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Inicia sesión para consultar tu solicitud.',
     );
+    expect(screen.queryByText('No pudimos encontrar esta solicitud.')).not.toBeInTheDocument();
+  });
+
+  it('clears the error after a successful retry', async () => {
+    let gets = 0;
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async (url) => {
+        if (url.endsWith('/proposal')) {
+          gets += 1;
+          return gets === 1
+            ? json({ error: { message: 'Error temporal del servicio' } }, 500)
+            : json({ data: proposed() });
+        }
+        return json({ data: [] });
+      }),
+    );
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Error temporal del servicio');
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Solicitud DC-1' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows the not-found state for a 404', async () => {
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async () => json(null, 404)),
+    );
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La solicitud no existe o no pertenece a tu cuenta.',
+    );
+    expect(screen.getByText('No pudimos encontrar esta solicitud.')).toBeInTheDocument();
   });
 
   // DENT-14 R6

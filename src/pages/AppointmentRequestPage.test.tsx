@@ -163,6 +163,89 @@ describe('AppointmentRequestPage', () => {
     );
   });
 
+  it('reuses the idempotency key when retrying the same request', async () => {
+    const uuid = vi.fn(() => 'stable-key');
+    vi.stubGlobal('crypto', { randomUUID: uuid });
+    vi.mocked(api.createAppointment)
+      .mockRejectedValueOnce(new ApiError('Error temporal', 500))
+      .mockResolvedValueOnce({
+        data: {
+          id: 'apt-1',
+          folio: 'DC-1',
+          status: 'PENDING',
+          clinicId: 'clinic-1',
+          dentistId: 'dentist-1',
+          dentalServiceId: 'service-1',
+          startsAt: '2026-11-20T17:00:00Z',
+          endsAt: '2026-11-20T17:30:00Z',
+          timeZoneId: 'America/Mexico_City',
+        },
+      } as never);
+    renderPage();
+
+    await chooseSlot();
+    expect(uuid).toHaveBeenCalledTimes(1);
+    fireEvent.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'El servicio tiene un problema temporal',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await screen.findByRole('link', { name: 'Ver el estado de mi solicitud' });
+    expect(uuid).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(api.createAppointment).mock.calls[1]?.[1]).toBe('stable-key');
+    expect(vi.mocked(api.createAppointment).mock.calls[0]?.[1]).toBe('stable-key');
+  });
+
+  it('keeps the same key when the selected slot is clicked again', async () => {
+    const uuid = vi.fn(() => 'stable-key');
+    vi.stubGlobal('crypto', { randomUUID: uuid });
+    renderPage();
+
+    const slot = await screen.findByRole('button', { name: /20 nov 2026/i });
+    fireEvent.click(slot);
+    fireEvent.click(slot);
+
+    expect(uuid).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not submit twice on a double click', async () => {
+    renderPage();
+
+    await chooseSlot();
+    const submit = await screen.findByRole('button', { name: 'Enviar solicitud' });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+
+    expect(vi.mocked(api.createAppointment)).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not request availability without a date', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /20 nov 2026/i });
+    vi.mocked(api.availability).mockClear();
+
+    fireEvent.change(screen.getByLabelText('Fecha de atención'), { target: { value: '' } });
+
+    await waitFor(() => expect(api.availability).not.toHaveBeenCalled());
+  });
+
+  it('returns to sign-in when the session expired', async () => {
+    vi.mocked(api.createAppointment).mockRejectedValueOnce(new ApiError('Tu sesión terminó', 401));
+    renderPage();
+
+    await chooseSlot();
+    fireEvent.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Tu sesión terminó. Inicia sesión para enviar la solicitud.',
+    );
+    expect(await screen.findByRole('link', { name: 'Inicia sesión para agendar' })).toHaveAttribute(
+      'href',
+      '/iniciar-sesion',
+    );
+  });
+
   it('retries availability without losing the chosen service and dentist', async () => {
     vi.mocked(api.availability)
       .mockRejectedValueOnce(new ApiError('No pudimos consultar los horarios', 500))

@@ -29,7 +29,8 @@ function detailMessage(cause: unknown) {
 export function ClinicDetailPage() {
   const { id = '' } = useParams();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? '';
+  const fromState = (location.state as { from?: string } | null)?.from ?? '';
+  const from = fromState.startsWith('?') ? fromState : fromState ? `?${fromState}` : '';
   const [clinic, setClinic] = useState<Clinic>();
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -65,7 +66,10 @@ export function ClinicDetailPage() {
             >
               Reintentar
             </Button>
-            <Link className={buttonStyles('ghost', 'sm')} to="/clinics">
+            <Link
+              className={buttonStyles('ghost', 'sm')}
+              to={from ? `/clinics${from}` : '/clinics'}
+            >
               Volver al directorio
             </Link>
           </div>
@@ -202,6 +206,7 @@ export function ClinicDetailPage() {
                       <Link
                         className={buttonStyles('primary', 'sm')}
                         to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}`}
+                        state={from ? { from } : undefined}
                         aria-label={`Solicitar ${service.name} en ${clinic.name}`}
                       >
                         Solicitar atención
@@ -244,6 +249,8 @@ export function ClinicDetailPage() {
                       <Link
                         className={`${buttonStyles('outline', 'sm')} mt-4 w-full`}
                         to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
+                        state={from ? { from } : undefined}
+                        aria-label={`Ver perfil de ${dentist.firstName} ${dentist.lastName}`}
                       >
                         Ver perfil
                       </Link>

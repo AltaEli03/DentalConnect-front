@@ -32,9 +32,10 @@ describe('ClinicCard', () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole('heading', { name: 'Clínica Sonrisa' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ver consultorio' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Ver consultorio/ })).toHaveAttribute(
       'href',
       '/clinics/abc',
     );
+    expect(screen.getByRole('list', { name: 'Servicios publicados' })).toBeInTheDocument();
   });
 });

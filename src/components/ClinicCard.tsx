@@ -12,7 +12,10 @@ export function ClinicCard({ clinic, from = '' }: { clinic: ClinicWithDistance; 
     .join(' · ');
 
   return (
-    <article className="grid gap-4 py-5 sm:grid-cols-[10rem_minmax(0,1fr)_auto] sm:items-center">
+    <article
+      className="grid gap-4 py-5 sm:grid-cols-[10rem_minmax(0,1fr)_auto] sm:items-center"
+      aria-labelledby={`clinic-${clinic.id}-name`}
+    >
       <div className="h-44 overflow-hidden rounded-control bg-canvas sm:h-32">
         <ContentImage
           src={clinic.imageUrl}
@@ -23,32 +26,37 @@ export function ClinicCard({ clinic, from = '' }: { clinic: ClinicWithDistance; 
 
       <div className="min-w-0">
         {location && <p className="text-sm font-semibold text-accent-strong">{location}</p>}
-        <h3 className="mt-1 font-display text-xl font-semibold text-brand">{clinic.name}</h3>
+        <h3
+          id={`clinic-${clinic.id}-name`}
+          className="mt-1 font-display text-xl font-semibold text-brand"
+        >
+          {clinic.name}
+        </h3>
         {address && <p className="mt-1 text-sm text-muted">{address}</p>}
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
           {clinic.description || 'Consulta los datos de contacto y servicios disponibles.'}
         </p>
 
-        <div className="mt-3 flex flex-wrap gap-2" aria-label="Servicios publicados">
+        <ul className="mt-3 flex flex-wrap gap-2" aria-label="Servicios publicados">
           {clinic.services.slice(0, 3).map((service) => (
-            <span
+            <li
               key={service.id}
               className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-ink"
             >
               {service.name}
-            </span>
+            </li>
           ))}
           {clinic.services.length > 3 && (
-            <span className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
+            <li className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
               y {clinic.services.length - 3} más
-            </span>
+            </li>
           )}
           {clinic.services.length === 0 && (
-            <span className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
+            <li className="rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
               Servicios por confirmar
-            </span>
+            </li>
           )}
-        </div>
+        </ul>
 
         {Number.isFinite(clinic.distanceKm) && (
           <p className="mt-2 text-sm font-semibold text-accent-strong">
@@ -62,6 +70,7 @@ export function ClinicCard({ clinic, from = '' }: { clinic: ClinicWithDistance; 
           className={buttonStyles('outline', 'sm')}
           to={`/clinics/${clinic.id}`}
           state={from ? { from } : undefined}
+          aria-label={`Ver consultorio ${clinic.name}`}
         >
           Ver consultorio
         </Link>

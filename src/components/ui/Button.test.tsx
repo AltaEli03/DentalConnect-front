@@ -15,6 +15,13 @@ describe('Button', () => {
     expect(button).toHaveAttribute('aria-busy', 'true');
   });
 
+  it('uses an opaque focus ring', () => {
+    render(<Button>Guardar</Button>);
+    const classes = screen.getByRole('button', { name: 'Guardar' }).className;
+    expect(classes).toContain('focus-visible:ring-accent');
+    expect(classes).not.toContain('ring-accent/30');
+  });
+
   it('applies the coral call-to-action variant', () => {
     render(<Button variant="coral">Enviar solicitud</Button>);
     expect(screen.getByRole('button', { name: 'Enviar solicitud' }).className).toContain(

@@ -119,7 +119,9 @@ describe('ClinicListPage', () => {
     expect(screen.getByRole('heading', { name: 'Clínica 6' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Clínica 7' })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Página 2' }));
+    const secondPage = screen.getByRole('button', { name: 'Página 2' });
+    expect(secondPage.className).toContain('min-w-11');
+    fireEvent.click(secondPage);
 
     expect(await screen.findByRole('heading', { name: 'Clínica 7' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Clínica 1' })).not.toBeInTheDocument();

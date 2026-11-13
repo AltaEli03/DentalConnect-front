@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { signIn } from '../services/cognito';
 import { api } from '../services/api';
@@ -20,12 +20,14 @@ function friendlyAuthError(cause: unknown, fallback: string) {
 export function LoginPage() {
   const { user, acceptLogin } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
+  const redirect = (location.state as { from?: string } | null)?.from || '/mi-cuenta';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to="/mi-cuenta" replace />;
+  if (user) return <Navigate to={redirect} replace />;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,7 @@ export function LoginPage() {
     try {
       const profile = await signIn(email.trim(), password);
       acceptLogin(profile);
-      nav('/mi-cuenta', { replace: true });
+      nav(redirect, { replace: true });
     } catch (err) {
       setError(
         friendlyAuthError(
@@ -290,13 +292,15 @@ export function VerifyPage() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
   const resendTimer = useRef<number | undefined>(undefined);
+  const mounted = useRef(true);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       if (resendTimer.current !== undefined) window.clearInterval(resendTimer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const verify = async (event: FormEvent) => {
     event.preventDefault();
@@ -325,6 +329,7 @@ export function VerifyPage() {
     setNoticeIsError(false);
     try {
       await api.resend(email.trim());
+      if (!mounted.current) return;
       setNotice(
         'Se envió un nuevo código de verificación. Revisa también tu carpeta de correo no deseado.',
       );
@@ -343,10 +348,11 @@ export function VerifyPage() {
         1000,
       );
     } catch (cause) {
+      if (!mounted.current) return;
       setNotice(friendlyAuthError(cause, 'No fue posible reenviar el código. Inténtalo de nuevo.'));
       setNoticeIsError(true);
     } finally {
-      setResending(false);
+      if (mounted.current) setResending(false);
     }
   };
 

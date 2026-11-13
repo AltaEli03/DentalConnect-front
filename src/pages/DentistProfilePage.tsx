@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ContentImage } from '../components/ContentImage';
 import { buttonStyles } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
@@ -26,6 +26,8 @@ function profileMessage(cause: unknown) {
 
 export function DentistProfilePage() {
   const { clinicId = '', dentistId = '' } = useParams();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? '';
   const [clinic, setClinic] = useState<Clinic>();
   const [dentist, setDentist] = useState<Dentist>();
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,11 @@ export function DentistProfilePage() {
             >
               Reintentar
             </button>
-            <Link className={buttonStyles('ghost', 'sm')} to={`/clinics/${clinicId}`}>
+            <Link
+              className={buttonStyles('ghost', 'sm')}
+              to={`/clinics/${clinicId}`}
+              state={from ? { from } : undefined}
+            >
               Volver al consultorio
             </Link>
           </div>
@@ -97,7 +103,11 @@ export function DentistProfilePage() {
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <Notice tone="info" title="Perfil no disponible">
           <p>Este dentista ya no está disponible en el consultorio seleccionado.</p>
-          <Link className={`${buttonStyles('outline', 'sm')} mt-4`} to={`/clinics/${clinicId}`}>
+          <Link
+            className={`${buttonStyles('outline', 'sm')} mt-4`}
+            to={`/clinics/${clinicId}`}
+            state={from ? { from } : undefined}
+          >
             Volver al consultorio
           </Link>
         </Notice>
@@ -111,6 +121,7 @@ export function DentistProfilePage() {
         <Link
           className="text-accent-strong underline-offset-4 hover:underline"
           to={`/clinics/${clinic.id}`}
+          state={from ? { from } : undefined}
         >
           Volver a {clinic.name}
         </Link>
@@ -164,6 +175,8 @@ export function DentistProfilePage() {
                     <Link
                       className={`${buttonStyles('primary', 'sm')} mt-3`}
                       to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}&dentistId=${encodeURIComponent(dentist.id)}`}
+                      state={from ? { from } : undefined}
+                      aria-label={`Elegir ${service.name}`}
                     >
                       Elegir este servicio
                     </Link>

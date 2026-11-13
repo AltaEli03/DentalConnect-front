@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { ClinicCard } from '../components/ClinicCard';
 import { Button, buttonStyles } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
@@ -31,6 +31,7 @@ function directoryMessage(cause: unknown) {
 
 export function ClinicListPage() {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const q = params.get('q') ?? '';
   const serviceId = params.get('servicio') ?? '';
   const [search, setSearch] = useState(q);
@@ -299,7 +300,7 @@ export function ClinicListPage() {
             <ul className="divide-y divide-line border-b border-line">
               {visibleClinics.map((clinic) => (
                 <li key={clinic.id}>
-                  <ClinicCard clinic={clinic} from={params.toString()} />
+                  <ClinicCard clinic={clinic} from={location.search} />
                 </li>
               ))}
             </ul>
@@ -316,7 +317,7 @@ export function ClinicListPage() {
                 >
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm')}
+                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
                     disabled={currentPage === 1}
                     onClick={() => setPage((current) => Math.max(1, current - 1))}
                   >
@@ -331,7 +332,7 @@ export function ClinicListPage() {
                       className={buttonStyles(
                         number === currentPage ? 'primary' : 'outline',
                         'sm',
-                        'min-w-10',
+                        'min-h-11 min-w-11',
                       )}
                       onClick={() => setPage(number)}
                     >
@@ -340,7 +341,7 @@ export function ClinicListPage() {
                   ))}
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm')}
+                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
                     disabled={currentPage === totalPages}
                     onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                   >

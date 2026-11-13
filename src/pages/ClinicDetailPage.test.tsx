@@ -78,7 +78,7 @@ describe('ClinicDetailPage', () => {
   });
 
   it('returns to the directory preserving the previous filters', async () => {
-    renderPage({ from: '?q=Puebla&servicio=service-1' });
+    renderPage({ from: 'q=Puebla&servicio=service-1' });
 
     expect(await screen.findByRole('link', { name: /Volver al directorio/ })).toHaveAttribute(
       'href',

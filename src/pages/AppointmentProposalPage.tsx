@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
@@ -26,30 +26,48 @@ const message = (cause: unknown) => {
 
 export function AppointmentProposalPage() {
   const { appointmentId = '' } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const location = useLocation();
   const [appointment, setAppointment] = useState<AppointmentProposal>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [errorStatus, setErrorStatus] = useState<number>();
+  const [notFound, setNotFound] = useState(false);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmingReject, setConfirmingReject] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.proposal(appointmentId);
-      setAppointment(data);
-    } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 404) setAppointment(undefined);
-      setError(message(cause));
-    } finally {
-      setLoading(false);
-    }
-  }, [appointmentId]);
+  const load = useCallback(
+    async (clearError = true) => {
+      setLoading(true);
+      if (clearError) setError('');
+      try {
+        const { data } = await api.proposal(appointmentId);
+        setAppointment(data);
+        setNotFound(false);
+        setErrorStatus(undefined);
+      } catch (cause) {
+        if (cause instanceof ApiError && cause.status === 404) {
+          setAppointment(undefined);
+          setNotFound(true);
+        } else {
+          setNotFound(false);
+        }
+        setErrorStatus(cause instanceof ApiError ? cause.status : undefined);
+        setError(message(cause));
+        if (cause instanceof ApiError && cause.status === 401) void logout();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [appointmentId, logout],
+  );
 
   useEffect(() => {
     if (!user || !appointmentId) return;
     setError('');
+    setErrorStatus(undefined);
+    setNotFound(false);
     setNotice('');
     void load();
   }, [appointmentId, load, user]);
@@ -73,11 +91,12 @@ export function AppointmentProposalPage() {
       return;
     } catch (cause) {
       failure = message(cause);
+      if (cause instanceof ApiError && cause.status === 401) void logout();
     } finally {
       setBusy(false);
     }
     setError(failure);
-    await load();
+    await load(false);
   };
 
   if (authLoading) {
@@ -94,12 +113,19 @@ export function AppointmentProposalPage() {
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <section className="rounded-card border border-line bg-white p-6 shadow-sm">
           <h1 className="font-display text-3xl font-semibold text-brand">Mi solicitud</h1>
-          <Notice tone="info" className="mt-4">
-            Inicia sesión con la cuenta que creó la solicitud.
-          </Notice>
+          {error ? (
+            <Notice tone="error" className="mt-4">
+              {error}
+            </Notice>
+          ) : (
+            <Notice tone="info" className="mt-4">
+              Inicia sesión con la cuenta que creó la solicitud.
+            </Notice>
+          )}
           <Link
             className="mt-4 inline-block font-semibold text-accent-strong underline underline-offset-4"
             to="/iniciar-sesion"
+            state={{ from: `${location.pathname}${location.search}` }}
           >
             Iniciar sesión para consultar mi solicitud
           </Link>
@@ -146,13 +172,30 @@ export function AppointmentProposalPage() {
           {error && (
             <Notice tone="error" className="mb-4">
               <p>{error}</p>
-              <button
-                type="button"
-                className="mt-3 text-sm font-semibold text-danger underline underline-offset-4"
-                onClick={() => void load()}
-              >
-                Reintentar
-              </button>
+              {errorStatus === 401 ? (
+                <Link
+                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  to="/iniciar-sesion"
+                  state={{ from: `${location.pathname}${location.search}` }}
+                >
+                  Iniciar sesión de nuevo
+                </Link>
+              ) : errorStatus === 404 ? (
+                <Link
+                  className="mt-3 inline-block text-sm font-semibold text-danger underline underline-offset-4"
+                  to="/clinics"
+                >
+                  Volver al directorio
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="mt-3 text-sm font-semibold text-danger underline underline-offset-4"
+                  onClick={() => void load()}
+                >
+                  Reintentar
+                </button>
+              )}
             </Notice>
           )}
           {notice && (
@@ -161,7 +204,7 @@ export function AppointmentProposalPage() {
             </Notice>
           )}
 
-          {!appointment && !loading && (
+          {!appointment && !loading && notFound && (
             <div className="grid gap-4">
               <p className="text-muted">No pudimos encontrar esta solicitud.</p>
               <Link
@@ -225,6 +268,7 @@ export function AppointmentProposalPage() {
                       <Button
                         variant="danger"
                         size="sm"
+                        autoFocus
                         loading={busy}
                         onClick={() => void respond(false)}
                       >
