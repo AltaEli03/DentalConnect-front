@@ -88,35 +88,99 @@ export function ClinicListPage() {
 
   return (
     <main>
+      {/* HERO SECTION: Espaciado y Buscador Unificado */}
       <section className="hero">
-        <p className="eyebrow">Cuidado dental cerca de ti</p>
-        <h1>Encuentra el consultorio ideal para tu sonrisa.</h1>
-        <form onSubmit={submit}>
-          <label htmlFor="search">Busca por ciudad, municipio, colonia o código postal</label>
-          <div className="search-filters">
-            <input id="search" value={search} onChange={(event) => setSearch(event.target.value)}
-              placeholder="Ej. Puebla, Del Valle o 03100" />
-            <label className="filter-label" htmlFor="service-filter">Servicio activo</label>
-            <select id="service-filter" value={serviceId} onChange={(event) => setServiceId(event.target.value)}>
-              <option value="">Todos los servicios</option>
-              {services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}
-            </select>
-            <button type="submit">Buscar</button>
+        <div className="hero-content">
+          <p className="eyebrow">Cuidado dental cerca de ti</p>
+          <h1>Encuentra el consultorio ideal para tu sonrisa.</h1>
+          
+          <form onSubmit={submit} className="hero-search-form">
+            <label htmlFor="search" className="sr-only">Buscar consultorio</label>
+            
+            {/* Contenedor Premium del Buscador */}
+            <div className="search">
+              <div className="search-input-group">
+                <span className="search-icon">📍</span>
+                <input 
+                  id="search" 
+                  value={search} 
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Ciudad, C.P. o Colonia" 
+                />
+              </div>
+              
+              <div className="search-divider"></div>
+              
+              <div className="search-select-group">
+                <span className="search-icon">🦷</span>
+                <select 
+                  id="service-filter" 
+                  value={serviceId} 
+                  onChange={(event) => setServiceId(event.target.value)}
+                >
+                  <option value="">Todos los servicios</option>
+                  {services.map((service) => (
+                    <option key={service.id} value={service.id}>{service.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit" className="search-submit">Buscar</button>
+            </div>
+          </form>
+
+          {/* Botón de Ubicación (Separado y elegante) */}
+          <div className="location-action">
+            <button 
+              className="location-button" 
+              type="button" 
+              onClick={searchNearby} 
+              disabled={locating}
+            >
+              {locating ? 'Buscando cerca de ti…' : '📍 Usar mi ubicación actual'}
+            </button>
+            {locationMessage && (
+              <p className="location-message" role="status">{locationMessage}</p>
+            )}
           </div>
-        </form>
-        <button className="location-button" type="button" onClick={searchNearby} disabled={locating}>
-          {locating ? 'Buscando cerca de ti…' : 'Usar mi ubicación (10 km)'}
-        </button>
-        {locationMessage && <p className="location-message" role="status">{locationMessage}</p>}
+        </div>
       </section>
+
+      {/* DIRECTORIO: Resultados y Tarjetas */}
       <section className="directory" aria-live="polite">
-        <h2>{nearby ? 'Consultorios cercanos' : 'Consultorios disponibles'}</h2>
-        {loading && <p>Cargando consultorios…</p>}
-        {error && <div className="notice error"><p>{error}</p><button onClick={() => void load(search, serviceId)}>Reintentar</button></div>}
-        {!loading && !error && clinics.length === 0 && (
-          <p className="notice">{nearby ? 'No hay consultorios con coordenadas registradas dentro de 10 km.' : 'No encontramos coincidencias. Cambia la zona o el servicio para intentar de nuevo.'}</p>
+        <div className="directory-header">
+          <h2>{nearby ? 'Consultorios cercanos a ti' : 'Consultorios disponibles'}</h2>
+          {!loading && !error && clinics.length > 0 && (
+            <span className="results-count">{clinics.length} resultados</span>
+          )}
+        </div>
+
+        {loading && (
+          <div className="loading-state">
+            <p>Cargando los mejores consultorios…</p>
+          </div>
         )}
-        <div className="card-grid">{clinics.map((clinic) => <ClinicCard clinic={clinic} key={clinic.id} />)}</div>
+
+        {error && (
+          <div className="notice error">
+            <p>{error}</p>
+            <button onClick={() => void load(search, serviceId)} className="button-retry">Reintentar</button>
+          </div>
+        )}
+
+        {!loading && !error && clinics.length === 0 && (
+          <div className="notice">
+            <p>{nearby 
+              ? 'No hay consultorios con coordenadas registradas dentro de 10 km.' 
+              : 'No encontramos coincidencias. Cambia la zona o el servicio para intentar de nuevo.'}</p>
+          </div>
+        )}
+
+        <div className="card-grid">
+          {clinics.map((clinic) => (
+            <ClinicCard clinic={clinic} key={clinic.id} />
+          ))}
+        </div>
       </section>
     </main>
   );
