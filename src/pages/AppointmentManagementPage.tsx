@@ -26,6 +26,7 @@ type Appointment = {
   dentistName?: string;
   rejectionReason?: string;
 };
+
 const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente',
   CONFIRMED: 'Confirmada',
@@ -33,18 +34,26 @@ const statusLabels: Record<string, string> = {
   CANCELLED: 'Cancelada',
   PROPOSED: 'Con propuesta',
 };
+
+const getStatusClass = (status: string) => {
+  switch (status) {
+    case 'CONFIRMED': return 'status-confirmed';
+    case 'REJECTED':
+    case 'CANCELLED': return 'status-cancelled';
+    case 'PROPOSED': return 'status-proposed';
+    default: return 'status-pending';
+  }
+};
+
 const timeZone = 'America/Mexico_City';
 const localToday = () => new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
+
 const sameInstant = (a?: string, b?: string) =>
   Boolean(a && b && new Date(a).getTime() === new Date(b).getTime());
+
 const dateTime = (value?: string) =>
-  value
-    ? new Intl.DateTimeFormat('es-MX', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        timeZone,
-      }).format(new Date(value))
-    : 'No disponible';
+  value ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(value)) : 'No disponible';
+
 type AppointmentDto = Partial<Appointment> & {
   receivedAt?: string;
   patient?: { firstName?: string; lastName?: string; email?: string; phone?: string };
@@ -52,6 +61,7 @@ type AppointmentDto = Partial<Appointment> & {
   service?: { id?: string; name?: string; estimatedDurationMinutes?: number };
   rejection?: { reason?: string };
 };
+
 const normalizeAppointment = (item: AppointmentDto): Appointment => ({
   ...item,
   id: item.id || '',
@@ -65,13 +75,13 @@ const normalizeAppointment = (item: AppointmentDto): Appointment => ({
   patientLastName: item.patientLastName || item.patient?.lastName,
   patientEmail: item.patientEmail || item.patient?.email,
   patientPhone: item.patientPhone || item.patient?.phone,
-  dentistName:
-    item.dentistName || [item.dentist?.firstName, item.dentist?.lastName].filter(Boolean).join(' '),
+  dentistName: item.dentistName || [item.dentist?.firstName, item.dentist?.lastName].filter(Boolean).join(' '),
   serviceName: item.serviceName || item.service?.name,
   rejectionReason: item.rejectionReason || item.rejection?.reason,
 });
+
 const patientName = (item: Appointment) =>
-  [item.patientFirstName, item.patientLastName].filter(Boolean).join(' ') || 'Paciente';
+  [item.patientFirstName, item.patientLastName].filter(Boolean).join(' ') || 'Paciente sin nombre';
 
 export function AppointmentManagementPage() {
   const [items, setItems] = useState<Appointment[]>([]);
@@ -101,15 +111,7 @@ export function AppointmentManagementPage() {
     const response = await fetch(base + path, { ...init, headers });
     if (!response.ok) {
       const body = await response.json().catch(() => null);
-      const message =
-        body?.error?.message ||
-        body?.message ||
-        body?.title ||
-        (response.status === 403
-          ? 'Tu cuenta no tiene permisos para administrar solicitudes de este consultorio.'
-          : response.status === 404
-            ? 'La solicitud no existe o no pertenece a tu consultorio.'
-            : 'Error HTTP ' + response.status);
+      const message = body?.error?.message || body?.message || body?.title || (response.status === 403 ? 'Tu cuenta no tiene permisos...' : response.status === 404 ? 'La solicitud no existe...' : 'Error HTTP ' + response.status);
       throw new Error(message);
     }
     return response.status === 204 ? null : response.json();
@@ -125,9 +127,7 @@ export function AppointmentManagementPage() {
       if (to) params.set('dateTo', to);
       const query = params.toString();
       const data = await request('/appointments' + (query ? '?' + query : ''));
-      const rows = (
-        Array.isArray(data) ? data : (data?.data ?? data?.appointments ?? data?.items ?? [])
-      ).map(normalizeAppointment);
+      const rows = (Array.isArray(data) ? data : (data?.data ?? data?.appointments ?? data?.items ?? [])).map(normalizeAppointment);
       setItems(rows);
       setSelected((current) => {
         if (!current) return current;
@@ -141,49 +141,25 @@ export function AppointmentManagementPage() {
     }
   }, [request, status, from, to]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
     setSlots([]);
     setSelectedProposed('');
     setSlotError('');
-    if (
-      !selected ||
-      selected.status?.toUpperCase() !== 'PENDING' ||
-      !selected.clinicId ||
-      !selected.dentistId ||
-      !selected.dentalServiceId ||
-      !proposedDate
-    )
-      return;
+    if (!selected || selected.status?.toUpperCase() !== 'PENDING' || !selected.clinicId || !selected.dentistId || !selected.dentalServiceId || !proposedDate) return;
     let active = true;
     setLoadingSlots(true);
     const params = new URLSearchParams({ serviceId: selected.dentalServiceId, date: proposedDate });
-    request(
-      '/clinics/' +
-        encodeURIComponent(selected.clinicId) +
-        '/dentists/' +
-        encodeURIComponent(selected.dentistId) +
-        '/availability?' +
-        params.toString(),
-    )
+    request('/clinics/' + encodeURIComponent(selected.clinicId) + '/dentists/' + encodeURIComponent(selected.dentistId) + '/availability?' + params.toString())
       .then((data) => {
         if (!active) return;
         const rows = (data?.data ?? []) as AvailabilitySlot[];
         setSlots(rows.filter((slot) => !sameInstant(slot.startsAt, selected.startsAt)));
       })
-      .catch((e) => {
-        if (active)
-          setSlotError(e instanceof Error ? e.message : 'No se pudieron consultar los horarios.');
-      })
-      .finally(() => {
-        if (active) setLoadingSlots(false);
-      });
-    return () => {
-      active = false;
-    };
+      .catch((e) => { if (active) setSlotError(e instanceof Error ? e.message : 'No se pudieron consultar los horarios.'); })
+      .finally(() => { if (active) setLoadingSlots(false); });
+    return () => { active = false; };
   }, [request, selected, proposedDate]);
 
   const openDetail = async (id: string) => {
@@ -213,16 +189,9 @@ export function AppointmentManagementPage() {
     setNotice('');
     try {
       const payload = action === 'reject' ? JSON.stringify({ reason: reason.trim() }) : undefined;
-      await request('/appointments/' + encodeURIComponent(selected.id) + '/' + action, {
-        method: 'POST',
-        body: payload,
-      });
+      await request('/appointments/' + encodeURIComponent(selected.id) + '/' + action, { method: 'POST', body: payload });
       setReason('');
-      setNotice(
-        action === 'confirm'
-          ? 'Solicitud confirmada; el horario quedó reservado.'
-          : 'Solicitud rechazada y motivo guardado.',
-      );
+      setNotice(action === 'confirm' ? 'Solicitud confirmada; el horario quedó reservado.' : 'Solicitud rechazada y motivo guardado.');
       await load();
       await openDetail(selected.id);
     } catch (e) {
@@ -254,227 +223,205 @@ export function AppointmentManagementPage() {
     if (failure) setError(failure);
     else {
       setSelectedProposed('');
-      setNotice(
-        'Propuesta enviada. El paciente debe aceptarla o rechazarla; el horario no queda reservado.',
-      );
+      setNotice('Propuesta enviada. El paciente debe aceptarla o rechazarla.');
     }
   };
 
-  const pendingCount = useMemo(
-    () => items.filter((item) => item.status?.toUpperCase() === 'PENDING').length,
-    [items],
-  );
+  const pendingCount = useMemo(() => items.filter((item) => item.status?.toUpperCase() === 'PENDING').length, [items]);
 
   return (
-    <main className="page-shell">
-      <section className="panel">
-        <p className="eyebrow">Gestión del consultorio</p>
-        <h1>Solicitudes de cita</h1>
-        <p>
-          Revisa los datos de contacto y decide sobre las solicitudes pendientes. Solo verás
-          solicitudes de tu consultorio.
-        </p>
-        <div className="form-grid">
-          <label>
-            Estado
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">Todos</option>
+    <main className="dashboard-page">
+      {/* HEADER Y FILTROS */}
+      <section className="panel dashboard-header-panel">
+        <div>
+          <p className="eyebrow">Panel de Gestión</p>
+          <h1>Solicitudes de Cita</h1>
+          <p className="text-muted">Revisa, confirma o propone nuevos horarios a los pacientes.</p>
+        </div>
+        
+        <div className="filter-bar">
+          <label>Estado
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="premium-select">
+              <option value="">Todas</option>
               <option value="PENDING">Pendientes</option>
               <option value="CONFIRMED">Confirmadas</option>
               <option value="REJECTED">Rechazadas</option>
               <option value="PROPOSED">Con propuesta</option>
             </select>
           </label>
-          <label>
-            Desde
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <label>Desde
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="premium-input" />
           </label>
-          <label>
-            Hasta
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <label>Hasta
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="premium-input" />
           </label>
-          <button type="button" onClick={() => void load()} disabled={loading}>
-            {loading ? 'Actualizando…' : 'Actualizar lista'}
+          <button onClick={() => void load()} disabled={loading} className="primary-btn">
+            {loading ? 'Actualizando…' : 'Filtrar'}
           </button>
         </div>
-        <p aria-live="polite">
-          {pendingCount} pendientes · ordenadas de la más antigua a la más reciente
-        </p>
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p className="notice" role="status">
-            {notice}
-          </p>
-        )}
-        {loading ? (
-          <p>Cargando solicitudes…</p>
-        ) : items.length === 0 ? (
-          <div className="appointment-summary">
-            <h2>Sin solicitudes</h2>
-            <p>No hay solicitudes que coincidan con los filtros actuales.</p>
-          </div>
-        ) : (
-          <div className="slot-list">
-            {items.map((item) => (
-              <article className="appointment-summary" key={item.id}>
-                <div>
-                  <strong>{item.reference || item.folio || item.id}</strong>
-                  <span> · {statusLabels[item.status?.toUpperCase()] || item.status}</span>
-                </div>
-                <p>
-                  {patientName(item)} · {item.serviceName || 'Servicio'} ·{' '}
-                  {item.dentistName || 'Dentista'}
-                </p>
-                <p>
-                  {dateTime(item.startsAt)} · recibida {dateTime(item.createdAt)}
-                </p>
-                {item.status?.toUpperCase() === 'PROPOSED' && item.proposedStartsAt && (
-                  <p>Propuesta: {dateTime(item.proposedStartsAt)}</p>
-                )}
-                <button type="button" onClick={() => void openDetail(item.id)}>
-                  Ver detalle
-                </button>
-              </article>
-            ))}
-          </div>
-        )}
       </section>
-      {selected && (
-        <section className="panel" aria-label="Detalle de solicitud">
-          <h2>Detalle · {selected.reference || selected.folio || selected.id}</h2>
-          <p>
-            <strong>Paciente:</strong> {patientName(selected)}
-          </p>
-          <p>
-            <strong>Correo:</strong> {selected.patientEmail || 'No disponible'}
-          </p>
-          <p>
-            <strong>Teléfono:</strong> {selected.patientPhone || 'No disponible'}
-          </p>
-          <p>
-            <strong>Servicio:</strong> {selected.serviceName || 'No disponible'}
-          </p>
-          <p>
-            <strong>Dentista:</strong> {selected.dentistName || 'No disponible'}
-          </p>
-          {selected.proposedStartsAt ? (
-            <>
-              <p>
-                <strong>Horario original:</strong> {dateTime(selected.startsAt)} –{' '}
-                {dateTime(selected.endsAt)}
-              </p>
-              <p>
-                <strong>Propuesta:</strong> {dateTime(selected.proposedStartsAt)} –{' '}
-                {dateTime(selected.proposedEndsAt)}
-              </p>
-              {selected.proposalExpiresAt && (
-                <p>
-                  <strong>Vence:</strong> {dateTime(selected.proposalExpiresAt)}
-                </p>
-              )}
-              <p className="notice">
-                El paciente debe aceptar o rechazar la propuesta. La propuesta no reserva el
-                horario.
-              </p>
-              {/* NOTE (DENT-31): el vencimiento y la reversión a PENDING son de TEC-07. */}
-            </>
+
+      {error && <div className="notice error" role="alert"><p>{error}</p></div>}
+      {notice && <div className="notice" role="status"><p>{notice}</p></div>}
+
+      <div className="management-layout">
+        {/* COLUMNA IZQUIERDA: LISTA DE SOLICITUDES */}
+        <aside className="panel inbox-panel">
+          <div className="panel-header">
+            <h2>Bandeja de Entrada</h2>
+            <span className="badge">{pendingCount} pendientes</span>
+          </div>
+          
+          {loading && items.length === 0 ? (
+            <div className="loading-state"><p>Cargando solicitudes…</p></div>
+          ) : items.length === 0 ? (
+            <div className="empty-state"><p>No hay solicitudes con estos filtros.</p></div>
           ) : (
-            <p>
-              <strong>Horario:</strong> {dateTime(selected.startsAt)} – {dateTime(selected.endsAt)}
-            </p>
-          )}
-          <p>
-            <strong>Estado:</strong>{' '}
-            {statusLabels[selected.status?.toUpperCase()] || selected.status}
-          </p>
-          {selected.rejectionReason && (
-            <p>
-              <strong>Motivo:</strong> {selected.rejectionReason}
-            </p>
-          )}
-          {selected.status?.toUpperCase() === 'PENDING' && (
-            <div className="form-grid">
-              <button type="button" disabled={busy} onClick={() => void act('confirm')}>
-                {busy ? 'Guardando…' : 'Confirmar solicitud'}
-              </button>
-              <label>
-                Motivo de rechazo (10–250 caracteres)
-                <textarea
-                  minLength={10}
-                  maxLength={250}
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Indica brevemente por qué no es posible atender esta solicitud."
-                />
-              </label>
-              <button
-                type="button"
-                disabled={busy || reason.trim().length < 10}
-                onClick={() => void act('reject')}
-              >
-                Rechazar solicitud
-              </button>
+            <div className="request-list">
+              {items.map((item) => {
+                const s = item.status?.toUpperCase();
+                return (
+                  <button 
+                    key={item.id} 
+                    className={`request-card ${selected?.id === item.id ? 'selected' : ''} border-${getStatusClass(s)}`}
+                    onClick={() => void openDetail(item.id)}
+                  >
+                    <div className="request-card-top">
+                      <strong>{patientName(item)}</strong>
+                      <span className={`status-dot ${getStatusClass(s)}`} title={statusLabels[s] || s}></span>
+                    </div>
+                    <p className="request-service">{item.serviceName || 'Servicio'}</p>
+                    <div className="request-meta">
+                      <span>📅 {dateTime(item.startsAt)}</span>
+                    </div>
+                    <span className="request-folio">Folio: {item.reference || item.folio || item.id.split('-')[0]}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
-          {selected.status?.toUpperCase() === 'PENDING' && (
-            <section className="appointment-summary" aria-label="Proponer horario alternativo">
-              <h3>Proponer horario alternativo</h3>
-              <p>
-                Elige una fecha y un horario disponible. Se conservará el horario original y la
-                propuesta no reserva el intervalo.
-              </p>
-              <label>
-                Fecha alternativa
-                <input
-                  type="date"
-                  min={localToday()}
-                  value={proposedDate}
-                  onChange={(e) => {
-                    setProposedDate(e.target.value);
-                    setSelectedProposed('');
-                  }}
-                />
-              </label>
-              {loadingSlots && <p>Consultando horarios…</p>}
-              {slotError && (
-                <p className="notice error" role="alert">
-                  {slotError}
-                </p>
-              )}
-              {!loadingSlots && !slotError && !slots.length && (
-                <p className="notice">No hay horarios disponibles para esta fecha.</p>
-              )}
-              <div className="slot-list">
-                {slots.map((slot) => (
-                  <button
-                    type="button"
-                    key={slot.startsAt}
-                    className={selectedProposed === slot.startsAt ? 'slot selected' : 'slot'}
-                    aria-pressed={selectedProposed === slot.startsAt}
-                    onClick={() => setSelectedProposed(slot.startsAt)}
-                  >
-                    {dateTime(slot.startsAt)} –{' '}
-                    {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(
-                      new Date(slot.endsAt),
-                    )}
-                  </button>
-                ))}
+        </aside>
+
+        {/* COLUMNA DERECHA: DETALLE DE LA SOLICITUD */}
+        <section className="panel detail-panel">
+          {selected ? (
+            <>
+              {/* Cabecera del Detalle */}
+              <div className="detail-header">
+                <div>
+                  <h2>{patientName(selected)}</h2>
+                  <span className={`status-badge ${getStatusClass(selected.status?.toUpperCase())}`}>
+                    {statusLabels[selected.status?.toUpperCase()] || selected.status}
+                  </span>
+                </div>
+                <div className="detail-folio">Ref: {selected.reference || selected.folio || selected.id}</div>
               </div>
-              <button
-                type="button"
-                disabled={!selectedProposed || proposing}
-                onClick={() => void propose()}
-              >
-                {proposing ? 'Enviando…' : 'Proponer este horario'}
-              </button>
-            </section>
+
+              {/* Ficha del Paciente */}
+              <div className="patient-card">
+                <div className="patient-contact">
+                  <div className="contact-item"><span className="icon">✉️</span> {selected.patientEmail || 'No disponible'}</div>
+                  <div className="contact-item"><span className="icon">📞</span> {selected.patientPhone || 'No disponible'}</div>
+                </div>
+                <div className="appointment-info">
+                  <div className="info-row">
+                    <span>Servicio:</span> <strong>{selected.serviceName || 'No disponible'}</strong>
+                  </div>
+                  <div className="info-row">
+                    <span>Especialista:</span> <strong>{selected.dentistName || 'No disponible'}</strong>
+                  </div>
+                  <div className="info-row highlight-row">
+                    <span>Fecha Solicitada:</span> <strong>{dateTime(selected.startsAt)}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Estado de Propuesta */}
+              {selected.proposedStartsAt && (
+                <div className="proposal-status-box">
+                  <p><strong>Horario Propuesto:</strong> {dateTime(selected.proposedStartsAt)} – {dateTime(selected.proposedEndsAt)}</p>
+                  {selected.proposalExpiresAt && <p className="small-text">Vence: {dateTime(selected.proposalExpiresAt)}</p>}
+                  <p className="notice info">El paciente debe aceptar o rechazar. No reserva el horario.</p>
+                </div>
+              )}
+
+              {/* ZONA DE ACCIONES (Solo si está PENDIENTE) */}
+              {selected.status?.toUpperCase() === 'PENDING' && (
+                <div className="action-zone">
+                  <h3>Acciones Disponibles</h3>
+                  
+                  {/* 1. CONFIRMAR */}
+                  <div className="action-block">
+                    <button type="button" className="primary-btn full-width confirm-btn" disabled={busy} onClick={() => void act('confirm')}>
+                      {busy ? 'Guardando…' : '✓ Confirmar esta solicitud'}
+                    </button>
+                  </div>
+
+                  <div className="action-divider"><span>o</span></div>
+
+                  {/* 2. PROPONER NUEVO HORARIO */}
+                  <div className="action-block propose-block">
+                    <h4>Proponer un horario alternativo</h4>
+                    <label className="date-label">Selecciona una fecha</label>
+                    <input type="date" className="premium-date-input" min={localToday()} value={proposedDate} onChange={(e) => { setProposedDate(e.target.value); setSelectedProposed(''); }} />
+                    
+                    {loadingSlots && <p className="small-text">Buscando disponibilidad…</p>}
+                    {slotError && <p className="notice error compact">{slotError}</p>}
+                    {!loadingSlots && !slotError && slots.length === 0 && <p className="notice compact">No hay horarios para esta fecha.</p>}
+                    
+                    <div className="slot-grid compact-slots">
+                      {slots.map((slot) => (
+                        <button
+                          type="button"
+                          key={slot.startsAt}
+                          className={`time-slot ${selectedProposed === slot.startsAt ? 'selected' : ''}`}
+                          onClick={() => setSelectedProposed(slot.startsAt)}
+                        >
+                          {new Intl.DateTimeFormat('es-MX', { timeStyle: 'short', timeZone }).format(new Date(slot.startsAt))}
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button" className="secondary-btn full-width" disabled={!selectedProposed || proposing} onClick={() => void propose()}>
+                      {proposing ? 'Enviando…' : 'Proponer horario seleccionado'}
+                    </button>
+                  </div>
+
+                  <div className="action-divider"><span>o</span></div>
+
+                  {/* 3. RECHAZAR */}
+                  <div className="action-block danger-block">
+                    <h4>Rechazar solicitud</h4>
+                    <textarea
+                      className="premium-input"
+                      rows={2}
+                      minLength={10}
+                      maxLength={250}
+                      placeholder="Motivo del rechazo (10-250 caracteres)"
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                    />
+                    <button type="button" className="danger-btn full-width" disabled={busy || reason.trim().length < 10} onClick={() => void act('reject')}>
+                      Rechazar solicitud
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selected.rejectionReason && (
+                <div className="notice error">
+                  <strong>Motivo de rechazo:</strong> {selected.rejectionReason}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="empty-detail">
+              <div className="empty-icon">📥</div>
+              <h2>Selecciona una solicitud</h2>
+              <p>Elige una cita de la bandeja izquierda para ver los detalles del paciente y gestionar la cita.</p>
+            </div>
           )}
         </section>
-      )}
+      </div>
     </main>
   );
 }
