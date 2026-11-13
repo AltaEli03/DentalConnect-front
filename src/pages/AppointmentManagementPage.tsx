@@ -137,7 +137,11 @@ export function AppointmentManagementPage() {
       );
       const rows = (
         Array.isArray(data) ? data : (data?.data ?? data?.appointments ?? data?.items ?? [])
-      ).map(normalizeAppointment);
+      )
+        .map(normalizeAppointment)
+        .sort(
+          (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime(),
+        );
       setItems(rows);
       setSelected((current) => {
         if (!current) return current;
