@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { signIn } from '../services/cognito';
@@ -289,6 +289,14 @@ export function VerifyPage() {
   const [seconds, setSeconds] = useState(0);
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
+  const resendTimer = useRef<number | undefined>(undefined);
+
+  useEffect(
+    () => () => {
+      if (resendTimer.current !== undefined) window.clearInterval(resendTimer.current);
+    },
+    [],
+  );
 
   const verify = async (event: FormEvent) => {
     event.preventDefault();
@@ -321,11 +329,13 @@ export function VerifyPage() {
         'Se envió un nuevo código de verificación. Revisa también tu carpeta de correo no deseado.',
       );
       setSeconds(60);
-      const interval = window.setInterval(
+      if (resendTimer.current !== undefined) window.clearInterval(resendTimer.current);
+      resendTimer.current = window.setInterval(
         () =>
           setSeconds((value) => {
             if (value <= 1) {
-              window.clearInterval(interval);
+              if (resendTimer.current !== undefined) window.clearInterval(resendTimer.current);
+              resendTimer.current = undefined;
               return 0;
             }
             return value - 1;

@@ -113,4 +113,21 @@ describe('Sprint 2 account flow', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('El usuario no está confirmado.');
     expect(screen.queryByRole('heading', { name: 'Mi cuenta' })).not.toBeInTheDocument();
   });
+
+  it('clears the resend countdown when leaving the page', async () => {
+    vi.mocked(api.resend).mockResolvedValue({ data: { message: 'Código reenviado' } });
+    const setSpy = vi.spyOn(window, 'setInterval');
+    const clearSpy = vi.spyOn(window, 'clearInterval');
+    const { unmount } = renderApp('/verificar-correo?email=paciente@example.com');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reenviar código' }));
+    await screen.findByText('Reenviar en 60s');
+    const timerId = setSpy.mock.results.at(-1)?.value;
+
+    unmount();
+    expect(timerId).toBeDefined();
+    expect(clearSpy).toHaveBeenCalledWith(timerId);
+    setSpy.mockRestore();
+    clearSpy.mockRestore();
+  });
 });
