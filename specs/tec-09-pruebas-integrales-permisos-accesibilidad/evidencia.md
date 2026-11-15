@@ -29,7 +29,9 @@ La ejecución en GitHub Actions del PR #25 aprobó `verify`, CodeQL y GitGuardia
 - La consulta de disponibilidad para el 17-Nov-2026 devolvió HTTP 200, zona `America/Mexico_City` y 14 intervalos de 30 minutos sin solaparse; una fecha pasada devolvió HTTP 400.
 - Con Tab se enfocó “Saltar al contenido principal”; Enter actualizó el fragmento y enfocó `main-content`.
 - La vista de accesibilidad expone banner, navegación, main y footer, con nombres para el campo de búsqueda, servicio y acciones.
-- A 390 × 844 CSS px, `documentElement.scrollWidth` fue igual a `innerWidth` (390 px): no hubo desbordamiento horizontal. Se guardó una captura en `screenshots/catalogo-movil-390.png`.
+- El formulario de registro expuso nombres accesibles para nombre, apellidos, correo, teléfono, contraseña, confirmación y botón de envío.
+- A 360, 390, 768 y 1280 px, el ancho del documento igualó el viewport, sin desbordamiento horizontal. Se guardó una captura móvil a 390 × 844 en `screenshots/catalogo-movil-390.png`.
+- Una simulación mediante CSS `zoom: 200%` tampoco produjo desbordamiento; falta repetir con el zoom propio del navegador.
 - El manifest está disponible y el navegador tenía un service worker activo y controlando la página.
 
 ## Aceptación manual pendiente
