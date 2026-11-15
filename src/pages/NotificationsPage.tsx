@@ -206,7 +206,7 @@ export function NotificationsPage() {
                   to={
                     clinicMode
                       ? `/administrar-solicitudes?appointmentId=${encodeURIComponent(notification.appointmentId)}`
-                      : `/mi-solicitud/${encodeURIComponent(notification.appointmentId)}`
+                      : `/mi-solicitud/?appointmentId=${encodeURIComponent(notification.appointmentId)}`
                   }
                 >
                   {clinicMode ? 'Revisar solicitud' : 'Ver solicitud'}

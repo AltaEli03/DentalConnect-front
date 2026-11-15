@@ -69,6 +69,10 @@ describe('NotificationsPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Cita confirmada' })).toBeInTheDocument();
     expect(screen.getByText('1 aviso sin leer')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Ver solicitud' })).toHaveAttribute(
+      'href',
+      '/mi-solicitud/?appointmentId=appointment-1',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Marcar como leído' }));
 
     await waitFor(() => expect(api.markNotificationRead).toHaveBeenCalledWith('notice-1'));

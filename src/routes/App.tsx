@@ -93,6 +93,7 @@ function AppContent() {
           <Route path="/mis-citas" element={<PatientAppointmentsPage />} />
           <Route path="/notificaciones" element={<NotificationsPage />} />
           <Route path="/mi-solicitud/:appointmentId" element={<AppointmentProposalPage />} />
+          <Route path="/mi-solicitud" element={<AppointmentProposalPage />} />
           <Route path="*" element={<Navigate to="/clinics" replace />} />
         </Routes>
       </div>

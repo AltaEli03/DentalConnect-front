@@ -11,6 +11,7 @@ const routes = new Set([
   'mi-cuenta',
   'mis-citas',
   'notificaciones',
+  'mi-solicitud',
   'administrar-dentistas',
   'administrar-solicitudes',
 ]);
