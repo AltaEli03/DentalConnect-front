@@ -125,7 +125,7 @@ describe('AppointmentRequestPage', () => {
     fireEvent.click(submit);
 
     const link = await screen.findByRole('link', { name: 'Ver el estado de mi solicitud' });
-    expect(link).toHaveAttribute('href', '/mi-solicitud/apt-1');
+    expect(link).toHaveAttribute('href', '/mi-solicitud/?appointmentId=apt-1');
     expect(api.createAppointment).toHaveBeenCalledWith(
       {
         clinicId: 'clinic-1',

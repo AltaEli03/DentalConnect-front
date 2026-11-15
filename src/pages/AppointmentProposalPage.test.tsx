@@ -50,7 +50,7 @@ const pending = () =>
 
 const renderPage = () =>
   render(
-    <MemoryRouter initialEntries={['/mi-solicitud/apt-1']}>
+    <MemoryRouter initialEntries={['/mi-solicitud/?appointmentId=apt-1']}>
       <App />
     </MemoryRouter>,
   );

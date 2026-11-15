@@ -25,9 +25,11 @@ const message = (cause: unknown) => {
 };
 
 export function AppointmentProposalPage() {
-  const { appointmentId = '' } = useParams();
-  const { user, loading: authLoading, logout } = useAuth();
   const location = useLocation();
+  const { appointmentId: routeAppointmentId } = useParams();
+  const appointmentId =
+    routeAppointmentId ?? new URLSearchParams(location.search).get('appointmentId') ?? '';
+  const { user, loading: authLoading, logout } = useAuth();
   const [appointment, setAppointment] = useState<AppointmentProposal>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

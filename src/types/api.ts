@@ -90,3 +90,14 @@ export interface PatientAppointment {
     estimatedDurationMinutes?: number;
   };
 }
+
+export interface UserNotification {
+  id: string;
+  eventType: string;
+  title: string;
+  message: string;
+  appointmentId: string;
+  createdAt: string;
+  readAt: string | null;
+  isRead: boolean;
+}
