@@ -1,11 +1,20 @@
-# Credenciales y configuración local: nunca se publican.
+node_modules
+dist
+coverage
 .env
 .env.*
 !.env.example
-.aws/
-*.pem
-*.key
-credentials
-node_modules/
+*.tfstate
+*.tfstate.*
+.terraform
+.vite
+*.tsbuildinfo
+.eslintcache
+*.log
 .DS_Store
 Thumbs.db
+Desktop.ini
+.idea
+.vscode
+*.tfvars
+
