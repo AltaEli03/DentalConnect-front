@@ -4,13 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../routes/App';
 import { AuthProvider } from '../auth/AuthContext';
 import { LoginPage } from './AuthPages';
-import { currentUser, signIn, signOut } from '../services/cognito';
+import { currentUser, signIn, signOut, updateAccountProfile } from '../services/cognito';
 import { api } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
   currentUser: vi.fn(),
   signIn: vi.fn(),
   signOut: vi.fn(),
+  updateAccountProfile: vi.fn(),
 }));
 vi.mock('../services/api', () => ({
   api: { register: vi.fn(), verify: vi.fn(), resend: vi.fn() },
@@ -247,5 +248,55 @@ describe('Sprint 2 account flow', () => {
     expect(clearSpy).toHaveBeenCalledWith(timerId);
     setSpy.mockRestore();
     clearSpy.mockRestore();
+  });
+});
+
+describe('HU-18 patient contact profile', () => {
+  it('shows editable contact fields and saves name and phone while keeping email read-only', async () => {
+    vi.mocked(currentUser).mockResolvedValue({
+      ...profile,
+      role: 'PACIENTE',
+      phone: '+525551234567',
+    });
+    vi.mocked(updateAccountProfile).mockResolvedValue({
+      ...profile,
+      firstName: 'Ana María',
+      lastName: 'Pérez López',
+      role: 'PACIENTE',
+      phone: '+525558765432',
+    });
+    renderApp('/mi-cuenta');
+
+    await screen.findByRole('heading', { name: 'Mi cuenta' });
+    expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('readonly');
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana María' } });
+    fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez López' } });
+    fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '+525558765432' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('se guardaron correctamente');
+    expect(updateAccountProfile).toHaveBeenCalledWith({
+      firstName: 'Ana María',
+      lastName: 'Pérez López',
+      phone: '+525558765432',
+    });
+    expect(await screen.findByText('Ana María Pérez López')).toBeInTheDocument();
+    expect(screen.getByLabelText('Correo electrónico')).toHaveValue(profile.email);
+  });
+
+  it('rejects a phone with letters or fewer than ten digits without calling Cognito', async () => {
+    vi.mocked(currentUser).mockResolvedValue({
+      ...profile,
+      role: 'PACIENTE',
+      phone: '+525551234567',
+    });
+    renderApp('/mi-cuenta');
+
+    await screen.findByRole('heading', { name: 'Mi cuenta' });
+    fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '12345abc' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('entre 10 y 15 dígitos');
+    expect(updateAccountProfile).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,4 @@
-import { 
-  createContext, 
-  useContext, 
-  useEffect, 
-  useState, 
-  type ReactNode 
-} from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { currentUser, signOut, type CognitoProfile } from '../services/cognito';
 
 // 1. Definición de tipos clara
@@ -13,6 +7,7 @@ type AuthState = {
   loading: boolean;
   refresh: () => Promise<void>;
   acceptLogin: (user: CognitoProfile) => void;
+  updateProfile: (user: CognitoProfile) => void;
   logout: () => Promise<void>;
 };
 
@@ -30,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = await currentUser();
       setUser(profile);
     } catch (error) {
-      // Si falla la consulta (ej. token expirado o sin red), 
+      // Si falla la consulta (ej. token expirado o sin red),
       // aseguramos que el usuario sea null para no romper la app.
       console.error('Error al verificar la sesión:', error);
       setUser(null);
@@ -51,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
 
+  const updateProfile = (profile: CognitoProfile) => setUser(profile);
+
   // Función para cerrar sesión
   const logout = async () => {
     try {
@@ -63,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, refresh, acceptLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, refresh, acceptLogin, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );
