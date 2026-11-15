@@ -72,6 +72,60 @@ function profileFromSession(session: CognitoUserSession, user: CognitoUser): Cog
     isEmailVerified: claims.email_verified === true || claims.email_verified === 'true',
   };
 }
+
+function readUserAttributes(user: CognitoUser) {
+  return new Promise<Record<string, string>>((resolve, reject) =>
+    user.getUserAttributes((error, attributes) => {
+      if (error) return reject(error);
+      resolve(
+        Object.fromEntries(
+          (attributes ?? []).map((attribute) => [attribute.getName(), attribute.getValue()]),
+        ),
+      );
+    }),
+  );
+}
+
+function withUserAttributes(
+  profile: CognitoProfile,
+  attributes: Record<string, string>,
+): CognitoProfile {
+  return {
+    ...profile,
+    firstName: attributes.given_name || profile.firstName,
+    lastName: attributes.family_name || profile.lastName,
+    phone: attributes.phone_number || profile.phone || '',
+  };
+}
+
+export function updateAccountProfile(input: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}) {
+  const user = pool.getCurrentUser();
+  if (!user) return Promise.reject(new Error('Inicia sesión para editar tus datos.'));
+
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const phone = normalizePhone(input.phone.trim());
+  const attributes = [
+    new CognitoUserAttribute({ Name: 'given_name', Value: firstName }),
+    new CognitoUserAttribute({ Name: 'family_name', Value: lastName }),
+    new CognitoUserAttribute({ Name: 'phone_number', Value: phone }),
+  ];
+
+  return new Promise<CognitoProfile>((resolve, reject) =>
+    user.updateAttributes(attributes, (error) => {
+      if (error) return reject(error);
+      void currentUser().then((profile) => {
+        if (!profile)
+          return reject(new Error('No se pudo actualizar la sesión. Vuelve a iniciar sesión.'));
+        resolve({ ...profile, firstName, lastName, phone });
+      }, reject);
+    }),
+  );
+}
 export function signIn(email: string, password: string) {
   const user = getUser(email);
   return new Promise<CognitoProfile>((resolve, reject) =>
@@ -108,6 +162,7 @@ export type CognitoProfile = {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   role?: string;
   clinicId?: string;
   isEmailVerified?: boolean;
@@ -118,7 +173,11 @@ export function currentUser() {
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
-      resolve(profileFromSession(session, user));
+      const profile = profileFromSession(session, user);
+      void readUserAttributes(user).then(
+        (attributes) => resolve(withUserAttributes(profile, attributes)),
+        () => resolve(profile),
+      );
     });
   });
 }
