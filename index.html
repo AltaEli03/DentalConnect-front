@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Color de la barra de estado en móviles (Theme Color VIP) -->
+    <meta name="theme-color" content="#003B4A" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        try {
+          var preference = localStorage.getItem('dentalconnect-theme') || 'system';
+          var dark =
+            preference === 'dark' ||
+            (preference === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (error) {
+          /* Private mode: the app applies the system theme when it mounts. */
+        }
+      })();
+    </script>
+
+    <!-- Información clara para buscadores y vistas previas -->
+    <title>DentalConnect | Encuentra tu consultorio ideal</title>
+    <meta
+      name="description"
+      content="Encuentra consultorios dentales, compara servicios y consulta sus datos de contacto para solicitar atención."
+    />
+
+    <!-- Open Graph (Para que se vea bien al compartir por WhatsApp/Facebook) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DentalConnect | Tu sonrisa en las mejores manos" />
+    <meta
+      property="og:description"
+      content="Consulta consultorios, servicios y datos de contacto para elegir dónde solicitar atención."
+    />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Iconos PWA generados desde public/icon-source.svg -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+
+    <style>
+      /* =========================================
+         SPLASH SCREEN (Pantalla de carga VIP)
+         Se muestra mientras React se monta.
+         ========================================= */
+      body {
+        margin: 0;
+        background-color: #f4f8fa; /* Fondo perla de tu diseño */
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      .splash-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f4f8fa;
+        z-index: 9999;
+      }
+
+      .splash-logo {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #003b4a;
+        letter-spacing: -1px;
+        margin-bottom: 2rem;
+        animation: pulseLogo 2s ease-in-out infinite;
+      }
+
+      .splash-logo span {
+        color: #00d2d3;
+      }
+
+      .splash-loader {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 210, 211, 0.2);
+        border-top-color: #00d2d3;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .splash-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulseLogo {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .splash-logo,
+        .splash-loader {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Splash screen que desaparecerá cuando React tome el control -->
+    <div id="root">
+      <div class="splash-screen" role="status" aria-live="polite">
+        <div class="splash-logo">Dental<span>Connect</span></div>
+        <span class="splash-label">Cargando DentalConnect</span>
+        <div class="splash-loader" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
