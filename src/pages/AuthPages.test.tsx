@@ -268,6 +268,7 @@ describe('HU-18 patient contact profile', () => {
     renderApp('/mi-cuenta');
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
+    await waitFor(() => expect(screen.getByLabelText('Nombre')).toHaveValue('Ana'));
     expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('readonly');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana María' } });
     fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez López' } });
