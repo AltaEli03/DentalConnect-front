@@ -16,6 +16,7 @@ import { isClinicAdmin, isPatientRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 import { ClinicLoginPage } from '../pages/ClinicLoginPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
 
 export function App() {
   return (
@@ -56,6 +57,7 @@ function AppContent() {
               </>
             )}
             {user && isPatient && <NavLink to="/mis-citas">Mis citas</NavLink>}
+            {user && <NavLink to="/notificaciones">Avisos</NavLink>}
             {user ? (
               <NavLink to="/mi-cuenta" className="header-nav-primary">
                 Mi cuenta
@@ -89,6 +91,7 @@ function AppContent() {
           <Route path="/consultorio/citas" element={<ClinicAppointmentsPage />} />
           <Route path="/administrar-solicitudes" element={<AppointmentManagementPage />} />
           <Route path="/mis-citas" element={<PatientAppointmentsPage />} />
+          <Route path="/notificaciones" element={<NotificationsPage />} />
           <Route path="/mi-solicitud/:appointmentId" element={<AppointmentProposalPage />} />
           <Route path="*" element={<Navigate to="/clinics" replace />} />
         </Routes>
