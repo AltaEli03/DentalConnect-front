@@ -1,10 +1,11 @@
 name: Frontend CI
 
 on:
-  pull_request:
-    branches: [main, sprint-3-Emanuel]
+  pull_request: {}
+    # Run the same verification before every merge, including feature -> develop
+    # and develop -> release promotions.
   push:
-    branches: [main, sprint-3-Emanuel]
+    branches: [main, develop, release]
 
 permissions:
   contents: read
