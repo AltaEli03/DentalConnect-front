@@ -4,6 +4,7 @@ import type {
   AvailabilitySlot,
   Clinic,
   PatientAppointment,
+  UserNotification,
 } from '../types/api';
 import { currentIdToken } from './cognito';
 
@@ -89,6 +90,13 @@ export const api = {
       body: JSON.stringify(body),
     }),
   myAppointments: () => request<{ data: PatientAppointment[] }>('/appointments/mine'),
+  notifications: (unreadOnly = false) =>
+    request<{ data: UserNotification[]; unreadCount: number }>(
+      `/notifications?take=100${unreadOnly ? '&unreadOnly=true' : ''}`,
+    ),
+  markNotificationRead: (id: string) =>
+    request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' }),
+  markAllNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),
   proposal: (appointmentId: string) =>
     request<ApiResponse<AppointmentProposal>>(
       `/appointments/${encodeURIComponent(appointmentId)}/proposal`,

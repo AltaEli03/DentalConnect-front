@@ -93,7 +93,7 @@ describe('PatientAppointmentsPage', () => {
 
     expect(await screen.findByRole('link', { name: 'Responder propuesta' })).toHaveAttribute(
       'href',
-      '/mi-solicitud/apt-proposed',
+      '/mi-solicitud/?appointmentId=apt-proposed',
     );
   });
 

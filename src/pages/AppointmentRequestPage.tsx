@@ -481,7 +481,7 @@ export function AppointmentRequestPage() {
                 </p>
                 <Link
                   className="mt-2 inline-block font-semibold text-accent-strong underline underline-offset-4"
-                  to={`/mi-solicitud/${encodeURIComponent(requestResult.id)}`}
+                  to={`/mi-solicitud/?appointmentId=${encodeURIComponent(requestResult.id)}`}
                 >
                   Ver el estado de mi solicitud
                 </Link>

@@ -229,14 +229,14 @@ export function PatientAppointmentsPage() {
                   {status === 'PROPOSED' && (
                     <Link
                       className={buttonStyles('coral', 'sm')}
-                      to={`/mi-solicitud/${encodeURIComponent(appointment.id)}`}
+                      to={`/mi-solicitud/?appointmentId=${encodeURIComponent(appointment.id)}`}
                     >
                       Responder propuesta
                     </Link>
                   )}
                   <Link
                     className={buttonStyles('outline', 'sm')}
-                    to={`/mi-solicitud/${encodeURIComponent(appointment.id)}`}
+                    to={`/mi-solicitud/?appointmentId=${encodeURIComponent(appointment.id)}`}
                   >
                     Ver detalle
                   </Link>
