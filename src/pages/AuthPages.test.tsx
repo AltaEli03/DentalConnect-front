@@ -251,6 +251,51 @@ describe('Sprint 2 account flow', () => {
   });
 });
 
+describe('Unified role-based login', () => {
+  it('uses the shared login form for the clinic access URL', async () => {
+    renderApp('/consultorio/iniciar-sesion');
+
+    await screen.findByRole('heading', { name: 'Inicia sesión' });
+    expect(screen.getByLabelText('Correo electrónico')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Correo del consultorio')).not.toBeInTheDocument();
+  });
+
+  it('routes a linked clinic administrator to the clinic workspace after the shared login', async () => {
+    vi.mocked(signIn).mockResolvedValue({
+      ...profile,
+      role: 'CLINIC_ADMIN',
+      clinicId: 'clinic-test',
+    });
+    function LocationDisplay() {
+      const location = useLocation();
+      return <output data-testid="location">{location.pathname}</output>;
+    }
+    render(
+      <MemoryRouter initialEntries={['/iniciar-sesion']}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/iniciar-sesion" element={<LoginPage />} />
+            <Route path="*" element={<p>Destino</p>} />
+          </Routes>
+          <LocationDisplay />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: profile.email },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'ClinicPassword123!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent('/consultorio/citas'),
+    );
+  });
+});
+
 describe('HU-18 patient contact profile', () => {
   it('shows editable contact fields and saves name and phone while keeping email read-only', async () => {
     vi.mocked(currentUser).mockResolvedValue({
@@ -277,6 +322,7 @@ describe('HU-18 patient contact profile', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('se guardaron correctamente');
     expect(updateAccountProfile).toHaveBeenCalledWith({
+      profile: { ...profile, role: 'PACIENTE', phone: '+525551234567' },
       firstName: 'Ana María',
       lastName: 'Pérez López',
       phone: '+525558765432',

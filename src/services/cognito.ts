@@ -99,12 +99,14 @@ function withUserAttributes(
 }
 
 export function updateAccountProfile(input: {
+  profile: CognitoProfile;
   firstName: string;
   lastName: string;
   phone: string;
 }) {
-  const user = pool.getCurrentUser();
-  if (!user) return Promise.reject(new Error('Inicia sesión para editar tus datos.'));
+  // Use the authenticated profile from AuthContext. getCurrentUser() depends on
+  // Cognito's LastAuthUser marker and can be null while the app still has a valid session.
+  const user = getUser(input.profile.email);
 
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
@@ -118,11 +120,7 @@ export function updateAccountProfile(input: {
   return new Promise<CognitoProfile>((resolve, reject) =>
     user.updateAttributes(attributes, (error) => {
       if (error) return reject(error);
-      void currentUser().then((profile) => {
-        if (!profile)
-          return reject(new Error('No se pudo actualizar la sesión. Vuelve a iniciar sesión.'));
-        resolve({ ...profile, firstName, lastName, phone });
-      }, reject);
+      resolve({ ...input.profile, firstName, lastName, phone });
     }),
   );
 }
