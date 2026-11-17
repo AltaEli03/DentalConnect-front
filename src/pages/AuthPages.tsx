@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { signIn, updateAccountProfile } from '../services/cognito';
+import { signIn, signOut, updateAccountProfile } from '../services/cognito';
 import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
@@ -16,16 +16,25 @@ export function LoginPage() {
   const nav = useNavigate();
   const location = useLocation();
   const requestedRedirect = (location.state as { from?: string } | null)?.from;
-  const redirect =
+  const safeRedirect =
     requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
       ? requestedRedirect
-      : '/mi-cuenta';
+      : undefined;
+  const defaultDestination = (role?: string) =>
+    isClinicAdmin(role) ? '/consultorio/citas' : '/mi-cuenta';
+  const destinationForRole = (role?: string) => {
+    if (!safeRedirect) return defaultDestination(role);
+    const clinicAdmin = isClinicAdmin(role);
+    const redirectTargetsClinic =
+      safeRedirect.startsWith('/consultorio/') || safeRedirect.startsWith('/administrar-');
+    return clinicAdmin === redirectTargetsClinic ? safeRedirect : defaultDestination(role);
+  };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to={redirect} replace />;
+  if (user) return <Navigate to={destinationForRole(user.role)} replace />;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,8 +42,13 @@ export function LoginPage() {
     setError('');
     try {
       const profile = await signIn(email.trim(), password);
+      if (isClinicAdmin(profile.role) && !profile.clinicId) {
+        signOut();
+        setError('La cuenta del consultorio necesita vincularse a una clínica. Contacta al administrador.');
+        return;
+      }
       acceptLogin(profile);
-      nav(redirect, { replace: true });
+      nav(destinationForRole(profile.role), { replace: true });
     } catch (err) {
       setError(
         friendlyAuthError(
@@ -88,7 +102,10 @@ export function LoginPage() {
         ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
       </p>
       <p className="auth-footer-text">
-        ¿Eres consultorio? <Link to="/consultorio/iniciar-sesion">Accede aquí</Link>
+        Después de iniciar sesión, DentalConnect abrirá las herramientas disponibles para el rol de tu cuenta.
+      </p>
+      <p className="auth-footer-text">
+        Las cuentas de consultorio se habilitan mediante invitación y vinculación con una clínica.
       </p>
     </AuthLayout>
   );
