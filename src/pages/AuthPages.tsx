@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { signIn } from '../services/cognito';
+import { signIn, updateAccountProfile } from '../services/cognito';
 import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
 import { friendlyAuthError } from '../lib/authErrors';
-import { isClinicAdmin } from '../lib/roles';
+import { isClinicAdmin, isPatientRole } from '../lib/roles';
 
 // ==========================================
 // 1. PÁGINA DE LOGIN
@@ -422,9 +422,22 @@ export function VerifyPage() {
 // 4. PÁGINA DE MI CUENTA
 // ==========================================
 export function AccountPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, updateProfile } = useAuth();
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [profileMessage, setProfileMessage] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    setFirstName(user.firstName);
+    setLastName(user.lastName);
+    setPhone(user.phone ?? '');
+  }, [user]);
 
   if (loading)
     return (
@@ -445,6 +458,38 @@ export function AccountPage() {
       setBusy(false);
     }
   };
+
+  const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setProfileError('');
+    setProfileMessage('');
+    const digits = phone.replace(/\D/g, '');
+    if (!firstName.trim() || !lastName.trim()) {
+      setProfileError('Escribe tu nombre y apellidos.');
+      return;
+    }
+    if (digits.length < 10 || digits.length > 15) {
+      setProfileError('El teléfono debe contener entre 10 y 15 dígitos.');
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const profile = await updateAccountProfile({ firstName, lastName, phone });
+      updateProfile(profile);
+      setProfileMessage('Tus datos de contacto se guardaron correctamente.');
+    } catch (cause) {
+      setProfileError(
+        cause instanceof Error
+          ? cause.message
+          : 'No se pudieron guardar tus datos. Inténtalo de nuevo.',
+      );
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const canEditPatientProfile = isPatientRole(user.role);
 
   return (
     <AuthLayout title="Mi cuenta" hideVisual={true}>
@@ -468,6 +513,68 @@ export function AccountPage() {
           </p>
         </div>
       </section>
+
+      {canEditPatientProfile && (
+        <form className="account-profile-form" onSubmit={handleProfileSubmit} noValidate>
+          <h2>Datos de contacto</h2>
+          <p>Tu correo se mantiene como dato de acceso y no se puede editar aquí.</p>
+          <label htmlFor="profile-first-name">Nombre</label>
+          <input
+            id="profile-first-name"
+            name="firstName"
+            autoComplete="given-name"
+            required
+            maxLength={80}
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+          />
+          <label htmlFor="profile-last-name">Apellidos</label>
+          <input
+            id="profile-last-name"
+            name="lastName"
+            autoComplete="family-name"
+            required
+            maxLength={120}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+          />
+          <label htmlFor="profile-email">Correo electrónico</label>
+          <input id="profile-email" name="email" type="email" value={user.email} readOnly />
+          <label htmlFor="profile-phone">Teléfono</label>
+          <input
+            id="profile-phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            required
+            aria-describedby="profile-phone-hint"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+          />
+          <small id="profile-phone-hint">
+            Ingresa entre 10 y 15 dígitos. Puedes incluir el prefijo de país.
+          </small>
+          {profileError && (
+            <p role="alert" className="form-error">
+              {profileError}
+            </p>
+          )}
+          {profileMessage && (
+            <p role="status" aria-live="polite" className="form-success">
+              {profileMessage}
+            </p>
+          )}
+          <button
+            className="btn btn-primary btn-full"
+            type="submit"
+            disabled={savingProfile}
+            aria-busy={savingProfile}
+          >
+            {savingProfile ? 'Guardando datos…' : 'Guardar datos de contacto'}
+          </button>
+        </form>
+      )}
 
       <Link
         className="btn btn-outline btn-full"
