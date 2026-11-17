@@ -979,3 +979,14 @@ legend { color: var(--color-heading); font-weight: 700; }
 .dark .clinic-card:hover { border-color: var(--color-accent); }
 
 .dark .theme-toggle { background: var(--color-surface-alt); border-color: var(--color-border); }
+
+.account-profile-form { display: grid; gap: 0.65rem; margin: 0 0 1.25rem; padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg); }
+.account-profile-form h2 { margin: 0; color: var(--color-heading); font-size: 1.2rem; }
+.account-profile-form > p { margin: 0 0 0.35rem; color: var(--color-text-muted); }
+.account-profile-form label { margin-top: 0.25rem; color: var(--color-heading); font-weight: 650; }
+.account-profile-form input { width: 100%; min-height: 2.75rem; padding: 0.65rem 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
+.account-profile-form input:focus-visible { outline: 3px solid var(--color-focus, #087e8b); outline-offset: 2px; }
+.account-profile-form input[readonly] { background: var(--color-surface-soft); color: var(--color-text-muted); }
+.account-profile-form small { color: var(--color-text-muted); }
+.account-profile-form .form-error { margin: 0; color: #a42323; }
+.account-profile-form .form-success { margin: 0; color: #176b45; }
