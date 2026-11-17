@@ -277,6 +277,7 @@ describe('HU-18 patient contact profile', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('se guardaron correctamente');
     expect(updateAccountProfile).toHaveBeenCalledWith({
+      profile: { ...profile, role: 'PACIENTE', phone: '+525551234567' },
       firstName: 'Ana María',
       lastName: 'Pérez López',
       phone: '+525558765432',
