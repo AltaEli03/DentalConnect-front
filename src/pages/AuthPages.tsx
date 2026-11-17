@@ -475,7 +475,7 @@ export function AccountPage() {
 
     setSavingProfile(true);
     try {
-      const profile = await updateAccountProfile({ firstName, lastName, phone });
+      const profile = await updateAccountProfile({ profile: user, firstName, lastName, phone });
       updateProfile(profile);
       setProfileMessage('Tus datos de contacto se guardaron correctamente.');
     } catch (cause) {
