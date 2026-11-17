@@ -15,7 +15,6 @@ import { NetworkStatus } from '../components/NetworkStatus';
 import { isClinicAdmin, isPatientRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
-import { ClinicLoginPage } from '../pages/ClinicLoginPage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 
 export function App() {
@@ -85,7 +84,16 @@ function AppContent() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/verificar-correo" element={<VerifyPage />} />
           <Route path="/iniciar-sesion" element={<LoginPage />} />
-          <Route path="/consultorio/iniciar-sesion" element={<ClinicLoginPage />} />
+          <Route
+            path="/consultorio/iniciar-sesion"
+            element={
+              <Navigate
+                to="/iniciar-sesion"
+                replace
+                state={{ from: '/consultorio/citas' }}
+              />
+            }
+          />
           <Route path="/mi-cuenta" element={<AccountPage />} />
           <Route path="/administrar-dentistas" element={<DentistManagementPage />} />
           <Route path="/consultorio/citas" element={<ClinicAppointmentsPage />} />
@@ -100,7 +108,7 @@ function AppContent() {
       <footer className="site-footer">
         <span>DentalConnect</span>
         <span>Información de consultorios para ayudarte a elegir con claridad.</span>
-        <Link to="/consultorio/iniciar-sesion">Acceso consultorio</Link>
+        <Link to="/iniciar-sesion">Iniciar sesión</Link>
       </footer>
     </>
   );
