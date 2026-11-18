@@ -12,10 +12,11 @@ import { AuthProvider } from '../auth/AuthContext';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { NetworkStatus } from '../components/NetworkStatus';
-import { isClinicAdmin, isPatientRole } from '../lib/roles';
+import { isClinicAdmin, isPatientRole, hasRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 import { NotificationsPage } from '../pages/NotificationsPage';
+import { ClinicApplicationPage } from '../pages/ClinicApplicationPage';
 
 export function App() {
   return (
@@ -31,44 +32,29 @@ function AppContent() {
   const { user } = useAuth();
   const isPatient = isPatientRole(user?.role);
   const hasClinicRole = Boolean(user) && isClinicAdmin(user?.role);
+  const isPlatformAdmin = hasRole(user?.role, 'PLATFORM_ADMIN');
 
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Saltar al contenido principal
-      </a>
+      <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
       <header className="site-header">
         <div className="site-header-inner">
-          <Link to="/clinics" className="brand" aria-label="DentalConnect, inicio">
-            Dental<span>Connect</span>
-          </Link>
+          <Link to="/clinics" className="brand" aria-label="DentalConnect, inicio">Dental<span>Connect</span></Link>
           <p className="site-tagline">Directorio de atención odontológica</p>
           <nav className="header-nav" aria-label="Navegación principal">
-            <NavLink to="/clinics" end>
-              Consultorios
-            </NavLink>
-            {hasClinicRole && (
-              <>
-                <NavLink to="/consultorio/citas">Citas</NavLink>
-                <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">
-                  Solicitudes
-                </NavLink>
-              </>
-            )}
+            <NavLink to="/clinics" end>Consultorios</NavLink>
+            {user && <NavLink to="/registrar-consultorio">Registrar consultorio</NavLink>}
+            {isPlatformAdmin && <NavLink to="/plataforma/consultorios">Revisar altas</NavLink>}
+            {hasClinicRole && <>
+              <NavLink to="/consultorio/citas">Citas</NavLink>
+              <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">Solicitudes</NavLink>
+            </>}
             {user && isPatient && <NavLink to="/mis-citas">Mis citas</NavLink>}
             {user && <NavLink to="/notificaciones">Avisos</NavLink>}
-            {user ? (
-              <NavLink to="/mi-cuenta" className="header-nav-primary">
-                Mi cuenta
-              </NavLink>
-            ) : (
-              <>
-                <NavLink to="/registro">Crear cuenta</NavLink>
-                <NavLink to="/iniciar-sesion" className="header-nav-primary">
-                  Iniciar sesión
-                </NavLink>
-              </>
-            )}
+            {user ? <NavLink to="/mi-cuenta" className="header-nav-primary">Mi cuenta</NavLink> : <>
+              <NavLink to="/registro">Crear cuenta</NavLink>
+              <NavLink to="/iniciar-sesion" className="header-nav-primary">Iniciar sesión</NavLink>
+            </>}
             <ThemeToggle />
           </nav>
         </div>
@@ -84,17 +70,10 @@ function AppContent() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/verificar-correo" element={<VerifyPage />} />
           <Route path="/iniciar-sesion" element={<LoginPage />} />
-          <Route
-            path="/consultorio/iniciar-sesion"
-            element={
-              <Navigate
-                to="/iniciar-sesion"
-                replace
-                state={{ from: '/consultorio/citas' }}
-              />
-            }
-          />
+          <Route path="/consultorio/iniciar-sesion" element={<Navigate to="/iniciar-sesion" replace state={{ from: '/consultorio/citas' }} />} />
           <Route path="/mi-cuenta" element={<AccountPage />} />
+          <Route path="/registrar-consultorio" element={<ClinicApplicationPage />} />
+          <Route path="/plataforma/consultorios" element={<ClinicApplicationPage />} />
           <Route path="/administrar-dentistas" element={<DentistManagementPage />} />
           <Route path="/consultorio/citas" element={<ClinicAppointmentsPage />} />
           <Route path="/administrar-solicitudes" element={<AppointmentManagementPage />} />
