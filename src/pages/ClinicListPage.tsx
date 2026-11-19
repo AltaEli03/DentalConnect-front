@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { ClinicCard } from '../components/ClinicCard';
 import { Button, buttonStyles } from '../components/ui/Button';
@@ -6,6 +6,7 @@ import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
 import { filterNearbyClinics } from '../services/clinicSearch';
+import { getPageItems } from '../lib/pagination';
 import type { Clinic, Service } from '../types/api';
 
 type ClinicWithDistance = Clinic & { distanceKm?: number };
@@ -45,6 +46,7 @@ export function ClinicListPage() {
   const [locationMessage, setLocationMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [page, setPage] = useState(1);
+  const resultsRef = useRef<HTMLElement>(null);
 
   const services = useMemo(() => {
     const unique = new Map<string, Service>();
@@ -156,6 +158,10 @@ export function ClinicListPage() {
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * PAGE_SIZE;
   const visibleClinics = clinics.slice(start, start + PAGE_SIZE);
+  const goToPage = (next: number) => {
+    setPage(next);
+    resultsRef.current?.scrollIntoView?.({ block: 'start' });
+  };
 
   return (
     <main>
@@ -243,6 +249,7 @@ export function ClinicListPage() {
       </section>
 
       <section
+        ref={resultsRef}
         className="mx-auto max-w-6xl px-4 py-10 sm:px-6"
         aria-live="polite"
         aria-busy={loading}
@@ -319,31 +326,37 @@ export function ClinicListPage() {
                     type="button"
                     className={buttonStyles('ghost', 'sm', 'min-h-11')}
                     disabled={currentPage === 1}
-                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   >
                     Anterior
                   </button>
-                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((number) => (
-                    <button
-                      key={number}
-                      type="button"
-                      aria-label={`Página ${number}`}
-                      aria-current={number === currentPage ? 'page' : undefined}
-                      className={buttonStyles(
-                        number === currentPage ? 'primary' : 'outline',
-                        'sm',
-                        'min-h-11 min-w-11',
-                      )}
-                      onClick={() => setPage(number)}
-                    >
-                      {number}
-                    </button>
-                  ))}
+                  {getPageItems(currentPage, totalPages).map((item, index) =>
+                    item === 'ellipsis' ? (
+                      <span key={`ellipsis-${index}`} aria-hidden="true" className="px-1 text-muted">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        aria-label={`Página ${item}`}
+                        aria-current={item === currentPage ? 'page' : undefined}
+                        className={buttonStyles(
+                          item === currentPage ? 'primary' : 'outline',
+                          'sm',
+                          'min-h-11 min-w-11',
+                        )}
+                        onClick={() => goToPage(item)}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
                   <button
                     type="button"
                     className={buttonStyles('ghost', 'sm', 'min-h-11')}
                     disabled={currentPage === totalPages}
-                    onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                    onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
                   >
                     Siguiente
                   </button>
