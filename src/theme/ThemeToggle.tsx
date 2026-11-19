@@ -95,6 +95,7 @@ export function ThemeToggle() {
   const choose = (value: ThemePreference) => {
     setPreference(value);
     setOpen(false);
+    triggerRef.current?.focus();
   };
 
   return (

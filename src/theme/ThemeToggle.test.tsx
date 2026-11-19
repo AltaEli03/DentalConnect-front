@@ -76,6 +76,15 @@ describe('ThemeToggle', () => {
     expect(window.localStorage.getItem(themeStorageKey)).toBe('system');
   });
 
+  it('returns focus to the trigger after choosing a theme', () => {
+    renderToggle();
+    const trigger = screen.getByRole('button', { name: /Tema de la interfaz/i });
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: 'Oscuro' }));
+
+    expect(trigger).toHaveFocus();
+  });
+
   it('closes with Escape and returns focus to the trigger', () => {
     renderToggle();
     const trigger = screen.getByRole('button', { name: /Tema de la interfaz/i });

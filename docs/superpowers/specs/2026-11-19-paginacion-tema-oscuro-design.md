@@ -57,7 +57,7 @@ El catálogo ya pagina, pero pinta todos los números de página: con 100 consul
 
 ### Dropdown de tema (`src/theme/ThemeToggle.tsx`, `src/styles.css`)
 
-- Botón disparador con el icono y la etiqueta del tema actual, `aria-expanded` y `aria-haspopup`, y panel desplegable con las tres opciones (sol/luna/monitor) como botones `aria-pressed`.
+- Botón disparador con el icono y la etiqueta del tema actual y `aria-expanded`, y panel desplegable con las tres opciones (sol/luna/monitor) como botones `aria-pressed`.
 - Cierra al elegir, al hacer clic fuera y con Escape; con Escape el foco vuelve al disparador. Objetivos táctiles de 44 px y tokens de superficie.
 - Sustituye el grupo de tres botones y sus reglas `.theme-toggle`.
 - Se actualiza `ThemeToggle.test.tsx`: abre el dropdown, elige una opción, verifica persistencia, cierre y foco.

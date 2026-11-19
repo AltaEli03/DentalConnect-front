@@ -250,7 +250,7 @@ export function ClinicListPage() {
 
       <section
         ref={resultsRef}
-        className="mx-auto max-w-6xl px-4 py-10 sm:px-6"
+        className="mx-auto max-w-6xl scroll-mt-20 px-4 py-10 sm:px-6"
         aria-live="polite"
         aria-busy={loading}
       >
