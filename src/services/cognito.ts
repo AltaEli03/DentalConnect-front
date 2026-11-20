@@ -208,7 +208,7 @@ export function requestPasswordReset(email: string) {
 export function confirmPasswordReset(email: string, code: string, newPassword: string) {
   return new Promise<void>((resolve, reject) =>
     getUser(email).confirmPassword(code.trim(), newPassword, {
-      onSuccess: resolve,
+      onSuccess: () => resolve(),
       onFailure: reject,
     }),
   );
