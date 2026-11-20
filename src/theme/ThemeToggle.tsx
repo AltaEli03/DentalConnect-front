@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTheme } from './ThemeProvider';
 import type { ThemePreference } from '../lib/theme';
 
@@ -46,6 +46,20 @@ const Monitor = () => (
   </svg>
 );
 
+const Chevron = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 const options: Array<{ value: ThemePreference; label: string; icon: () => ReactNode }> = [
   { value: 'light', label: 'Claro', icon: Sun },
   { value: 'dark', label: 'Oscuro', icon: Moon },
@@ -54,20 +68,65 @@ const options: Array<{ value: ThemePreference; label: string; icon: () => ReactN
 
 export function ThemeToggle() {
   const { preference, setPreference } = useTheme();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const current = options.find((option) => option.value === preference) ?? options[2];
+  const CurrentIcon = current.icon;
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const choose = (value: ThemePreference) => {
+    setPreference(value);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
   return (
-    <div className="theme-toggle" role="group" aria-label="Tema de la interfaz">
-      {options.map(({ value, label, icon: Icon }) => (
-        <button
-          key={value}
-          type="button"
-          aria-label={label}
-          aria-pressed={preference === value}
-          onClick={() => setPreference(value)}
-        >
-          <Icon />
-          <span>{label}</span>
-        </button>
-      ))}
+    <div className="theme-menu" ref={menuRef}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="theme-menu-trigger"
+        aria-label={`Tema de la interfaz: ${current.label}`}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <CurrentIcon />
+        <span>{current.label}</span>
+        <Chevron />
+      </button>
+      {open && (
+        <div className="theme-menu-panel" role="group" aria-label="Tema de la interfaz">
+          {options.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={preference === value}
+              onClick={() => choose(value)}
+            >
+              <Icon />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
