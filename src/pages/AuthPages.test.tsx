@@ -254,6 +254,28 @@ describe('Sprint 2 account flow', () => {
 });
 
 describe('Unified role-based login', () => {
+  it('explains how to request clinic registration before signing in', async () => {
+    renderApp('/registrar-consultorio');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Solicita el registro de tu consultorio' }),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Iniciar sesión' })
+        .some((link) => link.getAttribute('href') === '/iniciar-sesion'),
+    ).toBe(true);
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Crear cuenta' })
+        .some((link) => link.getAttribute('href') === '/registro'),
+    ).toBe(true);
+    expect(screen.getByText(/No necesitas otra cuenta para solicitar el alta/)).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toHaveTextContent(
+      'Registrar consultorio',
+    );
+  });
+
   it('uses the shared login form for the clinic access URL', async () => {
     renderApp('/consultorio/iniciar-sesion');
 

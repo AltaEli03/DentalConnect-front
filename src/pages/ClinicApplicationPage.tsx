@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { apiBaseUrl } from '../services/api';
 import { currentIdToken } from '../services/cognito';
+import { AuthLayout } from '../components/auth/AuthLayout';
 
 type Application = { id: string; clinicName: string; status: string; reviewNote?: string | null; createdAt: string };
 type ReviewItem = { id: string; ownerEmail: string; clinicName: string; phone: string; address: string; municipality: string; state: string; postalCode: string; status: string; createdAt: string };
@@ -62,7 +63,25 @@ export function ClinicApplicationPage() {
   };
 
   if (loading) return <section className="page-section" aria-busy="true"><p role="status">Comprobando sesión…</p></section>;
-  if (!user) return <section className="page-section"><h1>Registra tu consultorio</h1><p>Inicia sesión con tu cuenta verificada para enviar la solicitud. Usarás la misma cuenta para pacientes y consultorios.</p><Link className="button button-primary" to="/iniciar-sesion" state={{ from: '/registrar-consultorio' }}>Iniciar sesión</Link><p>¿Aún no tienes cuenta? <Link to="/registro">Crear una cuenta</Link></p></section>;
+  if (!user) return <AuthLayout
+    title="Solicita el registro de tu consultorio"
+    visualTitle="Conecta tu consultorio con nuevos pacientes."
+    visualText="Publica tus servicios y equipo para que las personas encuentren la atención que necesitan."
+  >
+    <div className="clinic-access-content">
+      <p className="clinic-access-intro">Usarás una sola cuenta verificada para solicitar el alta y, después de la aprobación, administrar tu consultorio.</p>
+      <ol className="clinic-access-steps">
+        <li><span aria-hidden="true">1</span><div><strong>Accede a tu cuenta</strong><p>Inicia sesión o crea una cuenta y verifica tu correo.</p></div></li>
+        <li><span aria-hidden="true">2</span><div><strong>Envía los datos del consultorio</strong><p>Completa nombre, contacto, dirección y ubicación.</p></div></li>
+        <li><span aria-hidden="true">3</span><div><strong>Espera la revisión</strong><p>El consultorio se publicará cuando la solicitud sea aprobada.</p></div></li>
+      </ol>
+      <div className="clinic-access-actions">
+        <Link className="btn btn-primary btn-full" to="/iniciar-sesion" state={{ from: '/registrar-consultorio' }}>Iniciar sesión</Link>
+        <Link className="btn btn-outline btn-full" to="/registro">Crear cuenta</Link>
+      </div>
+      <p className="clinic-access-note">El registro general crea una cuenta de paciente. No necesitas otra cuenta para solicitar el alta del consultorio.</p>
+    </div>
+  </AuthLayout>;
 
   return <section className="page-section" aria-labelledby="clinic-application-title">
     <header className="page-heading"><p className="eyebrow">DentalConnect</p><h1 id="clinic-application-title">Registro de consultorio</h1><p>Envía la información para revisión. Tu consultorio aparecerá en el catálogo al ser aprobado.</p></header>
