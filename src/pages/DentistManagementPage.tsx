@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { currentIdToken } from '../services/cognito';
 import { api } from '../services/api';
 
