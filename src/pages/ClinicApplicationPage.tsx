@@ -12,11 +12,16 @@ type Envelope<T> = { data: T };
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = await currentIdToken();
   const headers = new Headers(init.headers);
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (!token) throw new Error('No hay una credencial activa para el API. La sesión visual se conserva; recarga la página y vuelve a intentarlo.');
+  headers.set('Authorization', `Bearer ${token}`);
   if (init.body) headers.set('Content-Type', 'application/json');
   const response = await fetch(`${apiBaseUrl()}${path}`, { ...init, headers });
   const body = await response.json().catch(() => ({})) as { data?: T; error?: { message?: string } };
-  if (!response.ok) throw new Error(body.error?.message ?? 'No fue posible completar la operación.');
+  if (!response.ok) {
+    if (response.status === 401) throw new Error(body.error?.message ?? 'El API rechazó la autorización (401). Tu sesión de DentalConnect sigue abierta; vuelve a intentarlo.');
+    if (response.status === 403) throw new Error(body.error?.message ?? 'Esta cuenta no tiene permiso para realizar esta acción (403).');
+    throw new Error(body.error?.message ?? `No fue posible completar la operación (HTTP ${response.status}).`);
+  }
   return body as T;
 }
 
@@ -83,11 +88,11 @@ export function ClinicApplicationPage() {
     </div>
   </AuthLayout>;
 
-  return <section className="page-section" aria-labelledby="clinic-application-title">
+  return <section className="page-section clinic-application-page" aria-labelledby="clinic-application-title">
     <header className="page-heading"><p className="eyebrow">DentalConnect</p><h1 id="clinic-application-title">Registro de consultorio</h1><p>Envía la información para revisión. Tu consultorio aparecerá en el catálogo al ser aprobado.</p></header>
     {error && <p role="alert" className="form-message form-message-error">{error}</p>}
     {message && <p role="status" className="form-message form-message-success">{message}</p>}
-    {!platformAdmin && (application ? <article className="surface-card"><h2>Estado de tu solicitud</h2><p><strong>{application.clinicName}</strong></p><p>Estado: <strong>{application.status}</strong></p>{application.reviewNote && <p>Nota de revisión: {application.reviewNote}</p>}</article> : <form className="surface-card form-grid" onSubmit={submit}>
+    {!platformAdmin && (application ? <article className="surface-card clinic-application-status"><h2>Estado de tu solicitud</h2><p><strong>{application.clinicName}</strong></p><p>Estado: <strong>{application.status}</strong></p>{application.reviewNote && <p>Nota de revisión: {application.reviewNote}</p>}</article> : <form className="surface-card form-grid clinic-application-form" onSubmit={submit}>
       <h2>Datos del consultorio</h2><p>Usaremos esta información para revisar y dar de alta el establecimiento.</p>
       <label>Nombre del consultorio<input required minLength={3} maxLength={120} autoComplete="organization" value={form.clinicName ?? ''} onChange={e => setForm({ ...form, clinicName: e.target.value })} /></label>
       <label>Teléfono<input required minLength={8} maxLength={24} type="tel" autoComplete="tel" value={form.phone ?? ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></label>

@@ -14,7 +14,7 @@ type View = 'upcoming' | 'history';
 function listMessage(cause: unknown) {
   if (cause instanceof ApiError) {
     if (cause.status === 401)
-      return 'Tu sesión terminó. Inicia sesión de nuevo para ver tus citas.';
+      return 'El API rechazó la consulta (401). Tu sesión sigue abierta; vuelve a intentarlo. Si persiste, el acceso de esta cuenta necesita revisión.';
     return cause.message;
   }
   if (
@@ -42,7 +42,7 @@ const byStartDescending = (a: PatientAppointment, b: PatientAppointment) =>
   new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime();
 
 export function PatientAppointmentsPage() {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ export function PatientAppointmentsPage() {
       .catch((cause: unknown) => {
         if (!active) return;
         setError(listMessage(cause));
-        if (cause instanceof ApiError && cause.status === 401) void logout();
+        
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -74,7 +74,7 @@ export function PatientAppointmentsPage() {
     return () => {
       active = false;
     };
-  }, [attempt, logout, user]);
+  }, [attempt, user]);
 
   if (authLoading) {
     return (

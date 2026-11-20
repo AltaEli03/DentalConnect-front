@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../auth/AuthContext';
 import { PatientAppointmentsPage } from './PatientAppointmentsPage';
-import { currentUser } from '../services/cognito';
-import { api } from '../services/api';
+import { currentUser, signOut } from '../services/cognito';
+import { ApiError, api } from '../services/api';
 import type { PatientAppointment } from '../types/api';
 
 vi.mock('../services/cognito', () => ({
@@ -14,10 +14,7 @@ vi.mock('../services/cognito', () => ({
 }));
 vi.mock('../services/api', () => {
   class MockApiError extends Error {
-    constructor(
-      message: string,
-      readonly status: number,
-    ) {
+    constructor(message: string, readonly status: number) {
       super(message);
     }
   }
@@ -118,5 +115,13 @@ describe('PatientAppointmentsPage', () => {
       await screen.findByRole('link', { name: 'Iniciar sesión para ver mis citas' }),
     ).toHaveAttribute('href', '/iniciar-sesion');
     expect(api.myAppointments).not.toHaveBeenCalled();
+  });
+
+  it('keeps the session when the appointments API returns 401', async () => {
+    vi.mocked(api.myAppointments).mockRejectedValue(new ApiError('unauthorized', 401));
+    renderPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('El API rechazó la consulta (401)');
+    expect(signOut).not.toHaveBeenCalled();
   });
 });
