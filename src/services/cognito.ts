@@ -184,7 +184,7 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  activeCognitoUser ?? pool.getCurrentUser()?.signOut();
+  (activeCognitoUser ?? pool.getCurrentUser())?.signOut(); activeCognitoUser = null;
 }
 
 export function currentIdToken() {
