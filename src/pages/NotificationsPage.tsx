@@ -15,7 +15,7 @@ const receivedDate = (value: string) =>
 
 function errorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 401)
-    return 'Tu sesión terminó. Inicia sesión para consultar tus avisos.';
+    return 'El API rechazó la consulta (401). Tu sesión sigue abierta; vuelve a intentarlo. Si persiste, el acceso de esta cuenta necesita revisión.';
   if (
     error instanceof TypeError ||
     (error instanceof Error && /failed to fetch|network|load failed/i.test(error.message))
