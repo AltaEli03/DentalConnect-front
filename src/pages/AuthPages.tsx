@@ -636,7 +636,7 @@ export function PasswordRecoveryPage() {
       await requestPasswordReset(email.trim());
       setRequested(true);
       setNotice('Si la cuenta existe, recibirás un código de recuperación en el correo registrado.');
-    } catch (cause) {
+    } catch {
       setError('No se pudo procesar la solicitud en este momento. Espera un poco e inténtalo de nuevo.');
     } finally { setBusy(false); }
   };
