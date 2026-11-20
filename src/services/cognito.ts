@@ -12,6 +12,10 @@ const pool = new CognitoUserPool({
   Storage: window.sessionStorage,
 });
 
+let activeCognitoUser: CognitoUser | null = null;
+
+
+
 function normalizePhone(phone: string) {
   const digits = phone.replace(/\D/g, '');
   if (phone.startsWith('+')) return `+${digits}`;
@@ -130,7 +134,7 @@ export function signIn(email: string, password: string) {
     user.authenticateUser(
       new AuthenticationDetails({ Username: email.trim().toLowerCase(), Password: password }),
       {
-        onSuccess: (session) => resolve(profileFromSession(session, user)),
+        onSuccess: (session) => { activeCognitoUser = user; resolve(profileFromSession(session, user)); },
         onFailure: reject,
         newPasswordRequired: () =>
           reject(
@@ -167,11 +171,11 @@ export type CognitoProfile = {
 };
 export function currentUser() {
   return new Promise<CognitoProfile | null>((resolve) => {
-    const user = pool.getCurrentUser();
+    const user = activeCognitoUser ?? pool.getCurrentUser();
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
-      const profile = profileFromSession(session, user);
+      activeCognitoUser = user; const profile = profileFromSession(session, user);
       void readUserAttributes(user).then(
         (attributes) => resolve(withUserAttributes(profile, attributes)),
         () => resolve(profile),
@@ -180,12 +184,12 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  pool.getCurrentUser()?.signOut();
+  activeCognitoUser ?? pool.getCurrentUser()?.signOut();
 }
 
 export function currentIdToken() {
   return new Promise<string | null>((resolve) => {
-    const user = pool.getCurrentUser();
+    const user = activeCognitoUser ?? pool.getCurrentUser();
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
