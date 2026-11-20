@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Button, buttonStyles } from '../components/ui/Button';
@@ -21,6 +21,7 @@ export function ClinicSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -46,7 +47,26 @@ export function ClinicSettingsPage() {
       setClinic(result.data); setNotice('La información pública del consultorio se guardó.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo guardar el consultorio.'); }
     finally { setSaving(false); }
+  };  const uploadClinicImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file || !clinic || !clinicId) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setError('Elige una imagen PNG, JPEG o WebP de hasta 5 MB.');
+      input.value = '';
+      return;
+    }
+    setUploadingImage(true); setError(''); setNotice('');
+    try {
+      const body = new FormData(); body.append('file', file);
+      const result = await clinicRequest<{ data: { imageUrl: string } }>('/clinics/' + encodeURIComponent(clinicId) + '/management/image', { method: 'POST', body });
+      setClinic({ ...clinic, imageUrl: result.data.imageUrl });
+      setNotice('La imagen del consultorio se cargó correctamente.');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo cargar la imagen.'); }
+    finally { setUploadingImage(false); input.value = ''; }
   };
+
+
 
   const saveService = async (service: ServiceOffering) => {
     if (!clinicId) return;
@@ -80,7 +100,14 @@ export function ClinicSettingsPage() {
         <label className="grid gap-1.5 text-sm font-semibold text-ink">Estado<input required maxLength={100} value={clinic.state} onChange={e=>setClinic({...clinic,state:e.target.value})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label>
         <label className="grid gap-1.5 text-sm font-semibold text-ink">Código postal<input required maxLength={20} value={clinic.postalCode} onChange={e=>setClinic({...clinic,postalCode:e.target.value})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label>
         <label className="grid gap-1.5 text-sm font-semibold text-ink sm:col-span-2">Descripción<textarea required maxLength={2000} rows={4} value={clinic.description} onChange={e=>setClinic({...clinic,description:e.target.value})} className="rounded-control border border-control bg-surface p-3 font-normal" /></label>
-        <label className="grid gap-1.5 text-sm font-semibold text-ink sm:col-span-2">URL de imagen<input type="url" maxLength={2048} placeholder="https://…" value={clinic.imageUrl ?? ''} onChange={e=>setClinic({...clinic,imageUrl:e.target.value||null})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /><span className="text-xs font-normal text-muted">Se guarda la dirección de una imagen HTTPS. La carga de archivos a almacenamiento aún no está habilitada.</span></label>
+        <div className="grid gap-2 sm:col-span-2">
+          <label className="grid gap-1.5 text-sm font-semibold text-ink">Imagen del consultorio (PNG, JPEG o WebP; hasta 5 MB)
+            <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploadingImage} onChange={uploadClinicImage} className="min-h-11 rounded-control border border-control bg-surface px-3 py-2 font-normal" />
+          </label>
+          {uploadingImage && <p role="status" className="text-sm text-muted">Subiendo imagen…</p>}
+          {clinic.imageUrl && <img src={clinic.imageUrl} alt="Imagen actual del consultorio" className="max-h-56 w-full rounded-card object-cover" />}
+          <label className="grid gap-1.5 text-sm font-semibold text-ink">URL alternativa de imagen<input type="url" maxLength={2048} placeholder="https://…" value={clinic.imageUrl ?? ''} onChange={e=>setClinic({...clinic,imageUrl:e.target.value||null})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /><span className="text-xs font-normal text-muted">La URL se guarda en el perfil; las cargas de archivo se almacenan en AWS.</span></label>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 sm:col-span-2"><label className="grid gap-1.5 text-sm font-semibold text-ink">Latitud<input type="number" step="any" min="-90" max="90" value={clinic.latitude ?? ''} onChange={e=>setClinic({...clinic,latitude:e.target.value===''?null:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label><label className="grid gap-1.5 text-sm font-semibold text-ink">Longitud<input type="number" step="any" min="-180" max="180" value={clinic.longitude ?? ''} onChange={e=>setClinic({...clinic,longitude:e.target.value===''?null:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label></div>
         <div className="sm:col-span-2"><Button type="submit" disabled={saving} loading={saving}>Guardar perfil</Button></div>
       </form>

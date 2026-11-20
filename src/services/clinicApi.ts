@@ -7,7 +7,7 @@ export async function clinicRequest<T>(path: string, init: RequestInit = {}): Pr
   if (!token) throw new ApiError('Inicia sesión con una cuenta autorizada del consultorio.', 401);
   const headers = new Headers(init.headers);
   headers.set('Authorization', 'Bearer ' + token);
-  if (init.body) headers.set('Content-Type', 'application/json');
+  if (init.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await fetch(base + path, { ...init, headers });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
