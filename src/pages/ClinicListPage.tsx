@@ -324,11 +324,12 @@ export function ClinicListPage() {
                 >
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
+                    aria-label="Página anterior"
+                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
                     disabled={currentPage === 1}
                     onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   >
-                    Anterior
+                    <span aria-hidden="true">‹</span>
                   </button>
                   {getPageItems(currentPage, totalPages).map((item, index) =>
                     item === 'ellipsis' ? (
@@ -354,11 +355,12 @@ export function ClinicListPage() {
                   )}
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
+                    aria-label="Página siguiente"
+                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
                     disabled={currentPage === totalPages}
                     onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
                   >
-                    Siguiente
+                    <span aria-hidden="true">›</span>
                   </button>
                 </nav>
               )}
