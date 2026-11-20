@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { currentUser, signOut, type CognitoProfile } from '../services/cognito';
+import { api } from '../services/api';
 
 // 1. Definición de tipos clara
 type AuthState = {
@@ -19,32 +20,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CognitoProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Función para refrescar el usuario desde Cognito
-  const refresh = async () => {
-    try {
-      const profile = await currentUser();
-      setUser(profile);
-    } catch (error) {
-      // Si falla la consulta (ej. token expirado o sin red),
-      // aseguramos que el usuario sea null para no romper la app.
-      console.error('Error al verificar la sesión:', error);
-      setUser(null);
-    } finally {
-      // Pase lo que pase, quitamos el estado de carga
-      setLoading(false);
-    }
-  };
-
-  // Efecto que corre al montar el Provider
-  useEffect(() => {
-    void refresh();
-  }, []);
-
   // Función que se llama justo después del login exitoso
   const acceptLogin = (profile: CognitoProfile) => {
     setUser(profile);
     setLoading(false);
   };
+
+  const refresh = async () => {
+    try {
+      const profile = await currentUser();
+      if (!profile) {
+        setUser(null);
+      } else {
+        try {
+          const response = await api.me();
+          setUser({ ...profile, ...response.data.user, clinicId: response.data.user.clinicId || profile.clinicId });
+        } catch {
+          // Un fallo temporal de API conserva la sesión válida de Cognito.
+          setUser(profile);
+        }
+      }
+    } catch (error) {
+      console.error('Error al verificar la sesión:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Revalida Cognito y obtiene el rol vigente de la API al iniciar o refrescar sesión.
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   const updateProfile = (profile: CognitoProfile) => setUser(profile);
 

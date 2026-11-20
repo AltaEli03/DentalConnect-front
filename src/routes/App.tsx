@@ -12,7 +12,7 @@ import { AuthProvider } from '../auth/AuthContext';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { NetworkStatus } from '../components/NetworkStatus';
-import { isClinicAdmin, isPatientRole, hasRole } from '../lib/roles';
+import { isClinicAdmin, hasRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 import { NotificationsPage } from '../pages/NotificationsPage';
@@ -32,7 +32,6 @@ export function App() {
 
 function AppContent() {
   const { user } = useAuth();
-  const isPatient = isPatientRole(user?.role);
   const hasClinicRole = Boolean(user) && isClinicAdmin(user?.role);
   const isPlatformAdmin = hasRole(user?.role, 'PLATFORM_ADMIN');
 
@@ -52,7 +51,7 @@ function AppContent() {
               <NavLink to="/consultorio/configuracion">Perfil y servicios</NavLink>
               <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">Solicitudes</NavLink>
             </>}
-            {user && isPatient && <NavLink to="/mis-citas">Mis citas</NavLink>}
+            {user && <NavLink to="/mis-citas">Mis citas</NavLink>}
             {user && <NavLink to="/notificaciones">Avisos</NavLink>}
             {user ? <NavLink to="/mi-cuenta" className="header-nav-primary">Mi cuenta</NavLink> : <>
               <NavLink to="/registro">Crear cuenta</NavLink>
