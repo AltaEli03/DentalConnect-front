@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
 import { currentIdToken } from '../services/cognito';
 import { api } from '../services/api';
 
@@ -26,13 +26,16 @@ export function DentistManagementPage() {
   const [blockStart, setBlockStart] = useState(''); 
   const [blockEnd, setBlockEnd] = useState(''); 
   const [blockReason, setBlockReason] = useState(''); 
-  const [message, setMessage] = useState(''); 
-  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');   const [busy, setBusy] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageInputKey, setImageInputKey] = useState(0);
 
   async function call<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = await currentIdToken(); if (!token) throw new Error('Inicia sesión con una cuenta administradora del consultorio.');
-    const base = (import.meta.env.VITE_API_BASE_URL?.trim() || '').replace(/\/+$/, ''); if (!base) throw new Error('Falta VITE_API_BASE_URL en este ambiente.');
-    const response = await fetch(base + path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, ...options.headers } });
+    const base = (import.meta.env.VITE_API_BASE_URL?.trim() || '').replace(/\/+$/, ''); if (!base) throw new Error('Falta VITE_API_BASE_URL en este ambiente.');    const headers = new Headers(options.headers);
+    headers.set('Authorization', 'Bearer ' + token);
+    if (options.body && !(typeof FormData !== 'undefined' && options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
+    const response = await fetch(base + path, { ...options, headers });
     if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.error?.message || (response.status === 403 ? 'Tu usuario no tiene rol de administrador vinculado a este consultorio.' : 'La operación no se pudo completar (' + response.status + ').')); }
     if (response.status === 204) return undefined as T; return response.json() as Promise<T>;
   }
@@ -71,9 +74,9 @@ export function DentistManagementPage() {
     e.preventDefault(); 
     await run(async()=>{ 
       const editing=Boolean(selected); 
-      await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists'+(editing?'/'+selected:''),{method:editing?'PUT':'POST',body:JSON.stringify(form)}); 
+      const saved=await call<{data:Dentist}>('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists'+(editing?'/'+selected:''),{method:editing?'PUT':'POST',body:JSON.stringify(form)}); const dentistId=saved.data.id; setSelected(dentistId); if(imageFile){const body=new FormData();body.append('file',imageFile);await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(dentistId)+'/image',{method:'POST',body});} 
       setSelected(''); 
-      setForm(emptyDentist); 
+      setForm(emptyDentist); setImageFile(null); setImageInputKey(value=>value+1); 
       await loadDentists(); 
       setMessage('Dentista guardado correctamente.'); 
     }); 
@@ -192,7 +195,7 @@ export function DentistManagementPage() {
                 </label>
               </div>
 
-              <label>URL de Fotografía (Opcional)
+              <label>Fotografía PNG/JPEG/WebP (máx. 5 MB)<input key={imageInputKey} type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} onChange={e=>{const input=e.currentTarget;const file=input.files?.[0]??null;if(file&&(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024)){setMessage('Selecciona PNG, JPEG o WebP de hasta 5 MB.');input.value='';return;}setImageFile(file);setMessage('');}}/><small>{imageFile?'Archivo seleccionado: '+imageFile.name:'La foto se carga al guardar.'}</small></label><label>URL de Fotografía (Opcional)
                 <input type="url" value={form.imageUrl} onChange={e=>setForm({...form,imageUrl:e.target.value})} placeholder="https://..." />
               </label>
 
@@ -221,7 +224,7 @@ export function DentistManagementPage() {
                   {selected ? 'Guardar Cambios' : 'Crear Dentista'}
                 </button>
                 {selected && (
-                  <button type="button" className="secondary-btn" onClick={()=>{setSelected('');setForm(emptyDentist);}}>
+                  <button type="button" className="secondary-btn" onClick={()=>{setSelected('');setForm(emptyDentist); setImageFile(null); setImageInputKey(value=>value+1); setImageFile(null); setImageInputKey(value=>value+1);}}>
                     Cancelar Edición
                   </button>
                 )}
