@@ -3,8 +3,8 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../routes/App';
 import { AuthProvider } from '../auth/AuthContext';
-import { LoginPage } from './AuthPages';
-import { currentUser, signIn, signOut, updateAccountProfile } from '../services/cognito';
+import { LoginPage, PasswordRecoveryPage } from './AuthPages';
+import { currentUser, signIn, signOut, updateAccountProfile, requestPasswordReset, confirmPasswordReset } from '../services/cognito';
 import { api } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
@@ -12,6 +12,8 @@ vi.mock('../services/cognito', () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),
   updateAccountProfile: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  confirmPasswordReset: vi.fn(),
 }));
 vi.mock('../services/api', () => ({
   api: { register: vi.fn(), verify: vi.fn(), resend: vi.fn() },
@@ -345,5 +347,28 @@ describe('HU-18 patient contact profile', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('entre 10 y 15 dígitos');
     expect(updateAccountProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe('Password recovery', () => {
+  it('requests and confirms a Cognito recovery code', async () => {
+    vi.mocked(requestPasswordReset).mockResolvedValue();
+    vi.mocked(confirmPasswordReset).mockResolvedValue();
+    render(
+      <MemoryRouter initialEntries={['/recuperar-contrasena']}>
+        <PasswordRecoveryPage />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'paciente@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar código' }));
+    expect(await screen.findByText(/Si la cuenta existe, recibirás un código/)).toBeInTheDocument();
+    expect(requestPasswordReset).toHaveBeenCalledWith('paciente@example.com');
+
+    fireEvent.change(screen.getByLabelText('Código de recuperación'), { target: { value: '123456' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'DentalConnect!2026' } });
+    fireEvent.change(screen.getByLabelText('Confirma la nueva contraseña'), { target: { value: 'DentalConnect!2026' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    expect(await screen.findByText('La contraseña se actualizó. Ya puedes iniciar sesión.')).toBeInTheDocument();
+    expect(confirmPasswordReset).toHaveBeenCalledWith('paciente@example.com', '123456', 'DentalConnect!2026');
   });
 });
