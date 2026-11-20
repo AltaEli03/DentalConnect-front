@@ -193,3 +193,23 @@ export function currentIdToken() {
     });
   });
 }
+
+
+export function requestPasswordReset(email: string) {
+  return new Promise<void>((resolve, reject) =>
+    getUser(email).forgotPassword({
+      onSuccess: () => resolve(),
+      onFailure: reject,
+      inputVerificationCode: () => resolve(),
+    }),
+  );
+}
+
+export function confirmPasswordReset(email: string, code: string, newPassword: string) {
+  return new Promise<void>((resolve, reject) =>
+    getUser(email).confirmPassword(code.trim(), newPassword, {
+      onSuccess: resolve,
+      onFailure: reject,
+    }),
+  );
+}
