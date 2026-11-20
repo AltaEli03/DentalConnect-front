@@ -8,8 +8,6 @@ import type {
 } from '../types/api';
 import { currentIdToken } from './cognito';
 
-const developmentBaseUrl = import.meta.env.DEV ? 'http://localhost:3000/api' : '';
-
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -21,10 +19,7 @@ export class ApiError extends Error {
 }
 
 export function apiBaseUrl(): string {
-  const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || developmentBaseUrl).replace(
-    /\/+$/,
-    '',
-  );
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL?.trim() || '').replace(/\/+$/, '');
   if (!baseUrl) throw new Error('La URL de la API no está configurada para este ambiente.');
   return baseUrl;
 }

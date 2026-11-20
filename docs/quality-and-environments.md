@@ -2,15 +2,15 @@
 
 ## Stack y configuración API
 
-DentalConnect usa React, TypeScript y Vite. La URL del API se lee de VITE_API_BASE_URL desde la configuración Vite y se resuelve centralmente en src/services/api.ts; componentes y servicios de dominio no deben construir URLs ni fijar el host del backend. Vite carga archivos .env por modo y las variables VITE_* forman parte del bundle público, por lo que nunca deben contener contraseñas, tokens privados ni secretos.
+DentalConnect usa React, TypeScript y Vite. La URL del API se lee exclusivamente de VITE_API_BASE_URL desde la configuración Vite y se resuelve centralmente en src/services/api.ts; componentes y servicios de dominio no deben construir URLs ni fijar el host del backend. Si la variable falta o está vacía, apiBaseUrl falla explícitamente en vez de usar una URL predeterminada. Vite carga archivos .env por modo y las variables VITE_* forman parte del bundle público, por lo que nunca deben contener contraseñas, tokens privados ni secretos.
 
 | Ambiente | Configuración | Comportamiento |
 | --- | --- | --- |
-| Development | .env.development.local, ignorado por Git; VITE_API_BASE_URL apunta al backend de desarrollo | Vite en modo desarrollo |
+| Development | .env.development.local, ignorado por Git; configurar VITE_API_BASE_URL con el backend de desarrollo | Vite en modo desarrollo; sin URL implícita |
 | Test | Vitest con mocks y configuración de prueba | Las pruebas no llaman a un backend productivo |
 | Production | VITE_API_BASE_URL configurada como variable de ambiente de GitHub Actions/Amplify | El bundle apunta a la URL del API desplegado; el código fuente no cambia |
 
-.env.example sirve de plantilla y contiene solo nombres y valores demostrativos. En Amplify, configurar la variable de producción en la configuración de build; en los workflows de GitHub, usar Variables para URL pública y Secrets solo para credenciales privadas requeridas por CI. Las variables VITE_* no son secretas después de compilarse.
+.env.example sirve de plantilla y contiene los nombres de variables, sin asignar un host de respaldo. Copiarla a la configuración local y definir VITE_API_BASE_URL para cada ambiente. En Amplify, configurar la variable de producción en la configuración de build; en los workflows de GitHub, usar Variables para URL pública y Secrets solo para credenciales privadas requeridas por CI. Las variables VITE_* no son secretas después de compilarse.
 
 ## Calidad automatizada
 
