@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { signIn, signOut, updateAccountProfile, requestPasswordReset, confirmPasswordReset } from '../services/cognito';
+import { signIn, updateAccountProfile, requestPasswordReset, confirmPasswordReset } from '../services/cognito';
 import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
@@ -41,11 +41,13 @@ export function LoginPage() {
     setBusy(true);
     setError('');
     try {
-      const profile = await signIn(email.trim(), password);
-      if (isClinicAdmin(profile.role) && !profile.clinicId) {
-        signOut();
-        setError('La cuenta del consultorio necesita vincularse a una clínica. Contacta al administrador.');
-        return;
+      const cognitoProfile = await signIn(email.trim(), password);
+      let profile = cognitoProfile;
+      try {
+        const response = await api.me();
+        profile = { ...cognitoProfile, ...response.data.user, clinicId: response.data.user.clinicId || cognitoProfile.clinicId };
+      } catch {
+        // Conserva el inicio de sesión si la API tiene una interrupción temporal.
       }
       acceptLogin(profile);
       nav(destinationForRole(profile.role), { replace: true });
