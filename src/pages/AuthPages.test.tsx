@@ -270,7 +270,7 @@ describe('Unified role-based login', () => {
         .getAllByRole('link', { name: 'Crear cuenta' })
         .some((link) => link.getAttribute('href') === '/registro'),
     ).toBe(true);
-    expect(screen.getByText(/No necesitas otra cuenta para solicitar el alta/)).toBeInTheDocument();
+    expect(screen.getByText(/Inicia sesión con esa cuenta para registrar y administrar un consultorio/)).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toHaveTextContent(
       'Registrar consultorio',
     );

@@ -131,6 +131,7 @@ export type User = {
   email: string;
   phone: string;
   role: string;
+  clinicId?: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
   createdAt: string;
