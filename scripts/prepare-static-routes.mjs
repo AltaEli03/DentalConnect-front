@@ -59,4 +59,6 @@ for (const route of routes) {
   await copyFile(resolve(output, 'index.html'), resolve(directory, 'index.html'));
 }
 
+await copyFile(resolve('customHttp.yml'), resolve(output, 'customHttp.yml'));
+
 console.log(`Rutas estáticas preparadas: ${routes.size}`);
