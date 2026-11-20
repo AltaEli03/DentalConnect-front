@@ -18,6 +18,7 @@ import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthP
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { ClinicApplicationPage } from '../pages/ClinicApplicationPage';
 import { ClinicSettingsPage } from '../pages/ClinicSettingsPage';
+import { PasswordRecoveryPage } from '../pages/AuthPages';
 
 export function App() {
   return (
@@ -72,6 +73,7 @@ function AppContent() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/verificar-correo" element={<VerifyPage />} />
           <Route path="/iniciar-sesion" element={<LoginPage />} />
+          <Route path="/recuperar-contrasena" element={<PasswordRecoveryPage />} />
           <Route path="/consultorio/iniciar-sesion" element={<Navigate to="/iniciar-sesion" replace state={{ from: '/consultorio/citas' }} />} />
           <Route path="/mi-cuenta" element={<AccountPage />} />
           <Route path="/registrar-consultorio" element={<ClinicApplicationPage />} />
