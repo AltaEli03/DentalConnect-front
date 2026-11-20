@@ -637,7 +637,7 @@ export function PasswordRecoveryPage() {
       setRequested(true);
       setNotice('Si la cuenta existe, recibirás un código de recuperación en el correo registrado.');
     } catch (cause) {
-      setError(friendlyAuthError(cause, 'No se pudo solicitar el código. Revisa el correo e inténtalo de nuevo.'));
+      setError('No se pudo procesar la solicitud en este momento. Espera un poco e inténtalo de nuevo.');
     } finally { setBusy(false); }
   };
 
