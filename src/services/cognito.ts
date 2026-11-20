@@ -134,7 +134,10 @@ export function signIn(email: string, password: string) {
     user.authenticateUser(
       new AuthenticationDetails({ Username: email.trim().toLowerCase(), Password: password }),
       {
-        onSuccess: (session) => { activeCognitoUser = user; resolve(profileFromSession(session, user)); },
+        onSuccess: (session) => {
+          activeCognitoUser = user;
+          resolve(profileFromSession(session, user));
+        },
         onFailure: reject,
         newPasswordRequired: () =>
           reject(
@@ -175,7 +178,8 @@ export function currentUser() {
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
-      activeCognitoUser = user; const profile = profileFromSession(session, user);
+      activeCognitoUser = user;
+      const profile = profileFromSession(session, user);
       void readUserAttributes(user).then(
         (attributes) => resolve(withUserAttributes(profile, attributes)),
         () => resolve(profile),
@@ -184,7 +188,8 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  (activeCognitoUser ?? pool.getCurrentUser())?.signOut(); activeCognitoUser = null;
+  (activeCognitoUser ?? pool.getCurrentUser())?.signOut();
+  activeCognitoUser = null;
 }
 
 export function currentIdToken() {
