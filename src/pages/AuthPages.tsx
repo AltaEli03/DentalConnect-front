@@ -108,7 +108,7 @@ export function LoginPage() {
         Después de iniciar sesión, DentalConnect abrirá las herramientas disponibles para el rol de tu cuenta.
       </p>
       <p className="auth-footer-text">
-        Las cuentas de consultorio se habilitan mediante invitación y vinculación con una clínica.
+        Para administrar un consultorio, inicia sesión con tu cuenta verificada y envía una solicitud desde <Link to="/registrar-consultorio">Registrar consultorio</Link>. El acceso se habilita cuando la solicitud sea aprobada.
       </p>
     </AuthLayout>
   );
