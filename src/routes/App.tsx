@@ -17,6 +17,8 @@ import { useAuth } from '../auth/AuthContext';
 import { AccountPage, LoginPage, RegisterPage, VerifyPage } from '../pages/AuthPages';
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { ClinicApplicationPage } from '../pages/ClinicApplicationPage';
+import { ClinicSettingsPage } from '../pages/ClinicSettingsPage';
+import { PasswordRecoveryPage } from '../pages/AuthPages';
 
 export function App() {
   return (
@@ -47,6 +49,7 @@ function AppContent() {
             {isPlatformAdmin && <NavLink to="/plataforma/consultorios">Revisar altas</NavLink>}
             {hasClinicRole && <>
               <NavLink to="/consultorio/citas">Citas</NavLink>
+              <NavLink to="/consultorio/configuracion">Perfil y servicios</NavLink>
               <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">Solicitudes</NavLink>
             </>}
             {user && isPatient && <NavLink to="/mis-citas">Mis citas</NavLink>}
@@ -70,10 +73,12 @@ function AppContent() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/verificar-correo" element={<VerifyPage />} />
           <Route path="/iniciar-sesion" element={<LoginPage />} />
+          <Route path="/recuperar-contrasena" element={<PasswordRecoveryPage />} />
           <Route path="/consultorio/iniciar-sesion" element={<Navigate to="/iniciar-sesion" replace state={{ from: '/consultorio/citas' }} />} />
           <Route path="/mi-cuenta" element={<AccountPage />} />
           <Route path="/registrar-consultorio" element={<ClinicApplicationPage />} />
           <Route path="/plataforma/consultorios" element={<ClinicApplicationPage />} />
+          <Route path="/consultorio/configuracion" element={<ClinicSettingsPage />} />
           <Route path="/administrar-dentistas" element={<DentistManagementPage />} />
           <Route path="/consultorio/citas" element={<ClinicAppointmentsPage />} />
           <Route path="/administrar-solicitudes" element={<AppointmentManagementPage />} />

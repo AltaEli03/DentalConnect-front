@@ -11,6 +11,15 @@ import type { Clinic, Service } from '../types/api';
 type ClinicWithDistance = Clinic & { distanceKm?: number };
 const PAGE_SIZE = 6;
 
+type PaginationItem = number | 'start-ellipsis' | 'end-ellipsis';
+
+function getPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+  if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+  if (currentPage <= 3) return [1, 2, 3, 'end-ellipsis', totalPages];
+  if (currentPage >= totalPages - 2) return [1, 'start-ellipsis', totalPages - 2, totalPages - 1, totalPages];
+  return [1, 'start-ellipsis', currentPage - 1, currentPage, currentPage + 1, 'end-ellipsis', totalPages];
+}
+
 function directoryMessage(cause: unknown) {
   if (cause instanceof ApiError) {
     if (cause.status >= 500) {
@@ -317,35 +326,43 @@ export function ClinicListPage() {
                 >
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
+                    aria-label="Página anterior"
+                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
                     disabled={currentPage === 1}
                     onClick={() => setPage((current) => Math.max(1, current - 1))}
                   >
-                    Anterior
+                    <span aria-hidden="true">‹</span>
                   </button>
-                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((number) => (
-                    <button
-                      key={number}
-                      type="button"
-                      aria-label={`Página ${number}`}
-                      aria-current={number === currentPage ? 'page' : undefined}
-                      className={buttonStyles(
-                        number === currentPage ? 'primary' : 'outline',
-                        'sm',
-                        'min-h-11 min-w-11',
-                      )}
-                      onClick={() => setPage(number)}
-                    >
-                      {number}
-                    </button>
-                  ))}
+                  {getPaginationItems(currentPage, totalPages).map((item) =>
+                    typeof item === 'number' ? (
+                      <button
+                        key={item}
+                        type="button"
+                        aria-label={`Página ${item}`}
+                        aria-current={item === currentPage ? 'page' : undefined}
+                        className={buttonStyles(
+                          item === currentPage ? 'primary' : 'outline',
+                          'sm',
+                          'min-h-11 min-w-11 px-0',
+                        )}
+                        onClick={() => setPage(item)}
+                      >
+                        {item}
+                      </button>
+                    ) : (
+                      <span key={item} aria-hidden="true" className="px-1 text-sm font-semibold text-muted">
+                        …
+                      </span>
+                    ),
+                  )}
                   <button
                     type="button"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11')}
+                    aria-label="Página siguiente"
+                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
                     disabled={currentPage === totalPages}
                     onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                   >
-                    Siguiente
+                    <span aria-hidden="true">›</span>
                   </button>
                 </nav>
               )}
