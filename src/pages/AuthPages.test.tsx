@@ -364,6 +364,7 @@ describe('HU-18 patient contact profile', () => {
     renderApp('/mi-cuenta');
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+525551234567'));
     fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '12345abc' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
 
