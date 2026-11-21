@@ -15,6 +15,7 @@ type OwnClinic = { data: { clinicId: string; name: string } };
 type DentistList = { data: Dentist[] };
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const emptyDentist = { firstName: '', lastName: '', professionalLicense: '', specialty: '', biography: '', imageUrl: '', dentalServiceIds: [] as string[] };
+const toApiTime = (value: string) => (value.length === 5 ? `${value}:00` : value);
 
 export function DentistManagementPage() {
   const { user, loading: authLoading } = useAuth();
@@ -131,9 +132,25 @@ export function DentistManagementPage() {
   async function addWeekly(e:FormEvent) { 
     e.preventDefault(); 
     if(!scheduleDentistId)return;
+    const start = toApiTime(starts);
+    const end = toApiTime(ends);
+    const restStart = breakStart ? toApiTime(breakStart) : null;
+    const restEnd = breakEnd ? toApiTime(breakEnd) : null;
+    if ((restStart === null) !== (restEnd === null)) {
+      setMessage('Completa el inicio y fin del descanso, o deja ambos vacíos.');
+      return;
+    }
+    if (starts >= ends) {
+      setMessage('La hora de inicio debe ser anterior a la hora de fin.');
+      return;
+    }
+    if (breakStart && breakEnd && (breakStart >= breakEnd || breakStart <= starts || breakEnd >= ends)) {
+      setMessage('El descanso debe estar dentro de la jornada y tener un intervalo válido.');
+      return;
+    }
     await run(async()=>{ 
-      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:starts,endsAt:ends,breakStartsAt:breakStart||null,breakEndsAt:breakEnd||null})});
-      await loadSchedule(); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:start,endsAt:end,breakStartsAt:restStart,breakEndsAt:restEnd})});
+      await loadSchedule(scheduleDentistId);
     }); 
   }
 
