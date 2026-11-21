@@ -5,6 +5,7 @@ import { Button, buttonStyles } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
+import { useSeo } from '../lib/useSeo';
 import type { Clinic } from '../types/api';
 
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
@@ -34,6 +35,34 @@ export function ClinicDetailPage() {
   const [clinic, setClinic] = useState<Clinic>();
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+
+  useSeo({
+    title: clinic ? `${clinic.name} | Consultorio dental` : 'Perfil del consultorio dental',
+    description: clinic
+      ? `${clinic.name} en ${clinic.municipality}, ${clinic.state}. Consulta sus servicios, especialistas y datos de contacto.`
+      : 'Consulta servicios, especialistas y datos de contacto de consultorios dentales.',
+    path: `/clinics/${encodeURIComponent(id)}`,
+    structuredData: clinic
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Dentist',
+          name: clinic.name,
+          description: clinic.description,
+          url: `https://main.d63zai2tg2i2u.amplifyapp.com/clinics/${encodeURIComponent(id)}`,
+          telephone: clinic.phone || undefined,
+          email: clinic.email || undefined,
+          image: clinic.imageUrl || undefined,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: clinic.address,
+            addressLocality: clinic.municipality,
+            addressRegion: clinic.state,
+            postalCode: clinic.postalCode,
+            addressCountry: 'MX',
+          },
+        }
+      : undefined,
+  });
 
   useEffect(() => {
     let active = true;
