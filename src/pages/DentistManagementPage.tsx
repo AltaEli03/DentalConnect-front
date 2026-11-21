@@ -1,16 +1,26 @@
 import { type FormEvent, useEffect, useState } from 'react';
-import { currentIdToken } from '../services/cognito';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { Notice } from '../components/ui/Notice';
+import { Skeleton } from '../components/ui/Skeleton';
+import { isClinicAdmin } from '../lib/roles';
 import { api } from '../services/api';
+import { clinicRequest } from '../services/clinicApi';
 
 type Dentist = { id: string; firstName: string; lastName: string; professionalLicense: string; specialty: string; biography: string; imageUrl?: string | null; isActive: boolean; services?: Array<{ id: string; name: string }> };
 type Weekly = { id: string; dayOfWeek: number; startsAt: string; endsAt: string; breakStartsAt?: string | null; breakEndsAt?: string | null };
 type Block = { id: string; startsAt: string; endsAt: string; reason?: string | null };
 type DentalService = { id: string; name: string };
+type OwnClinic = { data: { clinicId: string; name: string } };
+type DentistList = { data: Dentist[] };
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const emptyDentist = { firstName: '', lastName: '', professionalLicense: '', specialty: '', biography: '', imageUrl: '', dentalServiceIds: [] as string[] };
 
 export function DentistManagementPage() {
-  const [clinicId, setClinicId] = useState(''); 
+  const { user, loading: authLoading } = useAuth();
+  const [clinicId, setClinicId] = useState('');
+  const [clinicName, setClinicName] = useState('');
+  const [loading, setLoading] = useState(true);
   const [dentists, setDentists] = useState<Dentist[]>([]); 
   const [services, setServices] = useState<DentalService[]>([]); 
   const [selected, setSelected] = useState(''); 
@@ -30,26 +40,18 @@ export function DentistManagementPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageInputKey, setImageInputKey] = useState(0);
 
-  async function call<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const token = await currentIdToken(); if (!token) throw new Error('Inicia sesión con una cuenta administradora del consultorio.');
-    const base = (import.meta.env.VITE_API_BASE_URL?.trim() || '').replace(/\/+$/, ''); if (!base) throw new Error('Falta VITE_API_BASE_URL en este ambiente.');    const headers = new Headers(options.headers);
-    headers.set('Authorization', 'Bearer ' + token);
-    if (options.body && !(typeof FormData !== 'undefined' && options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
-    const response = await fetch(base + path, { ...options, headers });
-    if (!response.ok) { const body = await response.json().catch(() => null); throw new Error(body?.error?.message || (response.status === 403 ? 'Tu usuario no tiene rol de administrador vinculado a este consultorio.' : 'La operación no se pudo completar (' + response.status + ').')); }
-    if (response.status === 204) return undefined as T; return response.json() as Promise<T>;
-  }
-  
+  const call = clinicRequest;
+
   async function loadDentists(id = clinicId) { 
     if (!id.trim()) return; 
-    const result = await call<{ data: Dentist[] }>('/api/clinics/' + encodeURIComponent(id.trim()) + '/dentists'); 
+    const result = await call<DentistList>('/clinics/' + encodeURIComponent(id.trim()) + '/dentists'); 
     setDentists(result.data); 
     setServices((await api.clinic(id.trim())).data.services.map((s) => ({ id: s.id, name: s.name }))); 
   }
   
   async function loadSchedule(dentistId = selected) { 
     if (!dentistId) return; 
-    const path = '/api/clinics/' + encodeURIComponent(clinicId.trim()) + '/dentists/' + dentistId; 
+    const path = '/clinics/' + encodeURIComponent(clinicId.trim()) + '/dentists/' + encodeURIComponent(dentistId); 
     const [s,b] = await Promise.all([call<{data:Weekly[]}>(path+'/schedule'),call<{data:Block[]}>(path+'/blocks')]); 
     setWeekly(s.data); 
     setBlocks(b.data); 
@@ -65,6 +67,43 @@ export function DentistManagementPage() {
   
   useEffect(() => { if (selected) void run(() => loadSchedule(selected)); }, [selected]);
 
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user || !isClinicAdmin(user.role)) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const loadOwnClinic = async () => {
+      setLoading(true);
+      setMessage('');
+      try {
+        const own = await clinicRequest<OwnClinic>('/clinics/mine');
+        const id = own.data.clinicId?.trim();
+        if (!id) throw new Error('Tu cuenta aún no está vinculada a un consultorio aprobado.');
+
+        const [dentistResult, clinicResult] = await Promise.all([
+          clinicRequest<DentistList>('/clinics/' + encodeURIComponent(id) + '/dentists'),
+          api.clinic(id),
+        ]);
+        if (cancelled) return;
+
+        setClinicId(id);
+        setClinicName(own.data.name);
+        setDentists(dentistResult.data);
+        setServices(clinicResult.data.services.map((service) => ({ id: service.id, name: service.name })));
+      } catch (cause) {
+        if (!cancelled) setMessage(cause instanceof Error ? cause.message : 'No se pudo cargar el consultorio de esta cuenta.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadOwnClinic();
+    return () => { cancelled = true; };
+  }, [authLoading, user]);
+
   function edit(d: Dentist) { 
     setSelected(d.id); 
     setForm({ firstName:d.firstName,lastName:d.lastName,professionalLicense:d.professionalLicense,specialty:d.specialty,biography:d.biography||'',imageUrl:d.imageUrl||'',dentalServiceIds:(d.services||[]).map(s=>s.id) }); 
@@ -74,7 +113,7 @@ export function DentistManagementPage() {
     e.preventDefault(); 
     await run(async()=>{ 
       const editing=Boolean(selected); 
-      const saved=await call<{data:Dentist}>('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists'+(editing?'/'+selected:''),{method:editing?'PUT':'POST',body:JSON.stringify(form)}); const dentistId=saved.data.id; setSelected(dentistId); if(imageFile){const body=new FormData();body.append('file',imageFile);await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(dentistId)+'/image',{method:'POST',body});} 
+      const saved=await call<{data:Dentist}>('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists'+(editing?'/'+encodeURIComponent(selected):''),{method:editing?'PUT':'POST',body:JSON.stringify(form)}); const dentistId=saved.data.id; setSelected(dentistId); if(imageFile){const body=new FormData();body.append('file',imageFile);await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(dentistId)+'/image',{method:'POST',body});} 
       setSelected(''); 
       setForm(emptyDentist); setImageFile(null); setImageInputKey(value=>value+1); 
       await loadDentists(); 
@@ -84,7 +123,7 @@ export function DentistManagementPage() {
 
   async function toggle(d:Dentist) { 
     await run(async()=>{ 
-      await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+d.id+'/status',{method:'PATCH',body:JSON.stringify({isActive:!d.isActive})}); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(d.id)+'/status',{method:'PATCH',body:JSON.stringify({isActive:!d.isActive})}); 
       await loadDentists(); 
     }); 
   }
@@ -93,7 +132,7 @@ export function DentistManagementPage() {
     e.preventDefault(); 
     if(!selected)return; 
     await run(async()=>{ 
-      await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+selected+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:starts,endsAt:ends,breakStartsAt:breakStart||null,breakEndsAt:breakEnd||null})}); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:starts,endsAt:ends,breakStartsAt:breakStart||null,breakEndsAt:breakEnd||null})}); 
       await loadSchedule(); 
     }); 
   }
@@ -102,30 +141,33 @@ export function DentistManagementPage() {
     e.preventDefault(); 
     if(!selected||!blockStart||!blockEnd)return; 
     await run(async()=>{ 
-      await call('/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+selected+'/blocks',{method:'POST',body:JSON.stringify({startsAt:new Date(blockStart).toISOString(),endsAt:new Date(blockEnd).toISOString(),reason:blockReason})}); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected)+'/blocks',{method:'POST',body:JSON.stringify({startsAt:new Date(blockStart).toISOString(),endsAt:new Date(blockEnd).toISOString(),reason:blockReason})}); 
       setBlockStart('');setBlockEnd('');setBlockReason('');await loadSchedule(); 
     }); 
   }
 
-  const dentistPath='/api/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+selected;
+  const dentistPath='/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected);
+
+  if (authLoading || loading) {
+    return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6" role="status"><p className="sr-only">Cargando el consultorio y su equipo…</p><Skeleton className="h-48 w-full" /></main>;
+  }
+
+  if (!user) return <Navigate to="/iniciar-sesion" replace state={{ from: '/administrar-dentistas' }} />;
+
+  if (!isClinicAdmin(user.role)) {
+    return <main className="mx-auto max-w-3xl px-4 py-10"><Notice tone="error" title="Acceso de consultorio">Esta sección solo está disponible para una cuenta administradora vinculada a una clínica.</Notice></main>;
+  }
 
   return (
     <main className="dashboard-page">
-      {/* HEADER DEL DASHBOARD */}
       <section className="panel dashboard-header-panel">
         <div>
           <p className="eyebrow">Panel de Administración</p>
-          <h1>Gestión del Equipo Dental</h1>
+          <h1>Administrar dentistas</h1>
           <p className="text-muted">Administra perfiles, servicios, jornadas y bloqueos en la zona horaria de America/Mexico_City.</p>
+          <p className="text-muted"><strong>Consultorio:</strong> {clinicName}</p>
         </div>
-        
-        <form onSubmit={(e)=>{e.preventDefault();void run(()=>loadDentists());}} className="clinic-selector-form">
-          <label htmlFor="clinicId">ID del Consultorio</label>
-          <div className="input-with-button">
-            <input id="clinicId" required value={clinicId} onChange={e=>setClinicId(e.target.value)} placeholder="Ej. clinic-123" />
-            <button disabled={busy} className="primary-btn">Cargar</button>
-          </div>
-        </form>
+        <Link to="/consultorio/configuracion" className="secondary-btn">Volver a perfil y servicios</Link>
       </section>
 
       {message && (
@@ -134,7 +176,6 @@ export function DentistManagementPage() {
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL (Solo si hay clinicaId) */}
       {clinicId && (
         <div className="management-layout">
           
@@ -234,7 +275,6 @@ export function DentistManagementPage() {
         </div>
       )}
 
-      {/* SECCIÓN DE AGENDA (Solo si hay un dentista seleccionado) */}
       {selected && (
         <section className="panel schedule-panel">
           <div className="panel-header">
