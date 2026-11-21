@@ -24,6 +24,7 @@ export function DentistManagementPage() {
   const [dentists, setDentists] = useState<Dentist[]>([]); 
   const [services, setServices] = useState<DentalService[]>([]); 
   const [selected, setSelected] = useState(''); 
+  const [scheduleDentistId, setScheduleDentistId] = useState('');
   const [weekly, setWeekly] = useState<Weekly[]>([]); 
   const [blocks, setBlocks] = useState<Block[]>([]); 
   const [form, setForm] = useState(emptyDentist);
@@ -49,7 +50,7 @@ export function DentistManagementPage() {
     setServices((await api.clinic(id.trim())).data.services.map((s) => ({ id: s.id, name: s.name }))); 
   }
   
-  async function loadSchedule(dentistId = selected) { 
+  async function loadSchedule(dentistId = scheduleDentistId) {
     if (!dentistId) return; 
     const path = '/clinics/' + encodeURIComponent(clinicId.trim()) + '/dentists/' + encodeURIComponent(dentistId); 
     const [s,b] = await Promise.all([call<{data:Weekly[]}>(path+'/schedule'),call<{data:Block[]}>(path+'/blocks')]); 
@@ -65,7 +66,7 @@ export function DentistManagementPage() {
     finally { setBusy(false); } 
   }
   
-  useEffect(() => { if (selected) void run(() => loadSchedule(selected)); }, [selected]);
+  useEffect(() => { if (scheduleDentistId) void run(() => loadSchedule(scheduleDentistId)); else { setWeekly([]); setBlocks([]); } }, [scheduleDentistId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -117,7 +118,6 @@ export function DentistManagementPage() {
       setSelected(''); 
       setForm(emptyDentist); setImageFile(null); setImageInputKey(value=>value+1); 
       await loadDentists(); 
-      setMessage('Dentista guardado correctamente.'); 
     }); 
   }
 
@@ -130,23 +130,23 @@ export function DentistManagementPage() {
 
   async function addWeekly(e:FormEvent) { 
     e.preventDefault(); 
-    if(!selected)return; 
+    if(!scheduleDentistId)return;
     await run(async()=>{ 
-      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:starts,endsAt:ends,breakStartsAt:breakStart||null,breakEndsAt:breakEnd||null})}); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:starts,endsAt:ends,breakStartsAt:breakStart||null,breakEndsAt:breakEnd||null})});
       await loadSchedule(); 
     }); 
   }
 
   async function addBlock(e:FormEvent) { 
     e.preventDefault(); 
-    if(!selected||!blockStart||!blockEnd)return; 
+    if(!scheduleDentistId||!blockStart||!blockEnd)return;
     await run(async()=>{ 
-      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected)+'/blocks',{method:'POST',body:JSON.stringify({startsAt:new Date(blockStart).toISOString(),endsAt:new Date(blockEnd).toISOString(),reason:blockReason})}); 
+      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/blocks',{method:'POST',body:JSON.stringify({startsAt:new Date(blockStart).toISOString(),endsAt:new Date(blockEnd).toISOString(),reason:blockReason})});
       setBlockStart('');setBlockEnd('');setBlockReason('');await loadSchedule(); 
     }); 
   }
 
-  const dentistPath='/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(selected);
+  const dentistPath='/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId);
 
   if (authLoading || loading) {
     return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6" role="status"><p className="sr-only">Cargando el consultorio y su equipo…</p><Skeleton className="h-48 w-full" /></main>;
@@ -164,13 +164,13 @@ export function DentistManagementPage() {
         <div>
           <p className="eyebrow">{clinicName}</p>
           <h1>Dentistas y horarios</h1>
-          <p className="text-muted">Gestiona el equipo de tu consultorio.</p>
+          <p className="text-muted">Agrega profesionales y define sus servicios y horarios semanales.</p>
         </div>
         <Link to="/consultorio/configuracion" className="secondary-btn">Volver a perfil y servicios</Link>
       </section>
 
       {message && (
-        <div className={`notice ${message.includes('error') || message.includes('no') ? 'error' : 'success'}`} role="alert">
+        <div className="notice error" role="alert">
           <p>{message}</p>
         </div>
       )}
@@ -203,6 +203,7 @@ export function DentistManagementPage() {
                     </p>
                     <div className="dentist-actions">
                       <button type="button" className="secondary-btn" onClick={()=>edit(d)}>Editar perfil</button>
+                      <button type="button" className="secondary-btn" disabled={!d.isActive} title={!d.isActive ? 'Activa al dentista para configurar su agenda' : undefined} onClick={()=>setScheduleDentistId(d.id)}>Horarios</button>
                       <button type="button" className={`danger-btn ${d.isActive ? '' : 'success-btn'}`} onClick={()=>void toggle(d)}>
                         {d.isActive ? 'Desactivar' : 'Activar'}
                       </button>
@@ -274,17 +275,17 @@ export function DentistManagementPage() {
         </div>
       )}
 
-      {selected && (
+      {scheduleDentistId && (
         <section className="panel schedule-panel">
           <div className="panel-header">
-            <h2>Gestión de Agenda</h2>
-            <p className="text-muted">Configura los horarios de atención y bloqueos para el doctor seleccionado.</p>
+            <h2>Horario de {dentists.find(d => d.id === scheduleDentistId)?.firstName} {dentists.find(d => d.id === scheduleDentistId)?.lastName}</h2>
+            <p className="text-muted">Define cuándo atiende cada semana. Ejemplo: lunes, 09:00–19:00. Zona horaria: Ciudad de México.</p>
           </div>
 
           <div className="schedule-grid">
             {/* JORNADAS SEMANALES */}
             <div className="schedule-column">
-              <h3>Jornada Semanal</h3>
+              <h3>Horario semanal</h3>
               <form onSubmit={addWeekly} className="compact-form">
                 <div className="form-grid-compact">
                   <label>Día

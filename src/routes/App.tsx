@@ -5,6 +5,7 @@ import { AuthProvider } from '../auth/AuthContext';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { NetworkStatus } from '../components/NetworkStatus';
+import { FeedbackToast } from '../components/FeedbackToast';
 import { isClinicAdmin, hasRole } from '../lib/roles';
 import { useAuth } from '../auth/AuthContext';
 
@@ -117,6 +118,7 @@ function AppContent() {
         </div>
       </header>
       <NetworkStatus />
+      <FeedbackToast />
       <div id="main-content" className="main-content" tabIndex={-1}>
         <Suspense
           fallback={
@@ -163,7 +165,7 @@ function AppContent() {
       <footer className="site-footer">
         <span>DentalConnect</span>
         <span>Información de consultorios para ayudarte a elegir con claridad.</span>
-        <Link to="/iniciar-sesion">Iniciar sesión</Link>
+        {!user && <Link to="/iniciar-sesion">Iniciar sesión</Link>}
       </footer>
     </>
   );
