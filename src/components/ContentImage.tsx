@@ -4,9 +4,10 @@ type ContentImageProps = {
   src?: string | null;
   alt: string;
   className?: string;
+  priority?: boolean;
 };
 
-export function ContentImage({ src, alt, className = '' }: ContentImageProps) {
+export function ContentImage({ src, alt, className = '', priority = false }: ContentImageProps) {
   const [failedSource, setFailedSource] = useState('');
 
   if (!src || failedSource === src) {
@@ -29,8 +30,9 @@ export function ContentImage({ src, alt, className = '' }: ContentImageProps) {
       className={className}
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={priority ? 'eager' : 'lazy'}
       decoding="async"
+      fetchPriority={priority ? 'high' : 'auto'}
       onError={() => setFailedSource(src)}
     />
   );

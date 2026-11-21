@@ -15,7 +15,7 @@ const receivedDate = (value: string) =>
 
 function errorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 401)
-    return 'Tu sesión terminó. Inicia sesión para consultar tus avisos.';
+    return 'El API rechazó la consulta (401). Tu sesión sigue abierta; vuelve a intentarlo. Si persiste, el acceso de esta cuenta necesita revisión.';
   if (
     error instanceof TypeError ||
     (error instanceof Error && /failed to fetch|network|load failed/i.test(error.message))
@@ -126,7 +126,7 @@ export function NotificationsPage() {
             {clinicMode ? 'Consultorio' : 'Mi cuenta'}
           </p>
           <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Avisos</h1>
-          <p className="mt-2 text-muted" aria-live="polite">
+          <p className="mt-2 text-muted" aria-live="polite" hidden={loading || Boolean(error)}>
             {unreadCount === 0
               ? 'Estás al día.'
               : `${unreadCount} ${unreadCount === 1 ? 'aviso sin leer' : 'avisos sin leer'}`}

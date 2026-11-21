@@ -8,7 +8,13 @@ const routes = new Set([
   'registro',
   'verificar-correo',
   'iniciar-sesion',
+  'recuperar-contrasena',
   'mi-cuenta',
+  'registrar-consultorio',
+  'plataforma/consultorios',
+  'consultorio/iniciar-sesion',
+  'consultorio/configuracion',
+  'consultorio/citas',
   'mis-citas',
   'notificaciones',
   'mi-solicitud',
@@ -52,5 +58,7 @@ for (const route of routes) {
   await mkdir(directory, { recursive: true });
   await copyFile(resolve(output, 'index.html'), resolve(directory, 'index.html'));
 }
+
+await copyFile(resolve('customHttp.yml'), resolve(output, 'customHttp.yml'));
 
 console.log(`Rutas estáticas preparadas: ${routes.size}`);

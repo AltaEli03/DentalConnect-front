@@ -978,3 +978,79 @@ legend { color: var(--color-heading); font-weight: 700; }
 .account-profile-form small { color: var(--color-text-muted); }
 .account-profile-form .form-error { margin: 0; color: var(--color-danger-text); }
 .account-profile-form .form-success { margin: 0; color: var(--color-success-text); }
+
+.clinic-access-content { display: grid; gap: 1.15rem; }
+.clinic-access-intro { margin: 0; color: var(--color-text-muted); }
+.clinic-access-steps { display: grid; gap: 0.85rem; margin: 0; padding: 0; list-style: none; }
+.clinic-access-steps li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: start; gap: 0.75rem; }
+.clinic-access-steps li > span { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface-soft); color: var(--color-heading); font-weight: 750; }
+.clinic-access-steps strong { display: block; color: var(--color-heading); }
+.clinic-access-steps p { margin: 0.15rem 0 0; color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.45; }
+.clinic-access-actions { display: grid; gap: 0.65rem; }
+.clinic-access-note { margin: 0; padding: 0.85rem; border: 1px solid var(--color-info-border); border-radius: var(--radius-md); background: var(--color-info-soft); color: var(--color-heading); font-size: 0.85rem; }
+.dark .clinic-access-note { color: var(--color-text-main); }
+
+
+/* Clinic onboarding: consistent, responsive, accessible form and status feedback. */
+.clinic-application-page {
+  width: min(100% - 2rem, 58rem);
+  min-height: 60vh;
+  margin-inline: auto;
+  padding-block: clamp(2rem, 5vw, 4rem);
+}
+.clinic-application-page .page-heading { margin-bottom: 1.5rem; }
+.clinic-application-page .page-heading h1 { margin: 0.35rem 0; color: var(--color-heading); font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.15; }
+.clinic-application-page .page-heading > p:last-child { max-width: 62ch; color: var(--color-text-muted); line-height: 1.6; }
+.clinic-application-page .form-message { margin: 0 0 1rem; padding: 0.9rem 1rem; border: 1px solid var(--color-info-border); border-radius: var(--radius-md); background: var(--color-info-soft); color: var(--color-text-main); line-height: 1.5; }
+.clinic-application-page .form-message-error { border-color: var(--color-danger-border); background: var(--color-danger-soft); color: var(--color-danger-text); }
+.clinic-application-page .form-message-success { border-color: var(--color-success-border); background: var(--color-success-soft); color: var(--color-success-text); }
+.clinic-application-form,
+.clinic-application-status,
+.clinic-application-page > section.surface-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.clinic-application-form h2,
+.clinic-application-form > p,
+.clinic-application-form > button,
+.clinic-application-status h2,
+.clinic-application-status > p,
+.clinic-application-page > section.surface-card > h2,
+.clinic-application-page > section.surface-card > p,
+.clinic-application-page > section.surface-card > ul { grid-column: 1 / -1; }
+.clinic-application-form h2,
+.clinic-application-status h2,
+.clinic-application-page > section.surface-card h2 { margin: 0; color: var(--color-heading); font-size: 1.3rem; }
+.clinic-application-form > p,
+.clinic-application-status > p,
+.clinic-application-page > section.surface-card > p { margin: 0; color: var(--color-text-muted); line-height: 1.55; }
+.clinic-application-form label,
+.clinic-application-page > section.surface-card label { display: grid; gap: 0.45rem; color: var(--color-heading); font-weight: 650; }
+.clinic-application-form input,
+.clinic-application-page > section.surface-card input { width: 100%; min-height: 2.9rem; padding: 0.7rem 0.8rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text-main); font: inherit; }
+.clinic-application-form input:focus-visible,
+.clinic-application-page > section.surface-card input:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+.clinic-application-form button,
+.clinic-application-page > section.surface-card button { min-height: 2.9rem; justify-self: start; padding: 0.7rem 1.1rem; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--color-brand); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.clinic-application-form button:hover:not(:disabled),
+.clinic-application-page > section.surface-card button:hover:not(:disabled) { background: var(--color-brand-strong); }
+.clinic-application-form button:focus-visible,
+.clinic-application-page > section.surface-card button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+.clinic-application-form button:disabled,
+.clinic-application-page > section.surface-card button:disabled { cursor: wait; opacity: 0.7; }
+.clinic-application-page .application-list { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.clinic-application-page .application-list-item { display: grid; gap: 0.75rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.clinic-application-page .application-list-item h3,
+.clinic-application-page .application-list-item p { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .clinic-application-page { width: min(100% - 1.25rem, 58rem); padding-block: 1.5rem; }
+  .clinic-application-form, .clinic-application-status, .clinic-application-page > section.surface-card { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; padding: 1rem; }
+  .clinic-application-form h2, .clinic-application-form > p, .clinic-application-form > button, .clinic-application-status h2, .clinic-application-status > p, .clinic-application-page > section.surface-card > h2, .clinic-application-page > section.surface-card > p, .clinic-application-page > section.surface-card > ul { grid-column: 1; }
+  .clinic-application-form button, .clinic-application-page > section.surface-card button { width: 100%; }
+}

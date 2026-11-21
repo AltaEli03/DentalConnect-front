@@ -46,6 +46,7 @@ describe('Sprint 2 account flow', () => {
     vi.mocked(api.verify).mockResolvedValue({ data: { message: 'Correo verificado' } });
     renderApp('/registro');
 
+    await screen.findByLabelText('Nombre');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana' } });
     fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez' } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
@@ -92,6 +93,7 @@ describe('Sprint 2 account flow', () => {
     vi.mocked(signIn).mockResolvedValue(profile);
     renderApp('/iniciar-sesion');
 
+    await screen.findByLabelText('Correo electrónico');
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: profile.email },
     });
@@ -116,6 +118,7 @@ describe('Sprint 2 account flow', () => {
     vi.mocked(signIn).mockRejectedValue(new Error('El usuario no está confirmado.'));
     renderApp('/iniciar-sesion');
 
+    await screen.findByLabelText('Correo electrónico');
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: profile.email },
     });
@@ -176,6 +179,7 @@ describe('Sprint 2 account flow', () => {
     const setSpy = vi.spyOn(window, 'setInterval');
     const { unmount } = renderApp('/verificar-correo?email=paciente@example.com');
 
+    await screen.findByRole('button', { name: 'Reenviar código' });
     fireEvent.click(screen.getByRole('button', { name: 'Reenviar código' }));
     const callsBeforeUnmount = setSpy.mock.calls.length;
     unmount();
@@ -241,6 +245,7 @@ describe('Sprint 2 account flow', () => {
     const clearSpy = vi.spyOn(window, 'clearInterval');
     const { unmount } = renderApp('/verificar-correo?email=paciente@example.com');
 
+    await screen.findByRole('button', { name: 'Reenviar código' });
     fireEvent.click(screen.getByRole('button', { name: 'Reenviar código' }));
     await screen.findByText('Reenviar en 60s');
     const timerId = setSpy.mock.results.at(-1)?.value;
@@ -254,6 +259,28 @@ describe('Sprint 2 account flow', () => {
 });
 
 describe('Unified role-based login', () => {
+  it('explains how to request clinic registration before signing in', async () => {
+    renderApp('/registrar-consultorio');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Solicita el registro de tu consultorio' }),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Iniciar sesión' })
+        .some((link) => link.getAttribute('href') === '/iniciar-sesion'),
+    ).toBe(true);
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Crear cuenta' })
+        .some((link) => link.getAttribute('href') === '/registro'),
+    ).toBe(true);
+    expect(screen.getByText(/Inicia sesión con esa cuenta para registrar y administrar un consultorio/)).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toHaveTextContent(
+      'Registrar consultorio',
+    );
+  });
+
   it('uses the shared login form for the clinic access URL', async () => {
     renderApp('/consultorio/iniciar-sesion');
 

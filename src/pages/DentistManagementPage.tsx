@@ -162,10 +162,9 @@ export function DentistManagementPage() {
     <main className="dashboard-page">
       <section className="panel dashboard-header-panel">
         <div>
-          <p className="eyebrow">Panel de Administración</p>
-          <h1>Administrar dentistas</h1>
-          <p className="text-muted">Administra perfiles, servicios, jornadas y bloqueos en la zona horaria de America/Mexico_City.</p>
-          <p className="text-muted"><strong>Consultorio:</strong> {clinicName}</p>
+          <p className="eyebrow">{clinicName}</p>
+          <h1>Dentistas y horarios</h1>
+          <p className="text-muted">Gestiona el equipo de tu consultorio.</p>
         </div>
         <Link to="/consultorio/configuracion" className="secondary-btn">Volver a perfil y servicios</Link>
       </section>
@@ -182,12 +181,12 @@ export function DentistManagementPage() {
           {/* COLUMNA IZQUIERDA: LISTA DE DENTISTAS */}
           <section className="panel list-panel">
             <div className="panel-header">
-              <h2>Equipo Médico</h2>
-              <span className="badge">{dentists.length} registrados</span>
+              <h2>Dentistas</h2>
+              <span className="badge">{dentists.length}</span>
             </div>
             
             {dentists.length === 0 ? (
-              <p className="empty-state">No hay dentistas registrados en este consultorio.</p>
+            <p className="empty-state">Aún no hay dentistas. Agrega el primero en el formulario.</p>
             ) : (
               <div className="dentist-list">
                 {dentists.map(d => (
