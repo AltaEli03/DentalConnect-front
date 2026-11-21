@@ -843,6 +843,75 @@ legend { color: var(--color-heading); font-weight: 700; }
 .checkbox-pill.checked { background: var(--color-primary-soft); border-color: var(--color-accent); color: var(--color-heading); }
 .icon { flex-shrink: 0; }
 
+/* Gestión de clínica organizada por áreas para reducir carga visual. */
+.management-section-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.management-section-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: 4.5rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.management-section-link:hover:not(:disabled) { border-color: var(--color-accent); background: var(--color-surface-alt); }
+.management-section-link.active { border-color: var(--color-accent); background: var(--color-primary-soft); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.management-section-link:focus-visible { outline: 3px solid var(--color-accent-text); outline-offset: 2px; }
+.management-section-link:disabled { cursor: not-allowed; opacity: 0.58; }
+.management-section-link > span:nth-child(2) { display: grid; gap: 0.2rem; }
+.management-section-link strong { color: var(--color-heading); font-size: 0.98rem; }
+.management-section-link small { color: var(--color-text-muted); font-size: 0.82rem; }
+.management-section-number, .management-section-count {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  color: var(--color-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.management-section-link.active .management-section-number { background: var(--color-primary); color: #fff; }
+.management-section-count { width: auto; min-width: 2rem; padding-inline: 0.5rem; border-radius: var(--radius-pill); }
+.management-form-hint { margin: 0; color: var(--color-text-muted); font-size: 0.84rem; }
+.schedule-dentist-select { display: grid; gap: var(--space-1); min-width: min(100%, 18rem); color: var(--color-text-main); font-size: 0.88rem; font-weight: 700; }
+.schedule-dentist-select select { min-height: 2.8rem; padding: 0.5rem 0.75rem; border: 1px solid var(--color-control); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-main); font: inherit; }
+.schedule-dentist-select select:focus-visible { outline: 3px solid var(--color-accent-text); outline-offset: 2px; }
+.schedule-timezone-note { margin: var(--space-4) 0 0; color: var(--color-text-muted); font-size: 0.86rem; }
+.schedule-column { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.schedule-section-heading { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
+.schedule-section-heading h3 { margin: 0; color: var(--color-heading); font-size: 1.05rem; }
+.schedule-section-heading p { margin: 0.2rem 0 0; color: var(--color-text-muted); font-size: 0.84rem; }
+.schedule-section-icon { display: grid; place-items: center; flex: 0 0 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-heading); font-size: 1.2rem; font-weight: 800; }
+.schedule-section-icon.block-icon { background: var(--color-warning-soft); }
+.schedule-empty-state { margin: var(--space-5) 0 0; padding: var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); color: var(--color-text-muted); text-align: center; }
+.schedule-list-empty { margin: 0; padding: var(--space-3); border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-muted); font-size: 0.88rem; }
+.schedule-item { align-items: flex-start; }
+.schedule-item .icon-btn { min-height: 2.5rem; padding-inline: 0.7rem; }
+
+@media (max-width: 620px) {
+  .management-section-nav { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .management-section-link { min-height: 4rem; }
+  .schedule-panel { padding: var(--space-3); }
+  .schedule-panel > .panel-header { align-items: stretch; flex-direction: column; }
+  .schedule-dentist-select { min-width: 0; }
+  .schedule-column { padding: var(--space-3); }
+  .schedule-item { flex-direction: column; }
+  .schedule-item .icon-btn { align-self: flex-end; }
+}
+
 @media (max-width: 900px) {
   .schedule-grid { grid-template-columns: minmax(0, 1fr); }
 }
