@@ -263,7 +263,7 @@ export function ClinicDetailPage() {
                       <ContentImage
                         src={dentist.imageUrl}
                         alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                       />
                     </div>
                     <div className="p-5">
