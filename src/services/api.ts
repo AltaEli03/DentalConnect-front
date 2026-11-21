@@ -7,6 +7,7 @@ import type {
   UserNotification,
 } from '../types/api';
 import { currentIdToken } from './cognito';
+import { showFeedback } from '../lib/feedback';
 
 export class ApiError extends Error {
   constructor(
@@ -30,7 +31,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await currentIdToken();
   if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  } catch (cause) {
+    showFeedback({
+      type: 'error',
+      title: 'No pudimos conectar',
+      message: 'Revisa tu conexión e inténtalo de nuevo. Tu sesión permanece activa.',
+    });
+    throw cause;
+  }
   if (!response.ok) {
     const result = (await response.json().catch(() => null)) as {
       error?: { message?: string };
@@ -43,7 +54,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       response.status,
     );
   }
-  return (await response.json()) as T;
+  const result = response.status === 204 ? undefined : await response.json();
+  if (options.method && options.method.toUpperCase() !== 'GET') {
+    const title = path.startsWith('/appointments')
+      ? 'Solicitud completada'
+      : path.startsWith('/notifications')
+        ? 'Aviso actualizado'
+        : 'Acción completada';
+    showFeedback({ type: 'success', title, message: 'La información se guardó correctamente.' });
+  }
+  return result as T;
 }
 
 export const api = {

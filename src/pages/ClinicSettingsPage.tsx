@@ -20,8 +20,9 @@ export function ClinicSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [creatingService, setCreatingService] = useState(false);
+  const [serviceDraft, setServiceDraft] = useState({ name: '', description: '', estimatedDurationMinutes: 30, priceFrom: 0 });
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -39,12 +40,12 @@ export function ClinicSettingsPage() {
 
   const saveProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); if (!clinic || !clinicId) return;
-    setSaving(true); setError(''); setNotice('');
+    setSaving(true); setError('');
     try {
       const result = await clinicRequest<{ data: ClinicProfile }>('/clinics/' + encodeURIComponent(clinicId) + '/management', {
         method: 'PUT', body: JSON.stringify({ ...clinic, latitude: clinic.latitude ?? null, longitude: clinic.longitude ?? null }),
       });
-      setClinic(result.data); setNotice('La información pública del consultorio se guardó.');
+      setClinic(result.data);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo guardar el consultorio.'); }
     finally { setSaving(false); }
   };  const uploadClinicImage = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -56,12 +57,11 @@ export function ClinicSettingsPage() {
       input.value = '';
       return;
     }
-    setUploadingImage(true); setError(''); setNotice('');
+    setUploadingImage(true); setError('');
     try {
       const body = new FormData(); body.append('file', file);
       const result = await clinicRequest<{ data: { imageUrl: string } }>('/clinics/' + encodeURIComponent(clinicId) + '/management/image', { method: 'POST', body });
       setClinic({ ...clinic, imageUrl: result.data.imageUrl });
-      setNotice('La imagen del consultorio se cargó correctamente.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo cargar la imagen.'); }
     finally { setUploadingImage(false); input.value = ''; }
   };
@@ -70,14 +70,27 @@ export function ClinicSettingsPage() {
 
   const saveService = async (service: ServiceOffering) => {
     if (!clinicId) return;
-    setSaving(true); setError(''); setNotice('');
+    setSaving(true); setError('');
     try {
       await clinicRequest('/clinics/' + encodeURIComponent(clinicId) + '/management/services/' + encodeURIComponent(service.id), {
         method: 'PUT', body: JSON.stringify({ isActive: service.isOffered, priceFrom: Number(service.priceFrom ?? 0) }),
       });
-      setNotice(service.name + ': cambios guardados.');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo actualizar el servicio.'); }
     finally { setSaving(false); }
+  };
+
+  const createService = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!clinicId) return;
+    setCreatingService(true); setError('');
+    try {
+      await clinicRequest('/clinics/' + encodeURIComponent(clinicId) + '/management/services', {
+        method: 'POST', body: JSON.stringify(serviceDraft),
+      });
+      setServiceDraft({ name: '', description: '', estimatedDurationMinutes: 30, priceFrom: 0 });
+      await load();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo agregar el servicio.'); }
+    finally { setCreatingService(false); }
   };
 
   if (authLoading || loading) return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6" role="status"><p className="sr-only">Cargando configuración…</p><Skeleton className="h-48 w-full" /></main>;
@@ -85,9 +98,8 @@ export function ClinicSettingsPage() {
   if (!isClinicAdmin(user.role)) return <main className="mx-auto max-w-3xl px-4 py-10"><Notice tone="error" title="Acceso restringido">Solo una cuenta autorizada del consultorio puede cambiar estos datos.</Notice></main>;
 
   return <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-10">
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-semibold text-accent-strong">Administración</p><h1 className="mt-1 font-display text-3xl font-semibold text-heading">Perfil y servicios</h1><p className="mt-2 text-muted">Actualiza la información que ven los pacientes.</p></div><Link className={buttonStyles('outline','sm')} to="/administrar-dentistas">Administrar dentistas</Link></div>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-semibold text-accent-strong">Administración</p><h1 className="mt-1 font-display text-3xl font-semibold text-heading">Perfil y servicios</h1><p className="mt-2 text-muted">Actualiza la información que ven los pacientes.</p></div><Link className={buttonStyles('outline','sm')} to="/administrar-dentistas">Dentistas y horarios</Link></div>
     {error && <Notice tone="error" title="No se completó la operación" className="mb-5"><p>{error}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => void load()}>Reintentar</Button></Notice>}
-    {notice && <Notice tone="success" title="Cambios guardados" className="mb-5">{notice}</Notice>}
     {!clinic && !error && <Notice tone="info" title="Consultorio no vinculado">Tu cuenta debe estar aprobada y asociada a un consultorio antes de administrar su perfil.</Notice>}
     {clinic && <>
       <form onSubmit={saveProfile} className="mb-8 grid gap-4 rounded-card border border-line bg-surface p-5 shadow-sm sm:grid-cols-2">
@@ -111,7 +123,15 @@ export function ClinicSettingsPage() {
         <div className="grid gap-4 sm:grid-cols-2 sm:col-span-2"><label className="grid gap-1.5 text-sm font-semibold text-ink">Latitud<input type="number" step="any" min="-90" max="90" value={clinic.latitude ?? ''} onChange={e=>setClinic({...clinic,latitude:e.target.value===''?null:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label><label className="grid gap-1.5 text-sm font-semibold text-ink">Longitud<input type="number" step="any" min="-180" max="180" value={clinic.longitude ?? ''} onChange={e=>setClinic({...clinic,longitude:e.target.value===''?null:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal" /></label></div>
         <div className="sm:col-span-2"><Button type="submit" disabled={saving} loading={saving}>Guardar perfil</Button></div>
       </form>
-      <section className="rounded-card border border-line bg-surface p-5 shadow-sm" aria-labelledby="services-heading"><h2 id="services-heading" className="font-display text-xl font-semibold text-heading">Servicios del consultorio</h2><p className="mt-1 text-sm text-muted">Activa los servicios que ofreces y define el precio inicial.</p>
+      <section className="rounded-card border border-line bg-surface p-5 shadow-sm" aria-labelledby="services-heading"><h2 id="services-heading" className="font-display text-xl font-semibold text-heading">Servicios del consultorio</h2><p className="mt-1 text-sm text-muted">Activa los servicios que ofreces. La duración sirve para calcular horarios completos disponibles.</p>
+        <form onSubmit={createService} className="mt-5 grid gap-3 rounded-control border border-line bg-canvas p-4 sm:grid-cols-2" aria-label="Agregar servicio personalizado">
+          <h3 className="sm:col-span-2 font-semibold text-heading">Agregar servicio</h3>
+          <label className="grid gap-1 text-sm font-medium">Nombre<input required minLength={2} maxLength={100} value={serviceDraft.name} onChange={e=>setServiceDraft({...serviceDraft,name:e.target.value})} className="min-h-11 rounded-control border border-control bg-surface px-3" /></label>
+          <label className="grid gap-1 text-sm font-medium">Duración en minutos<input required type="number" min={5} max={480} step={5} value={serviceDraft.estimatedDurationMinutes} onChange={e=>setServiceDraft({...serviceDraft,estimatedDurationMinutes:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3" /></label>
+          <label className="grid gap-1 text-sm font-medium">Descripción<textarea required maxLength={500} rows={2} value={serviceDraft.description} onChange={e=>setServiceDraft({...serviceDraft,description:e.target.value})} className="rounded-control border border-control bg-surface p-3" /></label>
+          <label className="grid gap-1 text-sm font-medium">Precio inicial<input required type="number" min={0} max={1000000} step="0.01" value={serviceDraft.priceFrom} onChange={e=>setServiceDraft({...serviceDraft,priceFrom:Number(e.target.value)})} className="min-h-11 rounded-control border border-control bg-surface px-3" /></label>
+          <div className="sm:col-span-2"><Button type="submit" disabled={creatingService} loading={creatingService}>Agregar servicio</Button></div>
+        </form>
         {services.length===0 ? <Notice tone="info" className="mt-4">No hay servicios disponibles en el catálogo.</Notice> : <ul className="mt-4 divide-y divide-line">{services.map(service=><li key={service.id} className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-center"><div><h3 className="font-semibold text-heading">{service.name}</h3><p className="text-sm text-muted">{service.description} · {service.estimatedDurationMinutes} min</p></div><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={service.isOffered} onChange={e=>setServices(items=>items.map(item=>item.id===service.id?{...item,isOffered:e.target.checked}:item))} />Ofrecido</label><div className="flex items-center gap-2"><label className="sr-only" htmlFor={'service-price-'+service.id}>Precio inicial</label><span aria-hidden="true">$</span><input id={'service-price-'+service.id} type="number" min="0" max="1000000" step="0.01" value={service.priceFrom ?? 0} onChange={e=>setServices(items=>items.map(item=>item.id===service.id?{...item,priceFrom:Number(e.target.value)}:item))} className="min-h-10 w-28 rounded-control border border-control bg-surface px-2" /><Button variant="outline" size="sm" disabled={saving} onClick={()=>void saveService(service)}>Guardar</Button></div></li>)}</ul>}
       </section>
     </>}
