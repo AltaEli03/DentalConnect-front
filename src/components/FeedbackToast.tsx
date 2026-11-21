@@ -25,7 +25,8 @@ export function FeedbackToast() {
   return (
     <div
       className={`feedback-toast fixed bottom-4 right-4 z-[100] flex max-w-[min(28rem,calc(100vw-2rem))] items-start gap-3 rounded-card border bg-surface p-4 shadow-xl ${isError ? 'border-danger text-danger-text' : 'border-accent text-heading'}`}
-      role={isError ? 'alert' : 'status'}
+      role={isError ? 'alert' : 'region'}
+      aria-label={isError ? undefined : 'Aviso de la aplicación'}
       aria-live={isError ? 'assertive' : 'polite'}
     >
       <div className="min-w-0 flex-1">
