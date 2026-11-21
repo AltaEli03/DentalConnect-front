@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /mi-cuenta
+Disallow: /notificaciones
+Disallow: /mis-citas
+Disallow: /consultorio/
+Disallow: /administrar-dentistas
+Disallow: /administrar-solicitudes
+Disallow: /plataforma/
+
+Sitemap: https://main.d63zai2tg2i2u.amplifyapp.com/sitemap.xml
