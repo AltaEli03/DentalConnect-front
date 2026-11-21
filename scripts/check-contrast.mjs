@@ -10,6 +10,12 @@ const pairs = [
   { label: 'light success text on soft', fg: '#065F46', bg: '#ECFDF5', min: 4.5 },
   { label: 'light warning text on soft', fg: '#9A3412', bg: '#FFF7ED', min: 4.5 },
   { label: 'light control border on white', fg: '#5F7484', bg: '#FFFFFF', min: 3 },
+  { label: 'light danger text on white', fg: '#991B1B', bg: '#FFFFFF', min: 4.5 },
+  { label: 'light success text on white', fg: '#065F46', bg: '#FFFFFF', min: 4.5 },
+  { label: 'light danger text on canvas', fg: '#991B1B', bg: '#F5F8FA', min: 4.5 },
+  { label: 'light muted on surface soft', fg: '#425466', bg: '#E7F1F3', min: 4.5 },
+  { label: 'light splash logo on splash', fg: '#003B4A', bg: '#F4F8FA', min: 4.5 },
+  { label: 'light accent focus on canvas', fg: '#007C83', bg: '#F5F8FA', min: 3 },
   { label: 'dark text on canvas', fg: '#EAF2F4', bg: '#08181D', min: 4.5 },
   { label: 'dark muted on canvas', fg: '#B7C9CE', bg: '#08181D', min: 4.5 },
   { label: 'dark subtle on surface', fg: '#93AAB1', bg: '#102A30', min: 4.5 },
@@ -22,6 +28,9 @@ const pairs = [
   { label: 'dark warning text on soft', fg: '#F5C98A', bg: '#3A2A16', min: 4.5 },
   { label: 'dark control border on surface', fg: '#6E9BA5', bg: '#102A30', min: 3 },
   { label: 'dark focus on canvas', fg: '#7DD3C7', bg: '#08181D', min: 3 },
+  { label: 'dark danger text on canvas', fg: '#F08A80', bg: '#08181D', min: 4.5 },
+  { label: 'dark muted on surface soft', fg: '#B7C9CE', bg: '#163840', min: 4.5 },
+  { label: 'dark splash logo on splash', fg: '#E6F4F1', bg: '#08181D', min: 4.5 },
 ];
 
 const luminance = (hex) => {

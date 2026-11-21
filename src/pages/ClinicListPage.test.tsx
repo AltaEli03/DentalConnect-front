@@ -127,6 +127,19 @@ describe('ClinicListPage', () => {
     expect(screen.queryByRole('heading', { name: 'Clínica 1' })).not.toBeInTheDocument();
   });
 
+  it('keeps page changes clear of the sticky header', async () => {
+    vi.mocked(api.clinics).mockResolvedValue({
+      data: Array.from({ length: 7 }, (_, index) => clinic(index + 1)),
+    } as never);
+
+    renderPage();
+
+    const results = (await screen.findByRole('heading', {
+      name: 'Consultorios disponibles',
+    })).closest('section');
+    expect(results).toHaveClass('scroll-mt-20');
+  });
+
   it('invites the person to change filters when there are no results', async () => {
     renderPage();
 

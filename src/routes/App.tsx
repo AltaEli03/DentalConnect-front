@@ -44,7 +44,7 @@ function AppContent() {
           <p className="site-tagline">Directorio de atención odontológica</p>
           <nav className="header-nav" aria-label="Navegación principal">
             <NavLink to="/clinics" end>Consultorios</NavLink>
-            {user && <NavLink to="/registrar-consultorio">Registrar consultorio</NavLink>}
+            <NavLink to="/registrar-consultorio">Registrar consultorio</NavLink>
             {isPlatformAdmin && <NavLink to="/plataforma/consultorios">Revisar altas</NavLink>}
             {hasClinicRole && <>
               <NavLink to="/consultorio/citas">Citas</NavLink>

@@ -1,44 +1,48 @@
-# TEC-09: pruebas integrales de permisos y accesibilidad
+# Evidencia de aceptación: accesibilidad, PWA y recorridos públicos
 
-## Automatización
+## Alcance y entorno
 
-El workflow `Frontend CI` ejecuta en cada pull request y al publicar en `main`, `develop` o `release`:
+- Fecha de revisión: 20 de noviembre de 2026.
+- Frontend publicado: <https://main.d63zai2tg2i2u.amplifyapp.com/clinics/>
+- API publicada: <https://d3eod9k2xa8i16.cloudfront.net/api/health>
+- API health esperado y observado: HTTP 200, `{"status":"ok","service":"DentalConnect API"}`.
+- El catálogo de demostración contiene perfiles ficticios y datos de contacto reservados para pruebas (`.invalid`). No representa negocios reales.
 
-1. ESLint (`npm run lint`).
-2. Pruebas unitarias de interfaz (`npm test`).
-3. Verificación de contraste de colores (`npm run test:contrast`).
-4. Compilación de producción (`npm run build`).
+## Recorridos comprobados en producción
 
-El análisis de permisos de negocio vive en las pruebas de integración del backend ASP.NET Core/PostgreSQL, que corren en su workflow con base PostgreSQL efímera. Las suites incluyen aislamiento por rol/consultorio, propiedad de solicitudes y notificaciones, y transiciones de citas. Revisar `DentalConnect.Tests/AppointmentProposalApiTests.cs`, `DentalConnect.Tests/NotificationApiTests.cs` y `DentalConnect.Tests/AppointmentApiTests.cs` en el repositorio backend.
+| Recorrido | Resultado |
+| --- | --- |
+| Catálogo de clínicas | La página abre desde Amplify y consulta el catálogo del API. Muestra 2,006 perfiles de demostración y pagina seis por vista. |
+| Búsqueda por zona y servicio | `Atotonilco de Tula` + `Ortodoncia` devolvió 21 coincidencias; los filtros permiten modificar la búsqueda. |
+| Detalle y dentistas | El detalle público abrió correctamente y mostró sus servicios y dentistas asociados. Los perfiles de la semilla son ficticios. |
+| Disponibilidad pública | Al elegir servicio y dentista se consultaron intervalos válidos de duración completa; en la revisión se observaron 10:30–12:00 y 15:00–16:30 para un servicio de 90 minutos. |
+| Móvil | Viewport de 360 px: `document.documentElement.scrollWidth` fue 352 px, sin desbordamiento horizontal. Captura en `screenshots/busqueda-zona-servicio-360.png`. |
+| PWA sin conexión | Con el navegador en modo offline, el shell y el catálogo previamente almacenado siguieron disponibles con aviso de desconexión. Captura en `screenshots/catalogo-offline-360.png`. |
+| Política de caché | Se inspeccionó Cache Storage: solo se guardan recursos del shell y GET públicos de clínicas, detalles y disponibilidad. No había respuestas de autenticación, perfil, citas ni notificaciones en caché. |
 
-## Evidencia automatizada
+## Accesibilidad y calidad automatizada
 
-- Vitest: 91 pruebas aprobadas en 23 archivos.
-- ESLint: sin errores.
-- Contraste: 23 pares de texto/fondo evaluados en temas claro y oscuro; aprobados.
-- Build: compilación TypeScript/Vite y generación de manifest, service worker y rutas estáticas completadas.
+El workflow [Frontend CI](https://github.com/AltaEli03/DentalConnect-front/actions/runs/44762934720) del commit `3a7ee003b0b642fb68d29d0ff70cb5ae34784f7a` terminó correctamente el 20-Nov-2026:
 
-La ejecución en GitHub Actions del PR #25 aprobó `verify`, CodeQL y GitGuardian y quedó integrada en `develop` mediante el commit `a83593dd150c266d8ae75001950514b0b6737f67`.
+- ESLint: aprobado.
+- Vitest: **104 pruebas aprobadas en 25 archivos**.
+- Contraste: **32 pares aprobados** en temas claro y oscuro.
+- Build de producción: aprobado.
+- CodeQL: [análisis aprobado](https://github.com/AltaEli03/DentalConnect-front/actions/runs/44762934632); consulta de alertas abiertas al momento de esta revisión: **0**.
 
-## Revisión manual del despliegue público (15-Nov-2026)
+Pruebas backend relacionadas con permisos, propiedad de recursos y citas: [xUnit/PostgreSQL](https://github.com/AltaEli03/DentalConnect-back/actions/runs/44756928322), **95 aprobadas, 0 fallidas**. El análisis CodeQL del backend terminó correctamente y no tenía alertas abiertas al revisar.
 
-- URL: https://main.d63zai2tg2i2u.amplifyapp.com/clinics/
-- El catálogo cargó seis consultorios desde el API.
-- La búsqueda “Tula de Allende” mostró tres consultorios ficticios de prueba.
-- El detalle del consultorio de prueba y el perfil de su dentista abrieron correctamente.
-- La consulta de disponibilidad para el 17-Nov-2026 devolvió HTTP 200, zona `America/Mexico_City` y 14 intervalos de 30 minutos sin solaparse; una fecha pasada devolvió HTTP 400.
-- Con Tab se enfocó “Saltar al contenido principal”; Enter actualizó el fragmento y enfocó `main-content`.
-- La vista de accesibilidad expone banner, navegación, main y footer, con nombres para el campo de búsqueda, servicio y acciones.
-- El formulario de registro expuso nombres accesibles para nombre, apellidos, correo, teléfono, contraseña, confirmación y botón de envío.
-- A 360, 390, 768 y 1280 px, el ancho del documento igualó el viewport, sin desbordamiento horizontal. Se guardó una captura móvil a 390 × 844 en `screenshots/catalogo-movil-390.png`.
-- Una simulación mediante CSS `zoom: 200%` tampoco produjo desbordamiento; falta repetir con el zoom propio del navegador.
-- El manifest está disponible y el navegador tenía un service worker activo y controlando la página.
+## Evidencias visuales
 
-## Aceptación manual pendiente
+- `screenshots/busqueda-zona-servicio-360.png`: búsqueda por zona y servicio en móvil.
+- `screenshots/catalogo-offline-360.png`: catálogo accesible tras cargar y cambiar a modo sin conexión.
+- `screenshots/catalogo-movil-390.png`: evidencia móvil previa a 390 px.
 
-- Completar recorrido de todos los controles con Tab, Shift+Tab, Enter y Espacio, incluyendo filtros y paginación; la evidencia actual solo cubre el enlace de salto.
-- Revisar anuncios de error/éxito y orden de encabezados con lector de pantalla real.
-- Iniciar con cuentas de paciente y consultorio de prueba y comprobar acceso cruzado denegado en el sitio desplegado.
-- Completar capturas y operación a 360 px, 768 px y escritorio, incluyendo zoom al 200 %.
+## Pendiente para declarar aceptación manual completa
 
-No cerrar TEC-09 hasta completar estos puntos y registrar URL, fecha, cuentas ficticias utilizadas y resultado, sin publicar datos de acceso.
+- No se ejecutó el flujo de registro/inicio de sesión/edición de perfil con una cuenta real en la sesión de navegador disponible. Las pruebas automatizadas cubren validaciones y acceso por rol, pero no sustituyen ese recorrido autenticado en producción.
+- Falta el ensayo completo de paciente y administrador de consultorio: crear solicitud, verificar bandejas/agenda, cambiar estados y demostrar que otra cuenta no puede leer/modificar recursos ajenos.
+- Falta la revisión con lector de pantalla real y completar todos los controles por teclado en los recorridos autenticados.
+- Las pruebas de base de datos aplican, revierten y reaplican migraciones en PostgreSQL efímero de CI; no equivalen a restaurar una copia de seguridad de RDS.
+
+No se marcan estas pruebas manuales como aprobadas hasta ejecutarlas y guardar evidencia sin credenciales ni datos personales.
