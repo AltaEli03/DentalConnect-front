@@ -134,9 +134,7 @@ describe('ClinicListPage', () => {
 
     renderPage();
 
-    const results = (await screen.findByRole('heading', {
-      name: 'Consultorios disponibles',
-    })).closest('section');
+    const results = (await screen.findByRole('heading', { name: 'Resultados' })).closest('section');
     expect(results).toHaveClass('scroll-mt-20');
   });
 
@@ -144,7 +142,7 @@ describe('ClinicListPage', () => {
     renderPage();
 
     expect(
-      await screen.findByText('No encontramos coincidencias. Cambia la zona o el servicio.'),
+      await screen.findByText('No hay resultados. Prueba otra zona o servicio.'),
     ).toBeInTheDocument();
   });
 });
