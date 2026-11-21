@@ -1,11 +1,26 @@
 import { useEffect, useState } from 'react';
+import { showFeedback } from '../lib/feedback';
 
 export function NetworkStatus() {
   const [online, setOnline] = useState(() => navigator.onLine);
 
   useEffect(() => {
-    const goOnline = () => setOnline(true);
-    const goOffline = () => setOnline(false);
+    const goOnline = () => {
+      setOnline(true);
+      showFeedback({
+        type: 'success',
+        title: 'Conexión restablecida',
+        message: 'Ya puedes continuar usando DentalConnect.',
+      });
+    };
+    const goOffline = () => {
+      setOnline(false);
+      showFeedback({
+        type: 'error',
+        title: 'Sin conexión',
+        message: 'Revisa tu conexión. Las solicitudes y cambios necesitan internet.',
+      });
+    };
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
     return () => {

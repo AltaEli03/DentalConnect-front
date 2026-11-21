@@ -140,7 +140,8 @@ export function ClinicDetailPage() {
               <ContentImage
                 src={clinic.imageUrl}
                 alt={`Instalaciones de ${clinic.name}`}
-                className="h-full w-full object-cover"
+                className="h-full w-full bg-canvas object-contain"
+                priority
               />
             </div>
             <div className="p-5 sm:p-6">
