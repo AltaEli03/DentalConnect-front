@@ -14,6 +14,7 @@ type DentalService = { id: string; name: string };
 type OwnClinic = { data: { clinicId: string; name: string } };
 type DentistList = { data: Dentist[] };
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+type ManagementSection = 'team' | 'schedule';
 const emptyDentist = { firstName: '', lastName: '', professionalLicense: '', specialty: '', biography: '', imageUrl: '', dentalServiceIds: [] as string[] };
 const toApiTime = (value: string) => (value.length === 5 ? `${value}:00` : value);
 
@@ -26,6 +27,7 @@ export function DentistManagementPage() {
   const [services, setServices] = useState<DentalService[]>([]); 
   const [selected, setSelected] = useState(''); 
   const [scheduleDentistId, setScheduleDentistId] = useState('');
+  const [activeSection, setActiveSection] = useState<ManagementSection>('team');
   const [weekly, setWeekly] = useState<Weekly[]>([]); 
   const [blocks, setBlocks] = useState<Block[]>([]); 
   const [form, setForm] = useState(emptyDentist);
@@ -125,6 +127,7 @@ export function DentistManagementPage() {
   async function toggle(d:Dentist) { 
     await run(async()=>{ 
       await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(d.id)+'/status',{method:'PATCH',body:JSON.stringify({isActive:!d.isActive})}); 
+      if (d.isActive && scheduleDentistId === d.id) setScheduleDentistId('');
       await loadDentists(); 
     }); 
   }
@@ -181,7 +184,7 @@ export function DentistManagementPage() {
         <div>
           <p className="eyebrow">{clinicName}</p>
           <h1>Dentistas y horarios</h1>
-          <p className="text-muted">Agrega profesionales y define sus servicios y horarios semanales.</p>
+          <p className="text-muted">Administra el equipo y la agenda desde secciones separadas.</p>
         </div>
         <Link to="/consultorio/configuracion" className="secondary-btn">Volver a perfil y servicios</Link>
       </section>
@@ -193,7 +196,21 @@ export function DentistManagementPage() {
       )}
 
       {clinicId && (
-        <div className="management-layout">
+        <>
+        <nav className="management-section-nav" aria-label="Secciones de administración">
+          <button type="button" className={`management-section-link ${activeSection === 'team' ? 'active' : ''}`} aria-pressed={activeSection === 'team'} onClick={() => setActiveSection('team')}>
+            <span className="management-section-number" aria-hidden="true">1</span>
+            <span><strong>Equipo dental</strong><small>Perfiles y servicios</small></span>
+            <span className="management-section-count">{dentists.length}</span>
+          </button>
+          <button type="button" className={`management-section-link ${activeSection === 'schedule' ? 'active' : ''}`} aria-pressed={activeSection === 'schedule'} disabled={dentists.every(d => !d.isActive)} onClick={() => setActiveSection('schedule')}>
+            <span className="management-section-number" aria-hidden="true">2</span>
+            <span><strong>Horarios</strong><small>Jornadas y bloqueos</small></span>
+            <span className="management-section-count">{dentists.filter(d => d.isActive).length}</span>
+          </button>
+        </nav>
+
+        {activeSection === 'team' && <div className="management-layout">
           
           {/* COLUMNA IZQUIERDA: LISTA DE DENTISTAS */}
           <section className="panel list-panel">
@@ -220,7 +237,7 @@ export function DentistManagementPage() {
                     </p>
                     <div className="dentist-actions">
                       <button type="button" className="secondary-btn" onClick={()=>edit(d)}>Editar perfil</button>
-                      <button type="button" className="secondary-btn" disabled={!d.isActive} title={!d.isActive ? 'Activa al dentista para configurar su agenda' : undefined} onClick={()=>setScheduleDentistId(d.id)}>Horarios</button>
+                      <button type="button" className="secondary-btn" disabled={!d.isActive} title={!d.isActive ? 'Activa al dentista para configurar su agenda' : undefined} onClick={()=>{setScheduleDentistId(d.id);setActiveSection('schedule');}}>Horarios</button>
                       <button type="button" className={`danger-btn ${d.isActive ? '' : 'success-btn'}`} onClick={()=>void toggle(d)}>
                         {d.isActive ? 'Desactivar' : 'Activar'}
                       </button>
@@ -263,7 +280,7 @@ export function DentistManagementPage() {
 
               <fieldset className="services-fieldset">
                 <legend>Servicios que ofrece</legend>
-                <div className="checkbox-grid">
+                {services.length === 0 ? <p className="text-muted">Aún no hay servicios. Agrégalos primero desde «Perfil y servicios».</p> : <div className="checkbox-grid">
                   {services.map(s => (
                     <label key={s.id} className={`checkbox-pill ${form.dentalServiceIds.includes(s.id) ? 'checked' : ''}`}>
                       <input 
@@ -274,8 +291,9 @@ export function DentistManagementPage() {
                       {s.name}
                     </label>
                   ))}
-                </div>
+                </div>}
               </fieldset>
+              <p className="management-form-hint">Para agregar o editar los servicios del consultorio, abre «Perfil y servicios».</p>
 
               <div className="form-actions">
                 <button type="submit" disabled={busy} className="primary-btn">
@@ -289,16 +307,27 @@ export function DentistManagementPage() {
               </div>
             </form>
           </section>
-        </div>
+        </div>}
+        </>
       )}
 
-      {scheduleDentistId && (
+      {clinicId && activeSection === 'schedule' && (
         <section className="panel schedule-panel">
-          <div className="panel-header">
-            <h2>Horario de {dentists.find(d => d.id === scheduleDentistId)?.firstName} {dentists.find(d => d.id === scheduleDentistId)?.lastName}</h2>
-            <p className="text-muted">Define cuándo atiende cada semana. Ejemplo: lunes, 09:00–19:00. Zona horaria: Ciudad de México.</p>
+          <div className="schedule-management-header">
+            <div>
+              <h2>Agenda del equipo</h2>
+              <p className="text-muted">Configura jornadas semanales y bloqueos por fecha para un dentista.</p>
+            </div>
+            <label className="schedule-dentist-select">Dentista
+              <select value={scheduleDentistId} onChange={e=>setScheduleDentistId(e.target.value)}>
+                <option value="">Selecciona un dentista</option>
+                {dentists.filter(d=>d.isActive).map(d=><option key={d.id} value={d.id}>{d.firstName} {d.lastName}</option>)}
+              </select>
+            </label>
           </div>
 
+          {!scheduleDentistId ? <div className="empty-state schedule-empty-state">Selecciona un dentista activo para consultar o configurar su agenda.</div> : <>
+          <p className="schedule-timezone-note">Zona horaria: Ciudad de México</p>
           <div className="schedule-grid">
             {/* JORNADAS SEMANALES */}
             <div className="schedule-column">
@@ -329,6 +358,7 @@ export function DentistManagementPage() {
               </form>
 
               <div className="schedule-list">
+                {weekly.length === 0 && <p className="schedule-list-empty">Aún no hay jornadas. Agrega los días y horas en que atiende.</p>}
                 {weekly.map(s=>(
                   <div key={s.id} className="schedule-item">
                     <div>
@@ -336,8 +366,8 @@ export function DentistManagementPage() {
                       <span>{String(s.startsAt).slice(0,5)} - {String(s.endsAt).slice(0,5)}</span>
                       {s.breakStartsAt && <small>Descanso: {String(s.breakStartsAt).slice(0,5)} - {String(s.breakEndsAt).slice(0,5)}</small>}
                     </div>
-                    <button className="icon-btn danger" onClick={()=>void run(async()=>{await call(dentistPath+'/schedule/'+s.id,{method:'DELETE'});await loadSchedule();})}>
-                      ✕
+                    <button type="button" className="icon-btn danger" aria-label={`Eliminar jornada del ${days[s.dayOfWeek]}`} onClick={()=>void run(async()=>{await call(dentistPath+'/schedule/'+s.id,{method:'DELETE'});await loadSchedule(scheduleDentistId);})}>
+                      Eliminar
                     </button>
                   </div>
                 ))}
@@ -361,6 +391,7 @@ export function DentistManagementPage() {
               </form>
 
               <div className="schedule-list">
+                {blocks.length === 0 && <p className="schedule-list-empty">No hay bloqueos por fecha.</p>}
                 {blocks.map(b=>(
                   <div key={b.id} className="schedule-item block">
                     <div>
@@ -368,14 +399,15 @@ export function DentistManagementPage() {
                       <span>Hasta: {new Date(b.endsAt).toLocaleString()}</span>
                       <small>Motivo: {b.reason || 'No especificado'}</small>
                     </div>
-                    <button className="icon-btn danger" onClick={()=>void run(async()=>{await call(dentistPath+'/blocks/'+b.id,{method:'DELETE'});await loadSchedule();})}>
-                      ✕
+                    <button type="button" className="icon-btn danger" aria-label={`Eliminar bloqueo del ${new Date(b.startsAt).toLocaleDateString()}`} onClick={()=>void run(async()=>{await call(dentistPath+'/blocks/'+b.id,{method:'DELETE'});await loadSchedule(scheduleDentistId);})}>
+                      Eliminar
                     </button>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+          </>}
         </section>
       )}
     </main>
