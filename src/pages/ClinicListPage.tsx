@@ -7,10 +7,19 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
 import { filterNearbyClinics } from '../services/clinicSearch';
 import { getPageItems } from '../lib/pagination';
+import { useSeo } from '../lib/useSeo';
 import type { Clinic, Service } from '../types/api';
 
 type ClinicWithDistance = Clinic & { distanceKm?: number };
 const PAGE_SIZE = 6;
+const directorySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'DentalConnect',
+  url: 'https://main.d63zai2tg2i2u.amplifyapp.com/clinics',
+  inLanguage: 'es-MX',
+  description: 'Directorio de consultorios dentales y servicios en México.',
+};
 
 function directoryMessage(cause: unknown) {
   if (cause instanceof ApiError) {
@@ -31,6 +40,13 @@ function directoryMessage(cause: unknown) {
 }
 
 export function ClinicListPage() {
+  useSeo({
+    title: 'Consultorios dentales cerca de ti',
+    description:
+      'Busca consultorios dentales por zona o servicio. Compara sus datos y consulta especialistas antes de solicitar atención.',
+    path: '/clinics',
+    structuredData: directorySchema,
+  });
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const q = params.get('q') ?? '';
@@ -133,9 +149,7 @@ export function ClinicListPage() {
           setClinics(filterNearbyClinics(data, coords.latitude, coords.longitude, 10));
           setPage(1);
           setNearby(true);
-          setLocationMessage(
-            'Mostramos consultorios dentro de 10 km, ordenados por distancia. No guardamos tu ubicación.',
-          );
+          setLocationMessage('Consultorios a menos de 10 km. Tu ubicación no se guarda.');
         } catch (cause) {
           setError(directoryMessage(cause));
         } finally {
@@ -145,8 +159,8 @@ export function ClinicListPage() {
       (cause) => {
         setLocationMessage(
           cause.code === 1
-            ? 'No se concedió el permiso de ubicación. Puedes buscar por zona manualmente.'
-            : 'No se pudo obtener tu ubicación. Puedes buscar por zona manualmente.',
+            ? 'Permiso no concedido. Busca por zona.'
+            : 'Ubicación no disponible. Busca por zona.',
         );
         setLocating(false);
       },
@@ -168,13 +182,13 @@ export function ClinicListPage() {
       <section className="border-b border-line bg-gradient-to-b from-surface to-canvas">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
           <p className="inline-flex rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-sm font-semibold text-accent-strong">
-            Atención dental en tu zona
+            Atención dental
           </p>
           <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold tracking-tight text-heading sm:text-5xl lg:text-6xl">
-            Encuentra un consultorio que se adapte a ti.
+            Encuentra tu consultorio dental.
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
-            Compara ubicación, servicios y datos de contacto antes de elegir.
+            Busca por zona o servicio.
           </p>
 
           <form
@@ -191,7 +205,7 @@ export function ClinicListPage() {
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Ciudad, colonia o C.P."
+                  placeholder="Ciudad, colonia o código postal"
                   maxLength={120}
                   autoComplete="postal-code"
                   className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
@@ -256,7 +270,7 @@ export function ClinicListPage() {
       >
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
           <h2 className="font-display text-2xl font-semibold text-heading">
-            {nearby ? 'Consultorios cercanos' : 'Consultorios disponibles'}
+            {nearby ? 'Cerca de ti' : 'Resultados'}
           </h2>
           {!loading && !error && (
             <p className="text-sm text-muted">
@@ -266,14 +280,17 @@ export function ClinicListPage() {
         </div>
 
         {loading && (
-          <div className="mt-6 grid gap-6" role="status">
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3" role="status">
             <p className="sr-only">Cargando consultorios…</p>
             {Array.from({ length: 3 }, (_, index) => (
-              <div key={index} className="grid gap-4 py-5 sm:grid-cols-[10rem_1fr]">
-                <Skeleton className="h-32 w-full" />
-                <div className="grid content-start gap-3">
-                  <Skeleton className="h-4 w-1/3" />
-                  <Skeleton className="h-6 w-2/3" />
+              <div
+                key={index}
+                className="overflow-hidden rounded-card border border-line bg-surface p-4"
+              >
+                <Skeleton className="aspect-[16/9] w-full" />
+                <div className="grid content-start gap-3 pt-4">
+                  <Skeleton className="h-4 w-2/5" />
+                  <Skeleton className="h-6 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-4/5" />
                 </div>
@@ -298,16 +315,20 @@ export function ClinicListPage() {
 
         {!loading && !error && clinics.length === 0 && (
           <Notice tone="info" className="mt-6">
-            No encontramos coincidencias. Cambia la zona o el servicio.
+            No hay resultados. Prueba otra zona o servicio.
           </Notice>
         )}
 
         {!loading && !error && clinics.length > 0 && (
           <>
-            <ul className="divide-y divide-line border-b border-line">
-              {visibleClinics.map((clinic) => (
-                <li key={clinic.id}>
-                  <ClinicCard clinic={clinic} from={location.search} />
+            <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleClinics.map((clinic, index) => (
+                <li key={clinic.id} className="min-w-0">
+                  <ClinicCard
+                    clinic={clinic}
+                    from={location.search}
+                    priority={index === 0 && start === 0}
+                  />
                 </li>
               ))}
             </ul>
@@ -333,7 +354,11 @@ export function ClinicListPage() {
                   </button>
                   {getPageItems(currentPage, totalPages).map((item, index) =>
                     item === 'ellipsis' ? (
-                      <span key={`ellipsis-${index}`} aria-hidden="true" className="px-1 text-muted">
+                      <span
+                        key={`ellipsis-${index}`}
+                        aria-hidden="true"
+                        className="px-1 text-muted"
+                      >
                         …
                       </span>
                     ) : (
