@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { currentUser, signOut, type CognitoProfile } from '../services/cognito';
+import {
+  SESSION_STARTED_KEY,
+  currentUser,
+  signOut,
+  type CognitoProfile,
+} from '../services/cognito';
 import { api } from '../services/api';
 
 // 1. Definición de tipos clara
@@ -55,7 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Revalida Cognito al iniciar y sincroniza login/logout entre pestañas.
   useEffect(() => {
     const syncSession = (event: StorageEvent) => {
-      if (event.key === null || event.key.endsWith('.LastAuthUser')) void refresh();
+      if (
+        event.key === null ||
+        event.key.endsWith('.LastAuthUser') ||
+        event.key === SESSION_STARTED_KEY
+      )
+        void refresh();
     };
     void refresh();
     window.addEventListener('storage', syncSession);
@@ -75,6 +85,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
   };
+
+  // Cierra la sesión automáticamente al cumplirse la vida máxima.
+  useEffect(() => {
+    if (!user?.expiresAt) return;
+    const remaining = user.expiresAt - Date.now();
+    if (remaining <= 0) {
+      void logout();
+      return;
+    }
+    const timer = window.setTimeout(() => void logout(), remaining);
+    return () => window.clearTimeout(timer);
+  }, [user?.expiresAt]);
 
   return (
     <AuthContext.Provider value={{ user, loading, refresh, acceptLogin, updateProfile, logout }}>
