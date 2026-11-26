@@ -1,13 +1,12 @@
 import { lazy, Suspense } from 'react';
-import { Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { ClinicListPage } from '../pages/ClinicListPage';
 import { AuthProvider } from '../auth/AuthContext';
 import { ThemeProvider } from '../theme/ThemeProvider';
-import { ThemeToggle } from '../theme/ThemeToggle';
 import { NetworkStatus } from '../components/NetworkStatus';
 import { FeedbackToast } from '../components/FeedbackToast';
-import { isClinicAdmin, hasRole } from '../lib/roles';
-import { useAuth } from '../auth/AuthContext';
+import { SiteHeader } from '../components/layout/SiteHeader';
+import { SiteFooter } from '../components/layout/SiteFooter';
 
 const ClinicDetailPage = lazy(() =>
   import('../pages/ClinicDetailPage').then((m) => ({ default: m.ClinicDetailPage })),
@@ -69,54 +68,12 @@ export function App() {
 }
 
 function AppContent() {
-  const { user } = useAuth();
-  const hasClinicRole = Boolean(user) && isClinicAdmin(user?.role);
-  const isPlatformAdmin = hasRole(user?.role, 'PLATFORM_ADMIN');
-
   return (
     <>
       <a className="skip-link" href="#main-content">
         Saltar al contenido principal
       </a>
-      <header className="site-header">
-        <div className="site-header-inner">
-          <Link to="/clinics" className="brand" aria-label="DentalConnect, inicio">
-            Dental<span>Connect</span>
-          </Link>
-          <p className="site-tagline">Directorio de atención odontológica</p>
-          <nav className="header-nav" aria-label="Navegación principal">
-            <NavLink to="/clinics" end>
-              Consultorios
-            </NavLink>
-            <NavLink to="/registrar-consultorio">Registrar consultorio</NavLink>
-            {isPlatformAdmin && <NavLink to="/plataforma/consultorios">Revisar altas</NavLink>}
-            {hasClinicRole && (
-              <>
-                <NavLink to="/consultorio/citas">Citas</NavLink>
-                <NavLink to="/consultorio/configuracion">Perfil y servicios</NavLink>
-                <NavLink to="/administrar-solicitudes" aria-label="Solicitudes del consultorio">
-                  Solicitudes
-                </NavLink>
-              </>
-            )}
-            {user && <NavLink to="/mis-citas">Mis citas</NavLink>}
-            {user && <NavLink to="/notificaciones">Avisos</NavLink>}
-            {user ? (
-              <NavLink to="/mi-cuenta" className="header-nav-primary">
-                Mi cuenta
-              </NavLink>
-            ) : (
-              <>
-                <NavLink to="/registro">Crear cuenta</NavLink>
-                <NavLink to="/iniciar-sesion" className="header-nav-primary">
-                  Iniciar sesión
-                </NavLink>
-              </>
-            )}
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
       <NetworkStatus />
       <FeedbackToast />
       <div id="main-content" className="main-content" tabIndex={-1}>
@@ -162,11 +119,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </div>
-      <footer className="site-footer">
-        <span>DentalConnect</span>
-        <span>Información de consultorios para ayudarte a elegir con claridad.</span>
-        {!user && <Link to="/iniciar-sesion">Iniciar sesión</Link>}
-      </footer>
+      <SiteFooter />
     </>
   );
 }
