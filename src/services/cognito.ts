@@ -10,7 +10,7 @@ const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMV
 const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg';
 const storagePrefix = 'CognitoIdentityServiceProvider.' + clientId + '.';
 let rememberSession = Boolean(window.localStorage.getItem('CognitoIdentityServiceProvider.' + clientId + '.LastAuthUser'));
-const clearCognitoStorage = (storage: Storage) => {
+const clearCognitoStorage = (Storage: cognitoStorage) => {
   for (let index = storage.length - 1; index >= 0; index -= 1) {
     const key = storage.key(index);
     if (key?.startsWith(storagePrefix)) storage.removeItem(key);
@@ -57,7 +57,7 @@ export function signUp(input: {
 
 function getUser(email: string) {
   // Same storage as the pool, or getCurrentUser() cannot find the cached session on reload or another tab.
-  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool, Storage: storage });
+  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool, Storage: cognitoStorage });
 }
 export function confirm(email: string, code: string) {
   return new Promise<void>((resolve, reject) =>
