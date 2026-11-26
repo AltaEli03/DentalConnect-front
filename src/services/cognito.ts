@@ -211,10 +211,10 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  (activeCognitoUser ?? pool.getCurrentUser())?.signOut();
+  pool.getCurrentUser()?.signOut();
   clearCognitoStorage(window.localStorage);
   clearCognitoStorage(window.sessionStorage);
-  activeCognitoUser = null;
+  
 }
 
 export function currentIdToken() {
