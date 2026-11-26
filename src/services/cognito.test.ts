@@ -203,7 +203,7 @@ describe('cognito session persistence', () => {
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a session younger than the 15-minute maximum', async () => {
+  it('keeps a remembered session through day four', async () => {
     const { SESSION_MAX_MS, currentUser } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -211,14 +211,14 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 14 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 4 * 24 * 60 * 60 * 1000) / 1000);
 
     await expect(currentUser()).resolves.toMatchObject({ email: 'ana@example.com' });
-    expect(SESSION_MAX_MS).toBe(15 * 60 * 1000);
+    expect(SESSION_MAX_MS).toBe(5 * 24 * 60 * 60 * 1000);
     expect(user.signOut).not.toHaveBeenCalled();
   });
 
-  it('stops issuing API tokens once the session reaches 15 minutes', async () => {
+  it('stops issuing API tokens after five days', async () => {
     const { currentIdToken } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -226,13 +226,13 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 16 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 6 * 24 * 60 * 60 * 1000) / 1000);
 
     await expect(currentIdToken()).resolves.toBeNull();
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects profile changes once the session reaches 15 minutes', async () => {
+  it('rejects profile changes once the session reaches six days', async () => {
     const { updateAccountProfile } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -240,11 +240,11 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 16 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 6 * 24 * 60 * 60 * 1000) / 1000);
 
     await expect(
       updateAccountProfile({ profile, firstName: 'Ana', lastName: 'Pérez', phone: '5512345678' }),
-    ).rejects.toThrow('Tu sesión superó el máximo de 15 minutos');
+    ).rejects.toThrow('Tu sesión superó el máximo de 5 días');
     expect(user.updateAttributes).not.toHaveBeenCalled();
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
