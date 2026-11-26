@@ -1,69 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTheme } from './ThemeProvider';
 import type { ThemePreference } from '../lib/theme';
+import { Icon, type IconName } from '../components/ui/Icon';
 
-const Sun = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-  </svg>
-);
-
-const Moon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
-  </svg>
-);
-
-const Monitor = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <rect x="3" y="4" width="18" height="13" rx="2" />
-    <path d="M8 21h8m-4-4v4" />
-  </svg>
-);
-
-const Chevron = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="14"
-    height="14"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);
-
-const options: Array<{ value: ThemePreference; label: string; icon: () => ReactNode }> = [
-  { value: 'light', label: 'Claro', icon: Sun },
-  { value: 'dark', label: 'Oscuro', icon: Moon },
-  { value: 'system', label: 'Sistema', icon: Monitor },
+const options: Array<{ value: ThemePreference; label: string; icon: IconName }> = [
+  { value: 'light', label: 'Claro', icon: 'sun' },
+  { value: 'dark', label: 'Oscuro', icon: 'moon' },
+  { value: 'system', label: 'Sistema', icon: 'monitor' },
 ];
 
 export function ThemeToggle() {
@@ -72,7 +15,7 @@ export function ThemeToggle() {
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const current = options.find((option) => option.value === preference) ?? options[2];
-  const CurrentIcon = current.icon;
+  const CurrentIcon: ReactNode = <Icon name={current.icon} size={16} />;
 
   useEffect(() => {
     if (!open) return;
@@ -99,29 +42,34 @@ export function ThemeToggle() {
   };
 
   return (
-    <div className="theme-menu" ref={menuRef}>
+    <div className="relative" ref={menuRef}>
       <button
         ref={triggerRef}
         type="button"
-        className="theme-menu-trigger"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface-alt px-3 text-[13px] font-semibold text-heading transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent"
         aria-label={`Tema de la interfaz: ${current.label}`}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <CurrentIcon />
-        <span>{current.label}</span>
-        <Chevron />
+        {CurrentIcon}
+        <span className="hidden sm:inline">{current.label}</span>
+        <Icon name="chevron-down" size={14} className={open ? 'rotate-180' : undefined} />
       </button>
       {open && (
-        <div className="theme-menu-panel" role="group" aria-label="Tema de la interfaz">
-          {options.map(({ value, label, icon: Icon }) => (
+        <div
+          className="absolute right-0 top-full z-50 mt-2 min-w-44 rounded-panel border border-line bg-surface p-1.5 shadow-[var(--shadow-overlay)]"
+          role="group"
+          aria-label="Tema de la interfaz"
+        >
+          {options.map(({ value, label, icon }) => (
             <button
               key={value}
               type="button"
+              className="flex min-h-11 w-full items-center gap-2 rounded-control px-3 text-left text-sm font-medium text-ink hover:bg-surface-soft"
               aria-pressed={preference === value}
               onClick={() => choose(value)}
             >
-              <Icon />
+              <Icon name={icon} size={16} />
               <span>{label}</span>
             </button>
           ))}

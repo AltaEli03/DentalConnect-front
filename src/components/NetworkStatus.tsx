@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { showFeedback } from '../lib/feedback';
+import { Icon } from './ui/Icon';
 
 export function NetworkStatus() {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -34,8 +35,9 @@ export function NetworkStatus() {
   return (
     <div
       role="status"
-      className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+      className="flex items-center justify-center gap-2 border-b border-warning-border bg-warning-soft px-4 py-2 text-center text-sm font-semibold text-warning-text"
     >
+      <Icon name="alert" size={16} />
       Sin conexión. Puedes consultar la información guardada.
     </div>
   );
