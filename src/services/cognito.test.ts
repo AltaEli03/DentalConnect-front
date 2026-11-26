@@ -244,7 +244,7 @@ describe('cognito session persistence', () => {
 
     await expect(
       updateAccountProfile({ profile, firstName: 'Ana', lastName: 'Pérez', phone: '5512345678' }),
-    ).rejects.toThrow('Tu sesión superó el máximo de 5 días');
+    ).rejects.toThrow('Tu sesión superó el máximo de 24 horas');
     expect(user.updateAttributes).not.toHaveBeenCalled();
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
