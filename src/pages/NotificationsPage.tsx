@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Notice } from '../components/ui/Notice';
+import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { buttonStyles } from '../components/ui/Button';
 import { isClinicAdmin } from '../lib/roles';
@@ -194,7 +195,7 @@ export function NotificationsPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <section className="rounded-card border border-line bg-surface p-6 shadow-sm">
+        <section className="rounded-panel border border-line bg-surface p-6">
           <p className="text-sm font-semibold text-accent-strong">DentalConnect</p>
           <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Avisos</h1>
           <Notice tone="info" className="mt-4">
@@ -210,39 +211,37 @@ export function NotificationsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:py-10">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <p className="text-sm font-semibold text-accent-strong">
-            {clinicMode ? 'Consultorio' : 'Mi cuenta'}
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Avisos</h1>
-          <p className="mt-2 text-muted" aria-live="polite" hidden={loading || Boolean(error)}>
-            {unreadCount === 0
-              ? 'Estás al día.'
-              : `${unreadCount} ${unreadCount === 1 ? 'aviso sin leer' : 'avisos sin leer'}`}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {unreadCount > 0 && (
-            <button
-              type="button"
+      <PageHeader
+        kicker={clinicMode ? 'Consultorio' : 'Mi cuenta'}
+        title="Avisos"
+        actions={
+          <>
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                className={buttonStyles('outline', 'sm')}
+                disabled={busy}
+                onClick={() => void markAllRead()}
+              >
+                Marcar todos como leídos
+              </button>
+            )}
+            <Link
               className={buttonStyles('outline', 'sm')}
-              disabled={busy}
-              onClick={() => void markAllRead()}
+              to={clinicMode ? '/administrar-solicitudes' : '/mis-citas'}
             >
-              Marcar todos como leídos
-            </button>
-          )}
-          <Link
-            className={buttonStyles('outline', 'sm')}
-            to={clinicMode ? '/administrar-solicitudes' : '/mis-citas'}
-          >
-            {clinicMode ? 'Ver solicitudes' : 'Ver mis citas'}
-          </Link>
-        </div>
-      </header>
+              {clinicMode ? 'Ver solicitudes' : 'Ver mis citas'}
+            </Link>
+          </>
+        }
+      />
+      <p className="mt-2 text-sm text-muted" aria-live="polite" hidden={loading || Boolean(error)}>
+        {unreadCount === 0
+          ? 'Estás al día.'
+          : `${unreadCount} ${unreadCount === 1 ? 'aviso sin leer' : 'avisos sin leer'}`}
+      </p>
 
-      <section className="mt-5 rounded-card border border-line bg-surface p-4 sm:p-5" aria-labelledby="push-title">
+      <section className="mt-5 rounded-panel border border-line bg-surface p-4 sm:p-5" aria-labelledby="push-title">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 id="push-title" className="font-semibold text-heading">Avisos en este dispositivo</h2>
@@ -313,11 +312,14 @@ export function NotificationsPage() {
       )}
 
       {!loading && !error && notifications.length > 0 && (
-        <ul className="mt-6 grid gap-3" aria-label="Avisos de citas">
+        <ul
+          className="mt-6 divide-y divide-line border-y border-line"
+          aria-label="Avisos de citas"
+        >
           {notifications.map((notification) => (
             <li
               key={notification.id}
-              className={`rounded-card border bg-surface p-5 shadow-sm ${notification.isRead ? 'border-line' : 'border-accent/50'}`}
+              className={`py-5 ${notification.isRead ? '' : 'border-l-2 border-accent pl-4'}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -328,7 +330,8 @@ export function NotificationsPage() {
                   </time>
                 </div>
                 {!notification.isRead && (
-                  <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-strong">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-strong">
+                    <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
                     Sin leer
                   </span>
                 )}

@@ -68,6 +68,7 @@ describe('NotificationsPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Cita confirmada' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Avisos de citas' })).toBeInTheDocument();
     expect(screen.getByText('1 aviso sin leer')).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: 'Ver solicitud' })).toHaveAttribute(
       'href',
