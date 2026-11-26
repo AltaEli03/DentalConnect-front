@@ -203,7 +203,7 @@ describe('cognito session persistence', () => {
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a remembered session through day four', async () => {
+  it('keeps a remembered session through hour 23', async () => {
     const { SESSION_MAX_MS, currentUser } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -211,14 +211,14 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 4 * 24 * 60 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 23 * 60 * 60 * 1000) / 1000);
 
     await expect(currentUser()).resolves.toMatchObject({ email: 'ana@example.com' });
-    expect(SESSION_MAX_MS).toBe(5 * 24 * 60 * 60 * 1000);
+    expect(SESSION_MAX_MS).toBe(24 * 60 * 60 * 1000);
     expect(user.signOut).not.toHaveBeenCalled();
   });
 
-  it('stops issuing API tokens after five days', async () => {
+  it('stops issuing API tokens after 24 hours', async () => {
     const { currentIdToken } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -226,13 +226,13 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 6 * 24 * 60 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 25 * 60 * 60 * 1000) / 1000);
 
     await expect(currentIdToken()).resolves.toBeNull();
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects profile changes once the session reaches six days', async () => {
+  it('rejects profile changes once the session reaches 25 hours', async () => {
     const { updateAccountProfile } = await loadCognito();
     const user = new mocks.CognitoUserMock({
       Username: 'ana@example.com',
@@ -240,11 +240,11 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 6 * 24 * 60 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 25 * 60 * 60 * 1000) / 1000);
 
     await expect(
       updateAccountProfile({ profile, firstName: 'Ana', lastName: 'Pérez', phone: '5512345678' }),
-    ).rejects.toThrow('Tu sesión superó el máximo de 5 días');
+    ).rejects.toThrow('Tu sesión superó el máximo de 24 horas');
     expect(user.updateAttributes).not.toHaveBeenCalled();
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
