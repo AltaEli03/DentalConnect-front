@@ -17,4 +17,5 @@ Desktop.ini
 .idea
 .vscode
 *.tfvars
+.superpowers/
 
