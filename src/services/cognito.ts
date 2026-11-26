@@ -107,9 +107,9 @@ export function updateAccountProfile(input: {
   lastName: string;
   phone: string;
 }) {
-  // Use the authenticated profile from AuthContext to avoid depending only on
-  // Cognito's LastAuthUser marker, and hydrate the session before updating attributes.
-  const user = getUser(input.profile.email);
+  // Update the user that Cognito actually has cached: its username may differ
+  // from the profile email. Fall back to the email only if the marker is missing.
+  const user = pool.getCurrentUser() ?? getUser(input.profile.email);
 
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
@@ -122,10 +122,15 @@ export function updateAccountProfile(input: {
 
   return new Promise<CognitoProfile>((resolve, reject) =>
     user.getSession((sessionError: Error | null, session: CognitoUserSession | null) => {
-      if (sessionError || !session?.isValid())
+      if (sessionError || !session?.isValid()) {
+        console.error(
+          'No se pudo cargar la sesión de Cognito para actualizar el perfil:',
+          sessionError,
+        );
         return reject(
           new Error('Tu sesión expiró. Vuelve a iniciar sesión para guardar tus datos.'),
         );
+      }
       user.updateAttributes(attributes, (error) => {
         if (error) return reject(error);
         resolve({ ...input.profile, firstName, lastName, phone });

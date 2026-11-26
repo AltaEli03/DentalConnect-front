@@ -154,6 +154,27 @@ describe('cognito session persistence', () => {
     await expect(pending).resolves.toMatchObject({ firstName: 'Ana', lastName: 'Pérez' });
   });
 
+  it('updates the stored Cognito user even when its username is not the profile email', async () => {
+    const { updateAccountProfile } = await loadCognito();
+    const storedUser = new mocks.CognitoUserMock({
+      Username: 'cognito-user-uuid',
+      Pool: mocks.pools[0],
+      Storage: window.localStorage,
+    });
+    mocks.state.currentUser = storedUser;
+
+    await updateAccountProfile({
+      profile,
+      firstName: 'Ana',
+      lastName: 'Pérez',
+      phone: '5512345678',
+    });
+
+    expect(storedUser.getSession).toHaveBeenCalledTimes(1);
+    expect(storedUser.updateAttributes).toHaveBeenCalledTimes(1);
+    expect(mocks.users).toHaveLength(1);
+  });
+
   it('rejects without calling Cognito when the cached session is not valid', async () => {
     mocks.state.validSession = false;
     const { updateAccountProfile } = await loadCognito();
