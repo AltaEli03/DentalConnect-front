@@ -30,7 +30,7 @@ const cognitoStorage = {
 const storage = cognitoStorage;
 
 export const SESSION_MAX_MS = 15 * 60 * 1000;
-export const REMEMBERED_SESSION_MAX_MS = 5 * 24 * 60 * 60 * 1000;
+export const REMEMBERED_SESSION_MAX_MS = 24 * 60 * 60 * 1000;
 export const SESSION_STARTED_KEY = 'dentalconnect-session-started-at';
 
 const pool = new CognitoUserPool({
@@ -181,7 +181,7 @@ export function updateAccountProfile(input: {
         clearStoredSession(user);
         return reject(
           new Error(
-            `Tu sesión superó el máximo de ${rememberSession ? '5 días' : '15 minutos'}. Inicia sesión de nuevo.`,
+            `Tu sesión superó el máximo de ${rememberSession ? '24 horas' : '15 minutos'}. Inicia sesión de nuevo.`,
           ),
         );
       }

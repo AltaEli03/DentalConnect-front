@@ -232,7 +232,7 @@ describe('cognito session persistence', () => {
     expect(user.signOut).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a remembered session through day four', async () => {
+  it('keeps a remembered session through hour 23', async () => {
     window.localStorage.setItem(
       'CognitoIdentityServiceProvider.2ldk42uud5g41rqepe4o4salkg.LastAuthUser',
       'ana@example.com',
@@ -244,10 +244,10 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 4 * 24 * 60 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 23 * 60 * 60 * 1000) / 1000);
 
     await expect(currentUser()).resolves.toMatchObject({ email: 'ana@example.com' });
-    expect(REMEMBERED_SESSION_MAX_MS).toBe(5 * 24 * 60 * 60 * 1000);
+    expect(REMEMBERED_SESSION_MAX_MS).toBe(24 * 60 * 60 * 1000);
     expect(user.signOut).not.toHaveBeenCalled();
   });
 
@@ -263,7 +263,7 @@ describe('cognito session persistence', () => {
       Storage: window.localStorage,
     });
     mocks.state.currentUser = user;
-    mocks.state.authTime = Math.floor((Date.now() - 6 * 24 * 60 * 60 * 1000) / 1000);
+    mocks.state.authTime = Math.floor((Date.now() - 25 * 60 * 60 * 1000) / 1000);
 
     await expect(currentIdToken()).resolves.toBeNull();
     expect(user.signOut).toHaveBeenCalledTimes(1);
