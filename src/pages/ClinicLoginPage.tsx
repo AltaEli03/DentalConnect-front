@@ -12,6 +12,7 @@ export function ClinicLoginPage() {
   const nav = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberSession, setRememberSession] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -20,7 +21,7 @@ export function ClinicLoginPage() {
     setBusy(true);
     setError('');
     try {
-      const profile = await signIn(email.trim(), password);
+      const profile = await signIn(email.trim(), password, rememberSession);
       if (!isClinicAdmin(profile.role)) {
         signOut();
         setError('Esta cuenta es de paciente. Usa el acceso de pacientes.');
@@ -73,6 +74,14 @@ export function ClinicLoginPage() {
           autoComplete="current-password"
           hint="Usa la contraseña de tu cuenta de consultorio."
         />
+        <label className="remember-session">
+          <input
+            type="checkbox"
+            checked={rememberSession}
+            onChange={(event) => setRememberSession(event.target.checked)}
+          />
+          Mantener sesión en este dispositivo (solo si es privado)
+        </label>
         {error && (
           <div className="alert alert-error" role="alert">
             {error}

@@ -6,15 +6,31 @@ import {
   CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
-const storage = window.localStorage;
+const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS';
+const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg';
+const storagePrefix = 'CognitoIdentityServiceProvider.' + clientId + '.';
+let rememberSession = Boolean(window.localStorage.getItem('CognitoIdentityServiceProvider.' + clientId + '.LastAuthUser'));
+const clearCognitoStorage = (storage: Storage) => {
+  for (let index = storage.length - 1; index >= 0; index -= 1) {
+    const key = storage.key(index);
+    if (key?.startsWith(storagePrefix)) storage.removeItem(key);
+  }
+};
+const cognitoStorage = {
+  getItem: (key: string) => (rememberSession ? window.localStorage : window.sessionStorage).getItem(key),
+  setItem: (key: string, value: string) => (rememberSession ? window.localStorage : window.sessionStorage).setItem(key, value),
+  removeItem: (key: string) => (rememberSession ? window.localStorage : window.sessionStorage).removeItem(key),
+  clear: () => clearCognitoStorage(rememberSession ? window.localStorage : window.sessionStorage),
+};
+const storage = cognitoStorage;
 
-export const SESSION_MAX_MS = 15 * 60 * 1000;
+export const SESSION_MAX_MS = 5 * 24 * 60 * 60 * 1000;
 export const SESSION_STARTED_KEY = 'dentalconnect-session-started-at';
 
 const pool = new CognitoUserPool({
-  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS',
-  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg',
-  Storage: storage,
+  UserPoolId: userPoolId,
+  ClientId: clientId,
+  Storage: cognitoStorage,
 });
 
 function normalizePhone(phone: string) {
@@ -45,7 +61,7 @@ export function signUp(input: {
 
 function getUser(email: string) {
   // Same storage as the pool, or getCurrentUser() cannot find the cached session on reload or another tab.
-  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool, Storage: storage });
+  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool, Storage: cognitoStorage });
 }
 export function confirm(email: string, code: string) {
   return new Promise<void>((resolve, reject) =>
@@ -152,7 +168,7 @@ export function updateAccountProfile(input: {
       if (!profile.expiresAt || Date.now() >= profile.expiresAt) {
         clearStoredSession(user);
         return reject(
-          new Error('Tu sesión superó el máximo de 15 minutos. Inicia sesión de nuevo.'),
+          new Error('Tu sesión superó el máximo de 5 días. Inicia sesión de nuevo.'),
         );
       }
       user.updateAttributes(attributes, (error) => {
@@ -162,7 +178,9 @@ export function updateAccountProfile(input: {
     }),
   );
 }
-export function signIn(email: string, password: string) {
+export function signIn(email: string, password: string, rememberMe = false) {
+  clearCognitoStorage(rememberMe ? window.sessionStorage : window.localStorage);
+  rememberSession = rememberMe;
   const user = getUser(email);
   return new Promise<CognitoProfile>((resolve, reject) =>
     user.authenticateUser(
@@ -226,7 +244,11 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  clearStoredSession();
+    clearStoredSession();
+  clearCognitoStorage(window.localStorage);
+  clearCognitoStorage(window.sessionStorage);
+  
+  
 }
 
 export function currentIdToken() {
