@@ -55,7 +55,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     );
   }
   const result = response.status === 204 ? undefined : await response.json();
-  if (options.method && options.method.toUpperCase() !== 'GET') {
+  if (
+    options.method &&
+    options.method.toUpperCase() !== 'GET' &&
+    !path.startsWith('/push/')
+  ) {
     const title = path.startsWith('/appointments')
       ? 'Solicitud completada'
       : path.startsWith('/notifications')
@@ -109,6 +113,14 @@ export const api = {
     request<{ data: UserNotification[]; unreadCount: number }>(
       `/notifications?take=100${unreadOnly ? '&unreadOnly=true' : ''}`,
     ),
+  pushConfig: () =>
+    request<{ data: { configured: boolean; publicKey?: string } }>('/push/config'),
+  pushSubscriptionStatus: () =>
+    request<{ data: { enabled: boolean; devices: number } }>('/push/subscriptions/me'),
+  savePushSubscription: (subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
+    request('/push/subscriptions', { method: 'PUT', body: JSON.stringify(subscription) }),
+  removePushSubscription: (endpoint: string) =>
+    request('/push/subscriptions', { method: 'DELETE', body: JSON.stringify({ endpoint }) }),
   markNotificationRead: (id: string) =>
     request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' }),
   markAllNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),

@@ -198,16 +198,16 @@ export function ClinicListPage() {
           >
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
               <label className="grid gap-1.5 text-sm font-semibold text-ink">
-                Zona o código postal
+                Nombre, zona o código postal
                 <input
                   id="search"
                   name="search"
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Ciudad, colonia o código postal"
+                  placeholder="Consultorio, ciudad, colonia o C.P."
                   maxLength={120}
-                  autoComplete="postal-code"
+                  autoComplete="off"
                   className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
                 />
               </label>
