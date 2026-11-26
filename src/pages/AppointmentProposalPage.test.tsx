@@ -63,6 +63,7 @@ const proposalGets = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.setSystemTime(new Date('2026-11-19T12:00:00.000Z'));
   vi.mocked(currentUser).mockResolvedValue(profile);
   vi.mocked(currentIdToken).mockResolvedValue('token');
 });
