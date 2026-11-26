@@ -22,6 +22,7 @@ const cognitoStorage = {
   removeItem: (key: string) => (rememberSession ? window.localStorage : window.sessionStorage).removeItem(key),
   clear: () => clearCognitoStorage(rememberSession ? window.localStorage : window.sessionStorage),
 };
+const storage = cognitoStorage;
 
 export const SESSION_MAX_MS = 15 * 60 * 1000;
 export const SESSION_STARTED_KEY = 'dentalconnect-session-started-at';
@@ -243,11 +244,11 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  pool.getCurrentUser()?.signOut();
+    clearStoredSession();
   clearCognitoStorage(window.localStorage);
   clearCognitoStorage(window.sessionStorage);
   
-  clearStoredSession();
+  
 }
 
 export function currentIdToken() {
