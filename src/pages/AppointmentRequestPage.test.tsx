@@ -84,6 +84,7 @@ const chooseSlot = async () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.setSystemTime(new Date('2026-11-19T12:00:00.000Z'));
   vi.mocked(currentUser).mockResolvedValue({
     email: 'paciente@example.com',
     firstName: 'Ana',
