@@ -14,6 +14,46 @@ resource "aws_cloudfront_origin_access_control" "site" {
   signing_behavior = "always"
   signing_protocol = "sigv4"
 }
+resource "aws_cloudfront_response_headers_policy" "security" {
+  name = "${var.project_name}-security-headers"
+
+  security_headers_config {
+    content_type_options { override = true }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "Content-Security-Policy"
+      value    = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      override = true
+    }
+    items {
+      header   = "Permissions-Policy"
+      value    = "camera=(), microphone=(), geolocation=(self), payment=(), usb=()"
+      override = true
+    }
+    items {
+      header   = "X-Permitted-Cross-Domain-Policies"
+      value    = "none"
+      override = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled = true
   default_root_object = "index.html"
@@ -27,6 +67,7 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods = ["GET", "HEAD"]
     target_origin_id = "s3-site"
     viewer_protocol_policy = "redirect-to-https"
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
     forwarded_values {
       query_string = false
       cookies { forward = "none" }

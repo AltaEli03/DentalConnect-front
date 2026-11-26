@@ -7,22 +7,7 @@
     <!-- Color de la barra de estado en móviles (Theme Color VIP) -->
     <meta name="theme-color" content="#003B4A" />
     <meta name="color-scheme" content="light dark" />
-    <script>
-      (function () {
-        try {
-          var preference = localStorage.getItem('dentalconnect-theme') || 'system';
-          var dark =
-            preference === 'dark' ||
-            (preference === 'system' &&
-              window.matchMedia &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches);
-          document.documentElement.classList.toggle('dark', dark);
-          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-        } catch (error) {
-          /* Private mode: the app applies the system theme when it mounts. */
-        }
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
 
     <!-- Información clara para buscadores y vistas previas -->
     <title>DentalConnect | Encuentra tu consultorio ideal</title>
