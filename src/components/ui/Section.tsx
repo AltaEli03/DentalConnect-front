@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 type SectionProps = {
+  id?: string;
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
@@ -9,6 +10,7 @@ type SectionProps = {
 };
 
 export function Section({
+  id,
   title,
   description,
   actions,
@@ -16,7 +18,7 @@ export function Section({
   className = '',
 }: SectionProps) {
   return (
-    <section className={`border-t border-line pt-6 ${className}`}>
+    <section id={id} className={`border-t border-line pt-6 ${className}`}>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold text-heading">{title}</h2>
