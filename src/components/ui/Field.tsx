@@ -10,6 +10,7 @@ type FieldProps = {
   error?: string;
   required?: boolean;
   className?: string;
+  labelClassName?: string;
   children: ReactElement;
 };
 
@@ -20,6 +21,7 @@ export function Field({
   error,
   required = false,
   className = '',
+  labelClassName = 'text-sm font-semibold text-ink',
   children,
 }: FieldProps) {
   const describedBy =
@@ -32,7 +34,7 @@ export function Field({
 
   return (
     <div className={`grid gap-1.5 ${className}`}>
-      <label htmlFor={id} className="text-sm font-semibold text-ink">
+      <label htmlFor={id} className={labelClassName}>
         {label}
         {required && (
           <span aria-hidden="true" className="text-danger-text">

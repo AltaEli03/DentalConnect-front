@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { ClinicCard } from '../components/ClinicCard';
-import { Button, buttonStyles } from '../components/ui/Button';
+import { Button } from '../components/ui/Button';
+import { Field, controlClass } from '../components/ui/Field';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
@@ -196,26 +197,30 @@ export function ClinicListPage() {
 
   return (
     <main>
-      <section className="border-b border-line bg-gradient-to-b from-surface to-canvas">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
-          <p className="inline-flex rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-sm font-semibold text-accent-strong">
-            Atención dental
+      <section className="border-b border-line bg-canvas">
+        <div className="mx-auto w-full max-w-[1180px] px-5 pb-8 pt-12 sm:px-8 lg:pb-10 lg:pt-14">
+          <p className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.17em] text-accent-strong">
+            <span className="w-6 border-t border-accent" aria-hidden="true" />
+            Directorio dental
           </p>
-          <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold tracking-tight text-heading sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 max-w-[16ch] font-display text-[clamp(2.25rem,4.8vw,3.375rem)] font-bold leading-[1.03] tracking-[-0.04em] text-heading">
             Encuentra tu consultorio dental.
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
-            Busca por zona o servicio.
+          <p className="mt-3 max-w-[50ch] text-base leading-relaxed text-muted">
+            Compara servicios, ubicación y especialistas antes de solicitar tu cita.
           </p>
 
           <form
             onSubmit={submit}
-            className="mt-8 rounded-card border border-line bg-surface p-4 shadow-sm sm:p-5"
+            className="mt-8 rounded-panel border border-line bg-surface p-3.5"
             aria-label="Buscar consultorios"
           >
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
-              <label className="grid gap-1.5 text-sm font-semibold text-ink">
-                Nombre, zona o código postal
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.75fr)_auto] md:items-end">
+              <Field
+                id="search"
+                label="Nombre, zona o código postal"
+                labelClassName="text-[10px] font-semibold uppercase tracking-[0.13em] text-subtle"
+              >
                 <input
                   id="search"
                   name="search"
@@ -225,17 +230,20 @@ export function ClinicListPage() {
                   placeholder="Consultorio, ciudad, colonia o C.P."
                   maxLength={120}
                   autoComplete="off"
-                  className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                  className={controlClass}
                 />
-              </label>
-              <label className="grid gap-1.5 text-sm font-semibold text-ink">
-                Servicio dental
+              </Field>
+              <Field
+                id="service-filter"
+                label="Servicio dental"
+                labelClassName="text-[10px] font-semibold uppercase tracking-[0.13em] text-subtle"
+              >
                 <select
                   id="service-filter"
                   name="serviceId"
                   value={selectedService}
                   onChange={(event) => setSelectedService(event.target.value)}
-                  className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                  className={controlClass}
                 >
                   <option value="">Todos los servicios</option>
                   {services.map((service) => (
@@ -244,72 +252,75 @@ export function ClinicListPage() {
                     </option>
                   ))}
                 </select>
-              </label>
-              <Button type="submit" className="md:min-w-32">
+              </Field>
+              <Button type="submit" className="md:min-w-28">
                 Buscar
               </Button>
             </div>
-          </form>
 
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={searchNearby}
-              disabled={locating}
-              loading={locating}
-            >
-              {locating ? 'Buscando cerca de ti…' : 'Usar mi ubicación'}
-            </Button>
-            {(search || selectedService) && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-sm font-semibold text-accent-strong underline underline-offset-4 hover:text-heading"
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={searchNearby}
+                disabled={locating}
+                loading={locating}
               >
-                Limpiar filtros
-              </button>
-            )}
-            {locationMessage && (
-              <p role="status" className="text-sm leading-relaxed text-muted">
-                {locationMessage}
-              </p>
-            )}
-          </div>
+                {locating ? 'Buscando cerca de ti…' : 'Usar mi ubicación'}
+              </Button>
+              {(search || selectedService) && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-sm font-semibold text-accent-strong underline underline-offset-4 hover:text-heading"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+              {locationMessage && (
+                <p role="status" className="text-sm leading-relaxed text-muted">
+                  {locationMessage}
+                </p>
+              )}
+            </div>
+          </form>
         </div>
       </section>
 
       <section
         ref={resultsRef}
-        className="mx-auto max-w-6xl scroll-mt-20 px-4 py-10 sm:px-6"
+        className="mx-auto w-full max-w-[1180px] scroll-mt-20 px-5 py-10 sm:px-8"
         aria-live="polite"
         aria-busy={loading}
       >
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-          <h2 className="font-display text-2xl font-semibold text-heading">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 pb-3">
+          <h2 className="font-display text-2xl font-bold tracking-[-0.025em] text-heading">
             {nearby ? 'Cerca de ti' : 'Resultados'}
           </h2>
           {!loading && !error && (
-            <p className="text-sm text-muted">
+            <p className="text-[11px] uppercase tracking-[0.13em] text-subtle">
               {pagination.totalItems} {pagination.totalItems === 1 ? 'consultorio' : 'consultorios'}
             </p>
           )}
         </div>
 
         {loading && (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3" role="status">
+          <div
+            className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
+            role="status"
+          >
             <p className="sr-only">Cargando consultorios…</p>
-            {Array.from({ length: 3 }, (_, index) => (
+            {Array.from({ length: 6 }, (_, index) => (
               <div
                 key={index}
-                className="overflow-hidden rounded-card border border-line bg-surface p-4"
+                className="overflow-hidden rounded-card border border-line bg-surface"
               >
                 <Skeleton className="aspect-[16/9] w-full" />
-                <div className="grid content-start gap-3 pt-4">
-                  <Skeleton className="h-4 w-2/5" />
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-4/5" />
+                <div className="grid content-start gap-3 p-[18px]">
+                  <Skeleton className="h-3 w-2/5" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
                 </div>
               </div>
             ))}
@@ -317,7 +328,7 @@ export function ClinicListPage() {
         )}
 
         {!loading && error && (
-          <Notice tone="error" title="No pudimos cargar el directorio" className="mt-6">
+          <Notice tone="error" title="No pudimos cargar el directorio" className="mt-5">
             <p>{error}</p>
             <Button
               variant="outline"
@@ -331,14 +342,14 @@ export function ClinicListPage() {
         )}
 
         {!loading && !error && clinics.length === 0 && (
-          <Notice tone="info" className="mt-6">
+          <Notice tone="info" className="mt-5">
             No hay resultados. Prueba otra zona o servicio.
           </Notice>
         )}
 
         {!loading && !error && clinics.length > 0 && (
           <>
-            <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {visibleClinics.map((clinic, index) => (
                 <li key={clinic.id} className="min-w-0">
                   <ClinicCard
@@ -351,19 +362,19 @@ export function ClinicListPage() {
             </ul>
 
             <div className="mt-6 flex flex-col items-center gap-3">
-              <p className="text-sm text-muted">
-                Mostrando {pagination.totalItems ? start + 1 : 0}–{Math.min(start + PAGE_SIZE, pagination.totalItems)} de{' '}
-                {pagination.totalItems}
+              <p className="text-[11px] text-subtle">
+                Mostrando {pagination.totalItems ? start + 1 : 0}–
+                {Math.min(start + PAGE_SIZE, pagination.totalItems)} de {pagination.totalItems}
               </p>
               {totalPages > 1 && (
                 <nav
                   aria-label="Paginación de consultorios"
-                  className="flex flex-wrap items-center justify-center gap-2"
+                  className="flex flex-wrap items-center justify-center gap-1"
                 >
                   <button
                     type="button"
                     aria-label="Página anterior"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2 text-sm font-semibold text-subtle hover:bg-surface-soft hover:text-heading disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={currentPage === 1}
                     onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   >
@@ -371,11 +382,7 @@ export function ClinicListPage() {
                   </button>
                   {getPageItems(currentPage, totalPages).map((item, index) =>
                     item === 'ellipsis' ? (
-                      <span
-                        key={`ellipsis-${index}`}
-                        aria-hidden="true"
-                        className="px-1 text-muted"
-                      >
+                      <span key={`ellipsis-${index}`} aria-hidden="true" className="px-1 text-subtle">
                         …
                       </span>
                     ) : (
@@ -384,11 +391,11 @@ export function ClinicListPage() {
                         type="button"
                         aria-label={`Página ${item}`}
                         aria-current={item === currentPage ? 'page' : undefined}
-                        className={buttonStyles(
-                          item === currentPage ? 'primary' : 'outline',
-                          'sm',
-                          'min-h-11 min-w-11',
-                        )}
+                        className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2 text-sm font-semibold ${
+                          item === currentPage
+                            ? 'text-heading underline decoration-coral-text decoration-2 underline-offset-4'
+                            : 'text-subtle hover:bg-surface-soft hover:text-heading'
+                        }`}
                         onClick={() => goToPage(item)}
                       >
                         {item}
@@ -398,7 +405,7 @@ export function ClinicListPage() {
                   <button
                     type="button"
                     aria-label="Página siguiente"
-                    className={buttonStyles('ghost', 'sm', 'min-h-11 min-w-11 px-0')}
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2 text-sm font-semibold text-subtle hover:bg-surface-soft hover:text-heading disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={currentPage === totalPages}
                     onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
                   >

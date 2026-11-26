@@ -80,6 +80,7 @@ describe('ClinicListPage', () => {
 
     await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1', 1, 6));
     expect(await screen.findByRole('heading', { name: 'Clínica 1' })).toBeInTheDocument();
+    expect((await screen.findAllByText('$500')).length).toBeGreaterThan(0);
     expect(screen.getByLabelText('Nombre, zona o código postal')).toHaveValue('Puebla');
     expect(screen.getByLabelText('Servicio dental')).toHaveValue('service-1');
   });
