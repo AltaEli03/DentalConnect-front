@@ -40,30 +40,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2,png,svg,ico}'],
         runtimeCaching: [
           {
-            // Only public directory reads may be cached. Dentist schedules,
-            // blocks and any other clinic admin endpoint stay network-only.
-            urlPattern: ({ url, request }) => {
-              if (request.method !== 'GET') return false;
-              const path = url.pathname;
-              return (
-                path === '/api/clinics' ||
-                /^\/api\/clinics\/[^/]+$/.test(path) ||
-                /^\/api\/clinics\/[^/]+\/dentists\/[^/]+\/availability$/.test(path)
-              );
-            },
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'public-clinics',
-              networkTimeoutSeconds: 4,
-              expiration: { maxEntries: 50, maxAgeSeconds: 86400 },
-            },
-          },
-          {
-            urlPattern: /\/api\/clinics\//,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /\/api\/(appointments|auth)/,
+            // API responses carry live pagination and availability data. Never
+            // serve a stale cached response when the API is slow or unreachable.
+            urlPattern: ({ url }) => /^\/api(?:\/|$)/.test(url.pathname),
             handler: 'NetworkOnly',
           },
         ],
