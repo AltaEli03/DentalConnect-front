@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
-import { StatusBadge } from '../components/ui/StatusBadge';
+import { StatusStamp } from '../components/ui/StatusStamp';
 import { api, ApiError } from '../services/api';
 import { formatDateTime } from '../lib/appointments';
 import type { AppointmentProposal } from '../types/api';
@@ -113,7 +113,7 @@ export function AppointmentProposalPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <section className="rounded-card border border-line bg-surface p-6 shadow-sm">
+        <section className="rounded-panel border border-line bg-surface p-6">
           <h1 className="font-display text-3xl font-semibold text-heading">Mi solicitud</h1>
           {error ? (
             <Notice tone="error" className="mt-4">
@@ -145,10 +145,10 @@ export function AppointmentProposalPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
       <section
-        className="overflow-hidden rounded-card border border-line bg-surface shadow-sm"
+        className="overflow-hidden rounded-panel border border-line bg-surface"
         aria-label="Mi solicitud"
       >
-        <header className="border-b border-dashed border-line bg-gradient-to-b from-surface to-canvas p-5 sm:p-6">
+        <header className="border-b border-line p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-accent-strong">Respuesta a propuesta</p>
@@ -156,7 +156,7 @@ export function AppointmentProposalPage() {
                 {appointment ? `Solicitud ${appointment.folio}` : 'Solicitud de cita'}
               </h1>
             </div>
-            {appointment && <StatusBadge status={status} />}
+            {appointment && <StatusStamp status={status} />}
           </div>
         </header>
 
@@ -224,15 +224,19 @@ export function AppointmentProposalPage() {
                 Revisa el cambio de horario
               </h2>
 
-              <dl className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-control border border-dashed border-line-strong bg-canvas p-4">
-                  <dt className="text-sm font-semibold text-muted">Horario original:</dt>
+              <dl className="grid gap-4 border-y border-line py-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle">
+                    Horario original:
+                  </dt>
                   <dd className="mt-1 font-semibold text-heading">
                     {formatDateTime(appointment.startsAt)} – {formatDateTime(appointment.endsAt)}
                   </dd>
                 </div>
-                <div className="rounded-control border border-accent/40 bg-accent/5 p-4">
-                  <dt className="text-sm font-semibold text-accent-strong">Horario propuesto:</dt>
+                <div className="sm:border-l sm:border-line sm:pl-6">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-strong">
+                    Horario propuesto:
+                  </dt>
                   <dd className="mt-1 font-semibold text-heading">
                     {formatDateTime(appointment.proposedStartsAt)} –{' '}
                     {formatDateTime(appointment.proposedEndsAt)}
@@ -241,15 +245,12 @@ export function AppointmentProposalPage() {
               </dl>
 
               {appointment.proposalExpiresAt && (
-                <Notice tone="info" role="note" title="Vence:">
+                <Notice tone="warning" role="note" title="Vence:">
                   {formatDateTime(appointment.proposalExpiresAt)}
                 </Notice>
               )}
 
-              <section
-                className="rounded-card border border-line bg-canvas p-4"
-                aria-label="Responder propuesta"
-              >
+              <section className="border-t border-line pt-5" aria-label="Responder propuesta">
                 <h2 className="font-display text-lg font-semibold text-heading">
                   ¿Aceptas el nuevo horario?
                 </h2>
