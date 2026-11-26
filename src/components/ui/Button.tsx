@@ -4,18 +4,18 @@ export type ButtonVariant = 'primary' | 'coral' | 'outline' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line-strong disabled:text-subtle';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-control font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line-strong disabled:text-subtle';
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-brand text-white hover:bg-brand-strong',
   coral: 'bg-coral text-white hover:bg-coral-strong',
-  outline: 'border-2 border-control bg-surface text-heading hover:border-brand hover:bg-canvas',
+  outline: 'border border-control bg-surface text-heading hover:border-brand hover:bg-canvas',
   ghost: 'bg-transparent text-heading hover:bg-brand/5',
   danger: 'bg-danger text-white hover:bg-danger-strong',
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'min-h-10 px-3 text-sm',
+  sm: 'min-h-11 px-3 text-sm',
   md: 'min-h-11 px-5 text-base',
 };
 

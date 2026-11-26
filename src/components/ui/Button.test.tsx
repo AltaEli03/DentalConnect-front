@@ -28,4 +28,9 @@ describe('Button', () => {
       'bg-coral',
     );
   });
+
+  it('keeps a 44px target for the small size', () => {
+    render(<Button size="sm">Guardar</Button>);
+    expect(screen.getByRole('button', { name: 'Guardar' }).className).toContain('min-h-11');
+  });
 });

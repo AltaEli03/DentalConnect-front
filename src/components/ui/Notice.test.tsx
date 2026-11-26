@@ -12,4 +12,13 @@ describe('Notice', () => {
     render(<Notice tone="success">Solicitud enviada</Notice>);
     expect(screen.getByRole('status')).toHaveTextContent('Solicitud enviada');
   });
+
+  it('announces warnings politely', () => {
+    render(
+      <Notice tone="warning" title="Vence">
+        La propuesta vence hoy.
+      </Notice>,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Vence');
+  });
 });

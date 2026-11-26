@@ -29,8 +29,16 @@
   --color-heading: #003b4a;
   --color-control: #5f7484;
   --color-danger-text: #a72b24;
+  --color-danger-soft: #fef2f2;
+  --color-danger-border: #fecaca;
   --color-success-text: #065f46;
+  --color-success-soft: #ecfdf5;
+  --color-success-border: #a6d3bd;
   --color-warning-text: #9a3412;
+  --color-warning-soft: #fff7ed;
+  --color-warning-border: #fed7aa;
+  --color-info-soft: #eef8fb;
+  --color-info-border: #b7d8e4;
   --radius-card: 0.75rem;
   --radius-panel: 0.625rem;
   --radius-control: 0.375rem;
