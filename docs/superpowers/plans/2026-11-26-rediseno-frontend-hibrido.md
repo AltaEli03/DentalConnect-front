@@ -504,7 +504,8 @@ Expected: FAIL for the missing module.
 
 `ClinicCard.test.tsx` add:
 ```tsx
-expect(screen.getByText('Desde $500')).toBeInTheDocument();
+expect(screen.getByText('$500')).toBeInTheDocument();
+expect(screen.getByText(/Desde/)).toBeInTheDocument();
 ```
 Add a second render with `imageUrl: null` and `services: []`; expect the clinic initials (e.g. "CS") and no "Desde".
 `ContentImage.test.tsx` add a render with `src=null fallbackLabel="CS"`; expect `CS`.
@@ -537,7 +538,7 @@ git commit -m "feat: add clinic price and card fallback"
 
 In `ClinicListPage.test.tsx`, assert the approved card price is rendered for a clinic with `priceFrom`:
 ```tsx
-expect((await screen.findAllByText('Desde $500')).length).toBeGreaterThan(0);
+expect((await screen.findAllByText('$500')).length).toBeGreaterThan(0);
 ```
 Run: `npx vitest run src/pages/ClinicListPage.test.tsx`
 Expected: FAIL because the current card has no price.
