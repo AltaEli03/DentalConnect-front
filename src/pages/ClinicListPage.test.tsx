@@ -68,7 +68,7 @@ describe('ClinicListPage', () => {
 
     await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1'));
     expect(await screen.findByRole('heading', { name: 'Clínica 1' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Zona o código postal')).toHaveValue('Puebla');
+    expect(screen.getByLabelText('Nombre, zona o código postal')).toHaveValue('Puebla');
     expect(screen.getByLabelText('Servicio dental')).toHaveValue('service-1');
   });
 
@@ -77,7 +77,7 @@ describe('ClinicListPage', () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Clínica 1' });
 
-    fireEvent.change(screen.getByLabelText('Zona o código postal'), {
+    fireEvent.change(screen.getByLabelText('Nombre, zona o código postal'), {
       target: { value: 'Centro' },
     });
     fireEvent.change(screen.getByLabelText('Servicio dental'), {
