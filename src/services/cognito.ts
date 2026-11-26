@@ -6,10 +6,27 @@ import {
   CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
+const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS';
+const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg';
+const storagePrefix = 'CognitoIdentityServiceProvider.' + clientId + '.';
+let rememberSession = Boolean(window.localStorage.getItem('CognitoIdentityServiceProvider.' + clientId + '.LastAuthUser'));
+const clearCognitoStorage = (storage: Storage) => {
+  for (let index = storage.length - 1; index >= 0; index -= 1) {
+    const key = storage.key(index);
+    if (key?.startsWith(storagePrefix)) storage.removeItem(key);
+  }
+};
+const cognitoStorage = {
+  getItem: (key: string) => (rememberSession ? window.localStorage : window.sessionStorage).getItem(key),
+  setItem: (key: string, value: string) => (rememberSession ? window.localStorage : window.sessionStorage).setItem(key, value),
+  removeItem: (key: string) => (rememberSession ? window.localStorage : window.sessionStorage).removeItem(key),
+  clear: () => clearCognitoStorage(rememberSession ? window.localStorage : window.sessionStorage),
+};
+
 const pool = new CognitoUserPool({
-  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS',
-  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg',
-  Storage: window.sessionStorage,
+  UserPoolId: userPoolId,
+  ClientId: clientId,
+  Storage: cognitoStorage,
 });
 
 let activeCognitoUser: CognitoUser | null = null;
@@ -128,7 +145,9 @@ export function updateAccountProfile(input: {
     }),
   );
 }
-export function signIn(email: string, password: string) {
+export function signIn(email: string, password: string, rememberMe = false) {
+  clearCognitoStorage(rememberMe ? window.sessionStorage : window.localStorage);
+  rememberSession = rememberMe;
   const user = getUser(email);
   return new Promise<CognitoProfile>((resolve, reject) =>
     user.authenticateUser(
@@ -189,6 +208,8 @@ export function currentUser() {
 }
 export function signOut() {
   (activeCognitoUser ?? pool.getCurrentUser())?.signOut();
+  clearCognitoStorage(window.localStorage);
+  clearCognitoStorage(window.sessionStorage);
   activeCognitoUser = null;
 }
 
