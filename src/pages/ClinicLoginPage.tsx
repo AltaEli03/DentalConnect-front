@@ -80,7 +80,8 @@ export function ClinicLoginPage() {
             checked={rememberSession}
             onChange={(event) => setRememberSession(event.target.checked)}
           />
-          Mantener sesión en este dispositivo (solo si es privado)
+          Mantener sesión 5 días en este dispositivo (solo si es privado). Sin marcar, dura 15
+          minutos.
         </label>
         {error && (
           <div className="alert alert-error" role="alert">
