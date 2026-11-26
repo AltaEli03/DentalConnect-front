@@ -33,6 +33,10 @@ export function NotificationsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [pushState, setPushState] = useState<
+    'loading' | 'unsupported' | 'unconfigured' | 'disabled' | 'enabled' | 'working' | 'error'
+  >('loading');
+  const [pushMessage, setPushMessage] = useState('');
   const clinicMode = isClinicAdmin(user?.role);
 
   const load = useCallback(async () => {
@@ -56,6 +60,92 @@ export function NotificationsPage() {
     }
     void load();
   }, [attempt, load, user]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      setPushState('unsupported');
+      return;
+    }
+    void Promise.all([
+      api.pushConfig(),
+      api.pushSubscriptionStatus(),
+      navigator.serviceWorker.register('/sw.js'),
+    ])
+      .then(async ([config, serverStatus, registration]) => {
+        if (!active) return;
+        if (!config.data.configured || !config.data.publicKey) {
+          setPushState('unconfigured');
+          return;
+        }
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          if (!serverStatus.data.enabled) {
+            await api.savePushSubscription(subscription.toJSON() as {
+              endpoint: string;
+              keys: { p256dh: string; auth: string };
+            });
+          }
+          setPushState('enabled');
+        } else {
+          setPushState('disabled');
+        }
+      })
+      .catch(() => {
+        if (active) setPushState('error');
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const togglePush = async () => {
+    if (!user || pushState === 'working') return;
+    setPushState('working');
+    setPushMessage('');
+    try {
+      const config = await api.pushConfig();
+      if (!config.data.configured || !config.data.publicKey) {
+        setPushState('unconfigured');
+        return;
+      }
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      const current = await registration.pushManager.getSubscription();
+      if (current) {
+        await api.removePushSubscription(current.endpoint);
+        await current.unsubscribe();
+        setPushState('disabled');
+        setPushMessage('Notificaciones desactivadas en este dispositivo.');
+        return;
+      }
+      const permission =
+        Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
+      if (permission !== 'granted') {
+        setPushState('disabled');
+        setPushMessage('El permiso no está activo. Puedes habilitarlo en la configuración del navegador.');
+        return;
+      }
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(config.data.publicKey),
+      });
+      const serialized = subscription.toJSON();
+      if (!serialized.endpoint || !serialized.keys?.p256dh || !serialized.keys.auth) {
+        await subscription.unsubscribe();
+        throw new Error('El navegador no devolvió una suscripción válida.');
+      }
+      await api.savePushSubscription({
+        endpoint: serialized.endpoint,
+        keys: { p256dh: serialized.keys.p256dh, auth: serialized.keys.auth },
+      });
+      setPushState('enabled');
+      setPushMessage('Recibirás avisos de tus citas en este dispositivo.');
+    } catch (cause) {
+      setPushState('error');
+      setPushMessage(cause instanceof Error ? cause.message : 'No fue posible configurar las notificaciones.');
+    }
+  };
 
   const markRead = async (notification: UserNotification) => {
     setBusy(true);
@@ -152,6 +242,49 @@ export function NotificationsPage() {
         </div>
       </header>
 
+      <section className="mt-5 rounded-card border border-line bg-surface p-4 sm:p-5" aria-labelledby="push-title">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="push-title" className="font-semibold text-heading">Avisos en este dispositivo</h2>
+            <p className="mt-1 text-sm text-muted">
+              Recibe cambios de tus citas aunque DentalConnect no esté abierto.
+            </p>
+          </div>
+          {pushState !== 'unsupported' && pushState !== 'unconfigured' && (
+            <button
+              type="button"
+              className={buttonStyles(pushState === 'enabled' ? 'outline' : 'primary', 'sm')}
+              disabled={pushState === 'loading' || pushState === 'working' || authLoading}
+              onClick={() => void togglePush()}
+            >
+              {pushState === 'loading' || pushState === 'working'
+                ? 'Configurando…'
+                : pushState === 'enabled'
+                  ? 'Desactivar avisos'
+                  : 'Activar avisos'}
+            </button>
+          )}
+        </div>
+        {pushState === 'unconfigured' && (
+          <p className="mt-3 text-sm text-muted" role="status">
+            Las notificaciones push aún no están configuradas en el servicio.
+          </p>
+        )}
+        {pushState === 'unsupported' && (
+          <p className="mt-3 text-sm text-muted" role="status">
+            Este navegador no admite notificaciones push. Tus avisos seguirán disponibles aquí.
+          </p>
+        )}
+        {pushState === 'error' && (
+          <p className="mt-3 text-sm text-danger" role="alert">
+            {pushMessage || 'No pudimos consultar el estado de las notificaciones.'}
+          </p>
+        )}
+        {pushMessage && pushState !== 'error' && (
+          <p className="mt-3 text-sm text-muted" role="status" aria-live="polite">{pushMessage}</p>
+        )}
+      </section>
+
       {loading && (
         <div className="mt-6 grid gap-3" role="status" aria-live="polite">
           <p className="sr-only">Cargando avisos…</p>
@@ -228,4 +361,11 @@ export function NotificationsPage() {
       )}
     </main>
   );
+}
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from(rawData, (character) => character.charCodeAt(0));
 }
