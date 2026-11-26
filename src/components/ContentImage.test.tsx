@@ -8,6 +8,11 @@ describe('ContentImage', () => {
     expect(screen.getByRole('img', { name: /Imagen no disponible/ })).toBeInTheDocument();
   });
 
+  it('uses the provided initials in the placeholder', () => {
+    render(<ContentImage alt="Consultorio" fallbackLabel="CS" />);
+    expect(screen.getByText('CS')).toBeInTheDocument();
+  });
+
   it('falls back when the image fails to load', () => {
     render(<ContentImage src="https://example.com/broken.jpg" alt="Consultorio" />);
     fireEvent.error(screen.getByRole('img', { name: 'Consultorio' }));

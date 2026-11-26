@@ -5,9 +5,16 @@ type ContentImageProps = {
   alt: string;
   className?: string;
   priority?: boolean;
+  fallbackLabel?: string;
 };
 
-export function ContentImage({ src, alt, className = '', priority = false }: ContentImageProps) {
+export function ContentImage({
+  src,
+  alt,
+  className = '',
+  priority = false,
+  fallbackLabel,
+}: ContentImageProps) {
   const [failedSource, setFailedSource] = useState('');
 
   if (!src || failedSource === src) {
@@ -18,7 +25,7 @@ export function ContentImage({ src, alt, className = '', priority = false }: Con
         aria-label={`${alt}. Imagen no disponible`}
       >
         <span className="font-display text-2xl font-bold text-heading/30" aria-hidden="true">
-          DC
+          {fallbackLabel ?? 'DC'}
         </span>
         <span className="text-xs font-medium">Imagen no disponible</span>
       </div>
