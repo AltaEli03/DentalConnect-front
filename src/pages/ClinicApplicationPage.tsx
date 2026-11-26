@@ -79,8 +79,7 @@ export function ClinicApplicationPage() {
   if (loading) return <section className="page-section" aria-busy="true"><p role="status">Comprobando sesión…</p></section>;
   if (!user) return <AuthLayout
     title="Solicita el registro de tu consultorio"
-    visualTitle="Conecta tu consultorio con nuevos pacientes."
-    visualText="Publica tus servicios y equipo para que las personas encuentren la atención que necesitan."
+    description="Publica tus servicios y equipo para que las personas encuentren la atención que necesitan."
   >
     <div className="clinic-access-content">
       <p className="clinic-access-intro">Usarás una sola cuenta verificada para registrar tu consultorio y administrarlo desde DentalConnect.</p>

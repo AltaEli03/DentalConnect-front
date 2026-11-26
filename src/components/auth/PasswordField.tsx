@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { passwordChecks } from '../../lib/password';
+import { controlClass } from '../ui/Field';
+import { Icon } from '../ui/Icon';
 
 type PasswordFieldProps = {
   id: string;
@@ -16,37 +18,6 @@ type PasswordFieldProps = {
   minLength?: number;
   maxLength?: number;
 };
-
-const EyeIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeOffIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    aria-hidden="true"
-  >
-    <path d="m3 3 18 18" />
-    <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17.7 17.7 0 0 1-3.2 3.8M6.2 6.2A17.4 17.4 0 0 0 2 12s3.5 6 10 6a10.6 10.6 0 0 0 4.2-.9" />
-    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-  </svg>
-);
 
 export function PasswordField({
   id,
@@ -71,9 +42,11 @@ export function PasswordField({
   const describedBy = [hintId, requirementsId, errorId].filter(Boolean).join(' ') || undefined;
 
   return (
-    <div className="input-group">
-      <label htmlFor={id}>{label}</label>
-      <div className="password-control">
+    <div className="grid gap-1.5">
+      <label htmlFor={id} className="text-sm font-semibold text-ink">
+        {label}
+      </label>
+      <div className="relative flex items-center">
         <input
           id={id}
           name={name ?? id}
@@ -86,37 +59,44 @@ export function PasswordField({
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
+          className={`${controlClass} pr-12`}
         />
         <button
           type="button"
-          className="password-toggle"
+          className="absolute right-0.5 inline-flex min-h-11 min-w-11 items-center justify-center rounded-control text-muted hover:bg-surface-soft hover:text-heading focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent"
           aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           aria-pressed={visible}
           aria-controls={id}
           onClick={() => setVisible((current) => !current)}
         >
-          {visible ? <EyeOffIcon /> : <EyeIcon />}
+          <Icon name={visible ? 'eye-off' : 'eye'} size={19} />
         </button>
       </div>
       {hint && (
-        <p id={hintId} className="field-hint">
+        <p id={hintId} className="text-sm leading-relaxed text-muted">
           {hint}
         </p>
       )}
       {showRequirements && (
-        <ul id={requirementsId} className="password-requirements">
-          <li data-ok={checks.length}>12 caracteres como mínimo</li>
-          <li data-ok={checks.maxLength}>Hasta 128 caracteres</li>
+        <ul id={requirementsId} className="grid gap-1 text-xs leading-relaxed">
+          <li className={checks.length ? 'text-success-text' : 'text-muted'}>
+            12 caracteres como mínimo
+          </li>
+          <li className={checks.maxLength ? 'text-success-text' : 'text-muted'}>
+            Hasta 128 caracteres
+          </li>
           {confirmValue !== undefined && (
-            <li data-ok={checks.matches}>Las contraseñas coinciden</li>
+            <li className={checks.matches ? 'text-success-text' : 'text-muted'}>
+              Las contraseñas coinciden
+            </li>
           )}
-          <li data-ok={checks.variety}>
+          <li className={checks.variety ? 'text-success-text' : 'text-muted'}>
             Combina mayúsculas, minúsculas, números o símbolos (recomendado)
           </li>
         </ul>
       )}
       {error && (
-        <p id={errorId} className="field-error" role="alert">
+        <p id={errorId} className="text-sm font-semibold text-danger-text" role="alert">
           {error}
         </p>
       )}

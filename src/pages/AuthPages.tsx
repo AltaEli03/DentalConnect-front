@@ -10,6 +10,7 @@ import {
 import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
+import { controlClass } from '../components/ui/Field';
 import { friendlyAuthError } from '../lib/authErrors';
 import { isClinicAdmin, isPatientRole } from '../lib/roles';
 
@@ -76,13 +77,12 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Inicia sesión"
-      visualTitle="Tu atención dental, más fácil de organizar."
-      visualText="Inicia sesión para consultar tus solicitudes y mantener tus datos de cuenta en un solo lugar."
+      description="Consulta tus solicitudes y mantén tus datos de cuenta en un solo lugar."
     >
-      <form onSubmit={submit} className="premium-form">
-        <div className="input-group">
-          <label htmlFor="email">Correo electrónico</label>
-          <input
+      <form onSubmit={submit} className="grid gap-4">
+        <div className="grid gap-1.5">
+          <label htmlFor="email" className="text-sm font-semibold text-ink">Correo electrónico</label>
+          <input className={controlClass}
             id="email"
             name="email"
             type="email"
@@ -101,7 +101,7 @@ export function LoginPage() {
           autoComplete="current-password"
           hint="Mínimo 12 caracteres."
         />
-        <label className="remember-session">
+        <label className="flex items-start gap-2 text-sm leading-relaxed text-muted">
           <input
             type="checkbox"
             checked={rememberSession}
@@ -111,25 +111,25 @@ export function LoginPage() {
           minutos.
         </label>
         {error && (
-          <div className="alert alert-error" role="alert">
+          <div className="rounded-control border border-danger-border bg-danger-soft px-4 py-3 text-sm font-semibold text-danger-text" role="alert">
             {error}
           </div>
         )}
-        <button className="btn btn-primary btn-full" disabled={busy} type="submit">
+        <button className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle" disabled={busy} type="submit">
           {busy ? 'Validando…' : 'Entrar'}
         </button>
       </form>
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
       </p>
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
       </p>
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         Después de iniciar sesión, DentalConnect abrirá las herramientas disponibles para el rol de
         tu cuenta.
       </p>
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         Para administrar un consultorio, inicia sesión con tu cuenta verificada y envía una
         solicitud desde <Link to="/registrar-consultorio">Registrar consultorio</Link>. El acceso se
         habilita cuando la solicitud sea aprobada.
@@ -209,14 +209,13 @@ export function RegisterPage() {
     <AuthLayout
       title="Crea tu cuenta"
       wide
-      visualTitle="Crea tu cuenta en DentalConnect."
-      visualText="Registra tus datos para verificar tu correo y solicitar atención en los consultorios disponibles."
+      description="Registra tus datos para verificar tu correo y solicitar atención en los consultorios disponibles."
     >
-      <form onSubmit={submit} className="premium-form">
-        <div className="form-row">
-          <div className="input-group">
-            <label htmlFor="firstName">Nombre</label>
-            <input
+      <form onSubmit={submit} className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <label htmlFor="firstName" className="text-sm font-semibold text-ink">Nombre</label>
+            <input className={controlClass}
               id="firstName"
               name="firstName"
               autoComplete="given-name"
@@ -227,9 +226,9 @@ export function RegisterPage() {
               placeholder="Ej. Ana"
             />
           </div>
-          <div className="input-group">
-            <label htmlFor="lastName">Apellidos</label>
-            <input
+          <div className="grid gap-1.5">
+            <label htmlFor="lastName" className="text-sm font-semibold text-ink">Apellidos</label>
+            <input className={controlClass}
               id="lastName"
               name="lastName"
               autoComplete="family-name"
@@ -241,9 +240,9 @@ export function RegisterPage() {
             />
           </div>
         </div>
-        <div className="input-group">
-          <label htmlFor="email">Correo electrónico</label>
-          <input
+        <div className="grid gap-1.5">
+          <label htmlFor="email" className="text-sm font-semibold text-ink">Correo electrónico</label>
+          <input className={controlClass}
             id="email"
             name="email"
             type="email"
@@ -255,9 +254,9 @@ export function RegisterPage() {
             placeholder="tu@correo.com"
           />
         </div>
-        <div className="input-group">
-          <label htmlFor="phone">Teléfono</label>
-          <input
+        <div className="grid gap-1.5">
+          <label htmlFor="phone" className="text-sm font-semibold text-ink">Teléfono</label>
+          <input className={controlClass}
             id="phone"
             name="phone"
             type="tel"
@@ -270,11 +269,11 @@ export function RegisterPage() {
             placeholder="+52 55 1234 5678"
             aria-describedby="phone-hint"
           />
-          <p id="phone-hint" className="field-hint">
+          <p id="phone-hint" className="text-sm leading-relaxed text-muted">
             Incluye lada. Ej. +52 55 1234 5678.
           </p>
         </div>
-        <div className="form-row form-row-passwords">
+        <div className="grid gap-4 sm:grid-cols-2">
           <PasswordField
             id="password"
             label="Contraseña"
@@ -296,15 +295,15 @@ export function RegisterPage() {
           />
         </div>
         {error && (
-          <div className="alert alert-error" role="alert">
+          <div className="rounded-control border border-danger-border bg-danger-soft px-4 py-3 text-sm font-semibold text-danger-text" role="alert">
             {error}
           </div>
         )}
-        <button className="btn btn-primary btn-full" disabled={busy} type="submit">
+        <button className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle" disabled={busy} type="submit">
           {busy ? 'Creando cuenta…' : 'Registrarme'}
         </button>
       </form>
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         ¿Ya tienes cuenta? <Link to="/iniciar-sesion">Inicia sesión</Link>
       </p>
     </AuthLayout>
@@ -393,13 +392,12 @@ export function VerifyPage() {
   return (
     <AuthLayout
       title="Verifica tu correo"
-      visualTitle="Verifica que el correo sea tuyo."
-      visualText="Escribe el código enviado a tu correo. La cuenta se activa cuando el código es válido."
+      description="Escribe el código enviado a tu correo. La cuenta se activa cuando el código es válido."
     >
-      <form onSubmit={verify} className="premium-form">
-        <div className="input-group">
-          <label htmlFor="vemail">Correo electrónico</label>
-          <input
+      <form onSubmit={verify} className="grid gap-4">
+        <div className="grid gap-1.5">
+          <label htmlFor="vemail" className="text-sm font-semibold text-ink">Correo electrónico</label>
+          <input className={controlClass}
             id="vemail"
             name="email"
             type="email"
@@ -409,13 +407,13 @@ export function VerifyPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="input-group">
-          <label htmlFor="code">Código de 6 dígitos</label>
+        <div className="grid gap-1.5">
+          <label htmlFor="code" className="text-sm font-semibold text-ink">Código de 6 dígitos</label>
           <input
             id="code"
             name="code"
             required
-            className="otp-input"
+            className={`${controlClass} text-center text-xl font-bold tracking-[0.5em]`}
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]{6}"
@@ -443,14 +441,14 @@ export function VerifyPage() {
             {notice}
           </div>
         )}
-        <button className="btn btn-primary btn-full" disabled={busy} type="submit" aria-busy={busy}>
+        <button className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle" disabled={busy} type="submit" aria-busy={busy}>
           {busy ? 'Verificando…' : 'Verificar cuenta'}
         </button>
       </form>
-      <div className="resend-code-action">
+      <div className="mt-3">
         <button
           type="button"
-          className="btn btn-outline"
+          className="inline-flex min-h-11 items-center justify-center rounded-control border border-control bg-surface px-4 text-sm font-semibold text-heading transition-colors hover:border-brand hover:bg-canvas"
           disabled={seconds > 0 || busy || resending || !email.trim()}
           onClick={resendCode}
           aria-busy={resending}
@@ -485,8 +483,8 @@ export function AccountPage() {
 
   if (loading)
     return (
-      <main className="page-container">
-        <p className="loading-state" role="status" aria-live="polite">
+      <main className="mx-auto w-full max-w-[1180px] px-5 py-8 sm:px-8">
+        <p className="flex min-h-32 items-center justify-center p-8 text-muted" role="status" aria-live="polite">
           Cargando sesión…
         </p>
       </main>
@@ -536,9 +534,9 @@ export function AccountPage() {
   const canEditPatientProfile = isPatientRole(user.role);
 
   return (
-    <AuthLayout title="Mi cuenta" hideVisual={true}>
-      <section className="account-card" aria-label="Datos de la cuenta">
-        <div className="account-avatar" aria-hidden="true">
+    <AuthLayout title="Mi cuenta" description="Consulta y actualiza los datos de tu cuenta.">
+      <section className="flex flex-wrap items-center gap-4 rounded-panel border border-line bg-surface p-5" aria-label="Datos de la cuenta">
+        <div className="grid size-14 shrink-0 place-items-center rounded-full bg-brand text-lg font-bold text-white" aria-hidden="true">
           {user.firstName?.[0]}
           {user.lastName?.[0]}
         </div>
@@ -547,8 +545,8 @@ export function AccountPage() {
             {user.firstName} {user.lastName}
           </h2>
           <p>{user.email}</p>
-          <span className="account-role">Rol: {user.role || 'PACIENTE'}</span>
-          <p className="account-verification">
+          <span className="inline-flex rounded-[4px] border border-line bg-surface-soft px-2 py-1 text-xs font-semibold text-heading">Rol: {user.role || 'PACIENTE'}</span>
+          <p className="text-sm text-muted">
             {user.isEmailVerified === true
               ? 'Correo verificado'
               : user.isEmailVerified === false
@@ -559,11 +557,11 @@ export function AccountPage() {
       </section>
 
       {canEditPatientProfile && (
-        <form className="account-profile-form" onSubmit={handleProfileSubmit} noValidate>
+        <form className="grid gap-4 rounded-panel border border-line bg-surface p-5" onSubmit={handleProfileSubmit} noValidate>
           <h2>Datos de contacto</h2>
           <p>Tu correo se mantiene como dato de acceso y no se puede editar aquí.</p>
-          <label htmlFor="profile-first-name">Nombre</label>
-          <input
+          <label htmlFor="profile-first-name" className="text-sm font-semibold text-ink">Nombre</label>
+          <input className={controlClass}
             id="profile-first-name"
             name="firstName"
             autoComplete="given-name"
@@ -572,8 +570,8 @@ export function AccountPage() {
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
           />
-          <label htmlFor="profile-last-name">Apellidos</label>
-          <input
+          <label htmlFor="profile-last-name" className="text-sm font-semibold text-ink">Apellidos</label>
+          <input className={controlClass}
             id="profile-last-name"
             name="lastName"
             autoComplete="family-name"
@@ -582,10 +580,10 @@ export function AccountPage() {
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
           />
-          <label htmlFor="profile-email">Correo electrónico</label>
-          <input id="profile-email" name="email" type="email" value={user.email} readOnly />
-          <label htmlFor="profile-phone">Teléfono</label>
-          <input
+          <label htmlFor="profile-email" className="text-sm font-semibold text-ink">Correo electrónico</label>
+          <input className={controlClass} id="profile-email" name="email" type="email" value={user.email} readOnly />
+          <label htmlFor="profile-phone" className="text-sm font-semibold text-ink">Teléfono</label>
+          <input className={controlClass}
             id="profile-phone"
             name="phone"
             type="tel"
@@ -600,17 +598,17 @@ export function AccountPage() {
             Ingresa entre 10 y 15 dígitos. Puedes incluir el prefijo de país.
           </small>
           {profileError && (
-            <p role="alert" className="form-error">
+            <p role="alert" className="text-sm font-semibold text-danger-text">
               {profileError}
             </p>
           )}
           {profileMessage && (
-            <p role="status" aria-live="polite" className="form-success">
+            <p role="status" aria-live="polite" className="text-sm font-semibold text-success-text">
               {profileMessage}
             </p>
           )}
           <button
-            className="btn btn-primary btn-full"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle"
             type="submit"
             disabled={savingProfile}
             aria-busy={savingProfile}
@@ -621,7 +619,7 @@ export function AccountPage() {
       )}
 
       <Link
-        className="btn btn-outline btn-full"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-control border border-control bg-surface px-5 font-semibold text-heading transition-colors hover:border-brand hover:bg-canvas focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent"
         to={isClinicAdmin(user.role) ? '/consultorio/citas' : '/mis-citas'}
       >
         {isClinicAdmin(user.role) ? 'Ver citas del consultorio' : 'Ver mis citas'}
@@ -629,7 +627,7 @@ export function AccountPage() {
 
       <button
         onClick={handleLogout}
-        className="btn btn-outline btn-full"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-control border border-control bg-surface px-5 font-semibold text-heading transition-colors hover:border-brand hover:bg-canvas focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent"
         disabled={busy}
         aria-busy={busy}
       >
@@ -707,14 +705,13 @@ export function PasswordRecoveryPage() {
   return (
     <AuthLayout
       title="Recupera tu contraseña"
-      visualTitle="Vuelve a entrar a DentalConnect."
-      visualText="Usa el código enviado al correo asociado a tu cuenta para crear una contraseña nueva."
+      description="Usa el código enviado al correo asociado a tu cuenta para crear una contraseña nueva."
     >
       {!requested ? (
-        <form onSubmit={requestCode} className="premium-form">
-          <div className="input-group">
-            <label htmlFor="recovery-email">Correo electrónico</label>
-            <input
+        <form onSubmit={requestCode} className="grid gap-4">
+          <div className="grid gap-1.5">
+            <label htmlFor="recovery-email" className="text-sm font-semibold text-ink">Correo electrónico</label>
+            <input className={controlClass}
               id="recovery-email"
               type="email"
               autoComplete="email"
@@ -725,27 +722,27 @@ export function PasswordRecoveryPage() {
             />
           </div>
           {error && (
-            <div className="alert alert-error" role="alert">
+            <div className="rounded-control border border-danger-border bg-danger-soft px-4 py-3 text-sm font-semibold text-danger-text" role="alert">
               {error}
             </div>
           )}
           {notice && (
-            <div className="alert" role="status">
+            <div className="rounded-control border border-info-border bg-info-soft px-4 py-3 text-sm text-ink" role="status">
               {notice}
             </div>
           )}
-          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>
+          <button className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle" type="submit" disabled={busy}>
             {busy ? 'Enviando código…' : 'Enviar código'}
           </button>
         </form>
       ) : (
-        <form onSubmit={changePassword} className="premium-form">
-          <p className="auth-footer-text" role="status">
+        <form onSubmit={changePassword} className="grid gap-4">
+          <p className="mt-4 text-center text-sm leading-relaxed text-muted" role="status">
             {notice}
           </p>
-          <div className="input-group">
-            <label htmlFor="recovery-code">Código de recuperación</label>
-            <input
+          <div className="grid gap-1.5">
+            <label htmlFor="recovery-code" className="text-sm font-semibold text-ink">Código de recuperación</label>
+            <input className={controlClass}
               id="recovery-code"
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -759,9 +756,9 @@ export function PasswordRecoveryPage() {
             />
             <span id="recovery-code-hint">Ingresa los 6 dígitos recibidos por correo.</span>
           </div>
-          <div className="input-group">
-            <label htmlFor="new-password">Nueva contraseña</label>
-            <input
+          <div className="grid gap-1.5">
+            <label htmlFor="new-password" className="text-sm font-semibold text-ink">Nueva contraseña</label>
+            <input className={controlClass}
               id="new-password"
               type="password"
               autoComplete="new-password"
@@ -772,9 +769,9 @@ export function PasswordRecoveryPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <div className="input-group">
-            <label htmlFor="confirm-new-password">Confirma la nueva contraseña</label>
-            <input
+          <div className="grid gap-1.5">
+            <label htmlFor="confirm-new-password" className="text-sm font-semibold text-ink">Confirma la nueva contraseña</label>
+            <input className={controlClass}
               id="confirm-new-password"
               type="password"
               autoComplete="new-password"
@@ -786,15 +783,15 @@ export function PasswordRecoveryPage() {
             />
           </div>
           {error && (
-            <div className="alert alert-error" role="alert">
+            <div className="rounded-control border border-danger-border bg-danger-soft px-4 py-3 text-sm font-semibold text-danger-text" role="alert">
               {error}
             </div>
           )}
-          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>
+          <button className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-subtle" type="submit" disabled={busy}>
             {busy ? 'Actualizando…' : 'Cambiar contraseña'}
           </button>
           <button
-            className="btn btn-outline btn-full"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-control border border-control bg-surface px-5 font-semibold text-heading transition-colors hover:border-brand hover:bg-canvas focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent"
             type="button"
             disabled={busy}
             onClick={() => {
@@ -808,7 +805,7 @@ export function PasswordRecoveryPage() {
           </button>
         </form>
       )}
-      <p className="auth-footer-text">
+      <p className="mt-4 text-center text-sm leading-relaxed text-muted">
         <Link to="/iniciar-sesion">Volver a iniciar sesión</Link>
       </p>
     </AuthLayout>

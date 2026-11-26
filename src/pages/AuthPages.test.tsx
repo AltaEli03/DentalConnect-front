@@ -399,4 +399,10 @@ describe('Password recovery', () => {
     expect(await screen.findByText('La contraseña se actualizó. Ya puedes iniciar sesión.')).toBeInTheDocument();
     expect(confirmPasswordReset).toHaveBeenCalledWith('paciente@example.com', '123456', 'DentalConnect!2026');
   });
+
+  it('uses the canvas background for the auth shell', async () => {
+    renderApp('/iniciar-sesion');
+    await screen.findByRole('heading', { name: 'Inicia sesión' });
+    expect(screen.getByRole('main')).toHaveClass('bg-canvas');
+  });
 });
