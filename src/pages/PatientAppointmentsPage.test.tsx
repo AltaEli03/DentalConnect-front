@@ -68,6 +68,7 @@ describe('PatientAppointmentsPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Limpieza' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Citas del paciente' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Próximas (1)' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Historial (1)' }));
 
