@@ -121,6 +121,9 @@ describe('AppointmentRequestPage', () => {
     renderPage();
 
     await chooseSlot();
+    expect(
+      screen.getByRole('region', { name: 'Resumen de la solicitud' }),
+    ).toBeInTheDocument();
     const submit = await screen.findByRole('button', { name: 'Enviar solicitud' });
     await waitFor(() => expect(submit).toBeEnabled());
     fireEvent.click(submit);
