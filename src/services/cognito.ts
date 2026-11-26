@@ -8,6 +8,9 @@ import {
 
 const storage = window.localStorage;
 
+export const SESSION_MAX_MS = 15 * 60 * 1000;
+export const SESSION_STARTED_KEY = 'dentalconnect-session-started-at';
+
 const pool = new CognitoUserPool({
   UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS',
   ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg',
@@ -73,7 +76,21 @@ function profileFromSession(session: CognitoUserSession, user: CognitoUser): Cog
           '',
       ) || undefined,
     isEmailVerified: claims.email_verified === true || claims.email_verified === 'true',
+    expiresAt: sessionExpiresAt(claims),
   };
+}
+
+function sessionExpiresAt(claims: Record<string, unknown>) {
+  const authTime = Number(claims.auth_time) * 1000;
+  const startedAt = Number(storage.getItem(SESSION_STARTED_KEY));
+  const starts = [authTime, startedAt].filter((value) => Number.isFinite(value) && value > 0);
+  // Fail closed if Cognito or the local marker cannot provide a start time.
+  return starts.length ? Math.min(...starts) + SESSION_MAX_MS : 0;
+}
+
+function clearStoredSession(user?: CognitoUser | null) {
+  (user ?? pool.getCurrentUser())?.signOut();
+  storage.removeItem(SESSION_STARTED_KEY);
 }
 
 function readUserAttributes(user: CognitoUser) {
@@ -131,6 +148,13 @@ export function updateAccountProfile(input: {
           new Error('Tu sesión expiró. Vuelve a iniciar sesión para guardar tus datos.'),
         );
       }
+      const profile = profileFromSession(session, user);
+      if (!profile.expiresAt || Date.now() >= profile.expiresAt) {
+        clearStoredSession(user);
+        return reject(
+          new Error('Tu sesión superó el máximo de 15 minutos. Inicia sesión de nuevo.'),
+        );
+      }
       user.updateAttributes(attributes, (error) => {
         if (error) return reject(error);
         resolve({ ...input.profile, firstName, lastName, phone });
@@ -144,7 +168,10 @@ export function signIn(email: string, password: string) {
     user.authenticateUser(
       new AuthenticationDetails({ Username: email.trim().toLowerCase(), Password: password }),
       {
-        onSuccess: (session) => resolve(profileFromSession(session, user)),
+        onSuccess: (session) => {
+          storage.setItem(SESSION_STARTED_KEY, String(Date.now()));
+          resolve(profileFromSession(session, user));
+        },
         onFailure: reject,
         newPasswordRequired: () =>
           reject(
@@ -178,6 +205,7 @@ export type CognitoProfile = {
   role?: string;
   clinicId?: string;
   isEmailVerified?: boolean;
+  expiresAt?: number;
 };
 export function currentUser() {
   return new Promise<CognitoProfile | null>((resolve) => {
@@ -186,6 +214,10 @@ export function currentUser() {
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
       const profile = profileFromSession(session, user);
+      if (!profile.expiresAt || Date.now() >= profile.expiresAt) {
+        clearStoredSession(user);
+        return resolve(null);
+      }
       void readUserAttributes(user).then(
         (attributes) => resolve(withUserAttributes(profile, attributes)),
         () => resolve(profile),
@@ -194,7 +226,7 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  pool.getCurrentUser()?.signOut();
+  clearStoredSession();
 }
 
 export function currentIdToken() {
@@ -203,6 +235,11 @@ export function currentIdToken() {
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
+      const profile = profileFromSession(session, user);
+      if (!profile.expiresAt || Date.now() >= profile.expiresAt) {
+        clearStoredSession(user);
+        return resolve(null);
+      }
       resolve(session.getIdToken().getJwtToken());
     });
   });

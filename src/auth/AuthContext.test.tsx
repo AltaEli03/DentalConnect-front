@@ -1,16 +1,22 @@
 import { act, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from './AuthContext';
-import { currentUser } from '../services/cognito';
+import { currentUser, signOut } from '../services/cognito';
 import { api } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
+  SESSION_STARTED_KEY: 'dentalconnect-session-started-at',
   currentUser: vi.fn(),
   signOut: vi.fn(),
 }));
 vi.mock('../services/api', () => ({ api: { me: vi.fn() } }));
 
-const profile = { email: 'ana@example.com', firstName: 'Ana', lastName: 'Pérez' };
+const profile = {
+  email: 'ana@example.com',
+  firstName: 'Ana',
+  lastName: 'Pérez',
+  expiresAt: Date.now() + 10 * 60 * 1000,
+};
 const lastAuthUserKey = 'CognitoIdentityServiceProvider.2ldk42uud5g41rqepe4o4salkg.LastAuthUser';
 
 function SessionProbe() {
@@ -37,6 +43,10 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(api.me).mockRejectedValue(new Error('API no expuesta'));
   vi.mocked(currentUser).mockResolvedValue(null);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('AuthProvider cross-tab sync', () => {
@@ -78,5 +88,23 @@ describe('AuthProvider cross-tab sync', () => {
     dispatchStorage('dentalconnect-theme', 'dark');
 
     expect(currentUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs out when the session maximum lifetime elapses', async () => {
+    vi.useFakeTimers();
+    const expiring = { ...profile, expiresAt: Date.now() + 60_000 };
+    vi.mocked(currentUser).mockResolvedValue(expiring);
+    renderProvider();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.getByText(expiring.email)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('sin sesión')).toBeInTheDocument();
   });
 });
