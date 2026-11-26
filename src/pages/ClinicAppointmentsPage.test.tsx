@@ -12,6 +12,9 @@ vi.mock('../services/cognito', () => ({
   signOut: vi.fn(),
 }));
 vi.mock('../services/clinicApi', () => ({ clinicRequest: vi.fn() }));
+vi.mock('../services/api', () => ({
+  api: { me: vi.fn().mockRejectedValue(new Error('API no expuesta')) },
+}));
 
 const appointment = {
   id: 'apt-1',
