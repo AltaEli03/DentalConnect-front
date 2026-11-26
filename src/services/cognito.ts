@@ -6,15 +6,13 @@ import {
   CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
+const storage = window.localStorage;
+
 const pool = new CognitoUserPool({
   UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMVyRtS',
   ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg',
-  Storage: window.sessionStorage,
+  Storage: storage,
 });
-
-let activeCognitoUser: CognitoUser | null = null;
-
-
 
 function normalizePhone(phone: string) {
   const digits = phone.replace(/\D/g, '');
@@ -43,7 +41,8 @@ export function signUp(input: {
 }
 
 function getUser(email: string) {
-  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool });
+  // Same storage as the pool, or getCurrentUser() cannot find the cached session on reload or another tab.
+  return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: pool, Storage: storage });
 }
 export function confirm(email: string, code: string) {
   return new Promise<void>((resolve, reject) =>
@@ -108,8 +107,8 @@ export function updateAccountProfile(input: {
   lastName: string;
   phone: string;
 }) {
-  // Use the authenticated profile from AuthContext. getCurrentUser() depends on
-  // Cognito's LastAuthUser marker and can be null while the app still has a valid session.
+  // Use the authenticated profile from AuthContext to avoid depending only on
+  // Cognito's LastAuthUser marker, and hydrate the session before updating attributes.
   const user = getUser(input.profile.email);
 
   const firstName = input.firstName.trim();
@@ -122,9 +121,15 @@ export function updateAccountProfile(input: {
   ];
 
   return new Promise<CognitoProfile>((resolve, reject) =>
-    user.updateAttributes(attributes, (error) => {
-      if (error) return reject(error);
-      resolve({ ...input.profile, firstName, lastName, phone });
+    user.getSession((sessionError: Error | null, session: CognitoUserSession | null) => {
+      if (sessionError || !session?.isValid())
+        return reject(
+          new Error('Tu sesión expiró. Vuelve a iniciar sesión para guardar tus datos.'),
+        );
+      user.updateAttributes(attributes, (error) => {
+        if (error) return reject(error);
+        resolve({ ...input.profile, firstName, lastName, phone });
+      });
     }),
   );
 }
@@ -134,10 +139,7 @@ export function signIn(email: string, password: string) {
     user.authenticateUser(
       new AuthenticationDetails({ Username: email.trim().toLowerCase(), Password: password }),
       {
-        onSuccess: (session) => {
-          activeCognitoUser = user;
-          resolve(profileFromSession(session, user));
-        },
+        onSuccess: (session) => resolve(profileFromSession(session, user)),
         onFailure: reject,
         newPasswordRequired: () =>
           reject(
@@ -174,11 +176,10 @@ export type CognitoProfile = {
 };
 export function currentUser() {
   return new Promise<CognitoProfile | null>((resolve) => {
-    const user = activeCognitoUser ?? pool.getCurrentUser();
+    const user = pool.getCurrentUser();
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
-      activeCognitoUser = user;
       const profile = profileFromSession(session, user);
       void readUserAttributes(user).then(
         (attributes) => resolve(withUserAttributes(profile, attributes)),
@@ -188,13 +189,12 @@ export function currentUser() {
   });
 }
 export function signOut() {
-  (activeCognitoUser ?? pool.getCurrentUser())?.signOut();
-  activeCognitoUser = null;
+  pool.getCurrentUser()?.signOut();
 }
 
 export function currentIdToken() {
   return new Promise<string | null>((resolve) => {
-    const user = activeCognitoUser ?? pool.getCurrentUser();
+    const user = pool.getCurrentUser();
     if (!user) return resolve(null);
     user.getSession((error: Error | null, session: CognitoUserSession | null) => {
       if (error || !session?.isValid()) return resolve(null);
@@ -202,7 +202,6 @@ export function currentIdToken() {
     });
   });
 }
-
 
 export function requestPasswordReset(email: string) {
   return new Promise<void>((resolve, reject) =>

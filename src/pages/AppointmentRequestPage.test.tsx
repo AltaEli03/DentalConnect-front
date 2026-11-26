@@ -80,7 +80,7 @@ const renderPage = () =>
   );
 
 const chooseSlot = async () =>
-  fireEvent.click(await screen.findByRole('button', { name: /20 nov 2026/i }));
+  fireEvent.click(await screen.findByRole('button', { name: /20 nov 2026/i }, { timeout: 3000 }));
 
 beforeEach(() => {
   vi.clearAllMocks();

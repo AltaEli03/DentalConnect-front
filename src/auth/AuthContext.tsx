@@ -34,7 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         try {
           const response = await api.me();
-          setUser({ ...profile, ...response.data.user, clinicId: response.data.user.clinicId || profile.clinicId });
+          setUser({
+            ...profile,
+            ...response.data.user,
+            clinicId: response.data.user.clinicId || profile.clinicId,
+          });
         } catch {
           // Un fallo temporal de API conserva la sesión válida de Cognito.
           setUser(profile);
@@ -48,9 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Revalida Cognito y obtiene el rol vigente de la API al iniciar o refrescar sesión.
+  // Revalida Cognito al iniciar y sincroniza login/logout entre pestañas.
   useEffect(() => {
+    const syncSession = (event: StorageEvent) => {
+      if (event.key === null || event.key.endsWith('.LastAuthUser')) void refresh();
+    };
     void refresh();
+    window.addEventListener('storage', syncSession);
+    return () => window.removeEventListener('storage', syncSession);
+    // refresh solo usa setters estables; se registra una vez.
   }, []);
 
   const updateProfile = (profile: CognitoProfile) => setUser(profile);
