@@ -56,17 +56,29 @@ const renderPage = (initialEntry = '/clinics') =>
     </MemoryRouter>,
   );
 
+const pageResponse = (data: Clinic[], page = 1, totalItems = data.length) => ({
+  data,
+  pagination: {
+    page,
+    pageSize: 6,
+    totalItems,
+    totalPages: Math.max(1, Math.ceil(totalItems / 6)),
+    hasNextPage: page * 6 < totalItems,
+    hasPreviousPage: page > 1,
+  },
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(api.clinics).mockResolvedValue({ data: [] } as never);
+  vi.mocked(api.clinics).mockResolvedValue(pageResponse([]) as never);
 });
 
 describe('ClinicListPage', () => {
   it('reads the search and service from the URL', async () => {
-    vi.mocked(api.clinics).mockResolvedValue({ data: [clinic(1)] } as never);
+    vi.mocked(api.clinics).mockResolvedValue(pageResponse([clinic(1)]) as never);
     renderPage('/clinics?q=Puebla&servicio=service-1');
 
-    await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1'));
+    await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Puebla', 'service-1', 1, 6));
     expect(await screen.findByRole('heading', { name: 'Clínica 1' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nombre, zona o código postal')).toHaveValue('Puebla');
     expect(screen.getByLabelText('Servicio dental')).toHaveValue('service-1');
@@ -95,7 +107,7 @@ describe('ClinicListPage', () => {
   it('explains a connection error and retries without losing context', async () => {
     vi.mocked(api.clinics)
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))
-      .mockResolvedValueOnce({ data: [clinic(1)] } as never);
+      .mockResolvedValueOnce(pageResponse([clinic(1)]) as never);
 
     renderPage();
 
@@ -109,9 +121,14 @@ describe('ClinicListPage', () => {
   });
 
   it('shows six results per page and moves to the second page', async () => {
-    vi.mocked(api.clinics).mockResolvedValue({
-      data: Array.from({ length: 7 }, (_, index) => clinic(index + 1)),
-    } as never);
+    const allClinics = Array.from({ length: 7 }, (_, index) => clinic(index + 1));
+    vi.mocked(api.clinics).mockImplementation(async (_query, _service, requestedPage = 1) =>
+      pageResponse(
+        allClinics.slice((requestedPage - 1) * 6, requestedPage * 6),
+        requestedPage,
+        allClinics.length,
+      ) as never,
+    );
 
     renderPage();
 

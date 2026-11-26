@@ -62,6 +62,7 @@ export function ClinicListPage() {
   const [locationMessage, setLocationMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: PAGE_SIZE, totalItems: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false });
   const resultsRef = useRef<HTMLElement>(null);
 
   const services = useMemo(() => {
@@ -92,16 +93,20 @@ export function ClinicListPage() {
   }, []);
 
   useEffect(() => {
+    if (nearby) {
+      setLoading(false);
+      return;
+    }
     let active = true;
     setLoading(true);
     setError('');
     api
-      .clinics(q, serviceId)
-      .then(({ data }) => {
+      .clinics(q, serviceId, page, PAGE_SIZE)
+      .then(({ data, pagination: pageInfo }) => {
         if (!active) return;
         setClinics(data);
-        setPage(1);
-        if (!q && !serviceId) setCatalog(data);
+        setPagination(pageInfo ?? { page, pageSize: PAGE_SIZE, totalItems: data.length, totalPages: 1, hasNextPage: false, hasPreviousPage: false });
+        setCatalog((current) => [...new Map([...current, ...data].map((clinic) => [clinic.id, clinic])).values()]);
       })
       .catch((cause: unknown) => {
         if (active) setError(directoryMessage(cause));
@@ -112,7 +117,7 @@ export function ClinicListPage() {
     return () => {
       active = false;
     };
-  }, [attempt, q, serviceId]);
+  }, [attempt, q, serviceId, page, nearby]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -120,6 +125,7 @@ export function ClinicListPage() {
     if (search.trim()) next.set('q', search.trim());
     if (selectedService) next.set('servicio', selectedService);
     setParams(next);
+    setPage(1);
     setNearby(false);
     setLocationMessage('');
   };
@@ -128,6 +134,7 @@ export function ClinicListPage() {
     setSearch('');
     setSelectedService('');
     setParams(new URLSearchParams());
+    setPage(1);
     setNearby(false);
     setLocationMessage('');
   };
@@ -144,9 +151,19 @@ export function ClinicListPage() {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          const data = catalog.length ? catalog : (await api.clinics()).data;
-          if (!catalog.length) setCatalog(data);
-          setClinics(filterNearbyClinics(data, coords.latitude, coords.longitude, 10));
+          const data: Clinic[] = [];
+          let currentPage = 1;
+          let totalPages = 1;
+          while (currentPage <= totalPages) {
+            const response = await api.clinics('', '', currentPage, 24);
+            data.push(...response.data);
+            totalPages = response.pagination.totalPages;
+            currentPage += 1;
+          }
+          const nearbyClinics = filterNearbyClinics(data, coords.latitude, coords.longitude, 10);
+          setCatalog(data);
+          setClinics(nearbyClinics);
+          setPagination({ page: 1, pageSize: PAGE_SIZE, totalItems: nearbyClinics.length, totalPages: Math.max(1, Math.ceil(nearbyClinics.length / PAGE_SIZE)), hasNextPage: nearbyClinics.length > PAGE_SIZE, hasPreviousPage: false });
           setPage(1);
           setNearby(true);
           setLocationMessage('Consultorios a menos de 10 km. Tu ubicación no se guarda.');
@@ -168,10 +185,10 @@ export function ClinicListPage() {
     );
   };
 
-  const totalPages = Math.max(1, Math.ceil(clinics.length / PAGE_SIZE));
+  const totalPages = Math.max(1, pagination.totalPages);
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * PAGE_SIZE;
-  const visibleClinics = clinics.slice(start, start + PAGE_SIZE);
+  const visibleClinics = nearby ? clinics.slice(start, start + PAGE_SIZE) : clinics;
   const goToPage = (next: number) => {
     setPage(next);
     resultsRef.current?.scrollIntoView?.({ block: 'start' });
@@ -274,7 +291,7 @@ export function ClinicListPage() {
           </h2>
           {!loading && !error && (
             <p className="text-sm text-muted">
-              {clinics.length} {clinics.length === 1 ? 'consultorio' : 'consultorios'}
+              {pagination.totalItems} {pagination.totalItems === 1 ? 'consultorio' : 'consultorios'}
             </p>
           )}
         </div>
@@ -335,8 +352,8 @@ export function ClinicListPage() {
 
             <div className="mt-6 flex flex-col items-center gap-3">
               <p className="text-sm text-muted">
-                Mostrando {start + 1}–{Math.min(start + PAGE_SIZE, clinics.length)} de{' '}
-                {clinics.length}
+                Mostrando {pagination.totalItems ? start + 1 : 0}–{Math.min(start + PAGE_SIZE, pagination.totalItems)} de{' '}
+                {pagination.totalItems}
               </p>
               {totalPages > 1 && (
                 <nav

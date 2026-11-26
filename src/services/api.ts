@@ -70,13 +70,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return result as T;
 }
 
-export const api = {
-  clinics: (search = '', serviceId = '') => {
-    const params = new URLSearchParams();
+type ClinicDirectoryResponse = { data: Clinic[]; pagination: { page: number; pageSize: number; totalItems: number; totalPages: number; hasNextPage: boolean; hasPreviousPage: boolean } }; export const api = {
+  clinics: (search = '', serviceId = '', page = 1, pageSize = 6) => {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (search.trim()) params.set('search', search.trim());
     if (serviceId) params.set('serviceId', serviceId);
     const query = params.toString();
-    return request<ApiResponse<Clinic[]>>('/clinics' + (query ? `?${query}` : ''));
+    return request<ClinicDirectoryResponse>(`/clinics?${query}`);
   },
   clinic: (id: string) => request<ApiResponse<Clinic>>(`/clinics/${encodeURIComponent(id)}`),
   availability: (clinicId: string, dentistId: string, serviceId: string, date?: string) => {
