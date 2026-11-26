@@ -152,8 +152,8 @@ export function DentistManagementPage() {
       return;
     }
     await run(async()=>{ 
-      await call('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:start,endsAt:end,breakStartsAt:restStart,breakEndsAt:restEnd})});
-      await loadSchedule(scheduleDentistId);
+      const created = await call<{ data: Weekly }>('/clinics/'+encodeURIComponent(clinicId.trim())+'/dentists/'+encodeURIComponent(scheduleDentistId)+'/schedule',{method:'POST',body:JSON.stringify({dayOfWeek:Number(day),startsAt:start,endsAt:end,breakStartsAt:restStart,breakEndsAt:restEnd})});
+      setWeekly(current => [...current.filter(item => item.id !== created.data.id), created.data].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startsAt.localeCompare(b.startsAt)));
     }); 
   }
 
