@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { signIn, updateAccountProfile, requestPasswordReset, confirmPasswordReset } from '../services/cognito';
+import {
+  signIn,
+  updateAccountProfile,
+  requestPasswordReset,
+  confirmPasswordReset,
+} from '../services/cognito';
 import { api } from '../services/api';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { PasswordField } from '../components/auth/PasswordField';
@@ -46,7 +51,11 @@ export function LoginPage() {
       let profile = cognitoProfile;
       try {
         const response = await api.me();
-        profile = { ...cognitoProfile, ...response.data.user, clinicId: response.data.user.clinicId || cognitoProfile.clinicId };
+        profile = {
+          ...cognitoProfile,
+          ...response.data.user,
+          clinicId: response.data.user.clinicId || cognitoProfile.clinicId,
+        };
       } catch {
         // Conserva el inicio de sesión si la API tiene una interrupción temporal.
       }
@@ -98,7 +107,8 @@ export function LoginPage() {
             checked={rememberSession}
             onChange={(event) => setRememberSession(event.target.checked)}
           />
-          Mantener sesión en este dispositivo (solo si es privado)
+          Mantener sesión 5 días en este dispositivo (solo si es privado). Sin marcar, dura 15
+          minutos.
         </label>
         {error && (
           <div className="alert alert-error" role="alert">
@@ -116,10 +126,13 @@ export function LoginPage() {
         ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
       </p>
       <p className="auth-footer-text">
-        Después de iniciar sesión, DentalConnect abrirá las herramientas disponibles para el rol de tu cuenta.
+        Después de iniciar sesión, DentalConnect abrirá las herramientas disponibles para el rol de
+        tu cuenta.
       </p>
       <p className="auth-footer-text">
-        Para administrar un consultorio, inicia sesión con tu cuenta verificada y envía una solicitud desde <Link to="/registrar-consultorio">Registrar consultorio</Link>. El acceso se habilita cuando la solicitud sea aprobada.
+        Para administrar un consultorio, inicia sesión con tu cuenta verificada y envía una
+        solicitud desde <Link to="/registrar-consultorio">Registrar consultorio</Link>. El acceso se
+        habilita cuando la solicitud sea aprobada.
       </p>
     </AuthLayout>
   );
@@ -630,7 +643,6 @@ export function AccountPage() {
 // WRAPPER (Contenedor Visual)
 // ==========================================
 
-
 export function PasswordRecoveryPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -642,51 +654,163 @@ export function PasswordRecoveryPage() {
   const [notice, setNotice] = useState('');
 
   const requestCode = async (event: FormEvent) => {
-    event.preventDefault(); setBusy(true); setError(''); setNotice('');
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       await requestPasswordReset(email.trim());
       setRequested(true);
-      setNotice('Si la cuenta existe, recibirás un código de recuperación en el correo registrado.');
+      setNotice(
+        'Si la cuenta existe, recibirás un código de recuperación en el correo registrado.',
+      );
     } catch {
-      setError('No se pudo procesar la solicitud en este momento. Espera un poco e inténtalo de nuevo.');
-    } finally { setBusy(false); }
+      setError(
+        'No se pudo procesar la solicitud en este momento. Espera un poco e inténtalo de nuevo.',
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const changePassword = async (event: FormEvent) => {
-    event.preventDefault(); setError(''); setNotice('');
-    if (password.length < 12) { setError('La contraseña debe tener al menos 12 caracteres.'); return; }
-    if (password !== confirmation) { setError('Las contraseñas no coinciden.'); return; }
+    event.preventDefault();
+    setError('');
+    setNotice('');
+    if (password.length < 12) {
+      setError('La contraseña debe tener al menos 12 caracteres.');
+      return;
+    }
+    if (password !== confirmation) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
     setBusy(true);
     try {
       await confirmPasswordReset(email.trim(), code.trim(), password);
       setNotice('La contraseña se actualizó. Ya puedes iniciar sesión.');
-      setCode(''); setPassword(''); setConfirmation('');
+      setCode('');
+      setPassword('');
+      setConfirmation('');
     } catch (cause) {
-      setError(friendlyAuthError(cause, 'El código no es válido o venció. Solicita uno nuevo e inténtalo otra vez.'));
-    } finally { setBusy(false); }
+      setError(
+        friendlyAuthError(
+          cause,
+          'El código no es válido o venció. Solicita uno nuevo e inténtalo otra vez.',
+        ),
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <AuthLayout title="Recupera tu contraseña" visualTitle="Vuelve a entrar a DentalConnect." visualText="Usa el código enviado al correo asociado a tu cuenta para crear una contraseña nueva.">
+    <AuthLayout
+      title="Recupera tu contraseña"
+      visualTitle="Vuelve a entrar a DentalConnect."
+      visualText="Usa el código enviado al correo asociado a tu cuenta para crear una contraseña nueva."
+    >
       {!requested ? (
         <form onSubmit={requestCode} className="premium-form">
-          <div className="input-group"><label htmlFor="recovery-email">Correo electrónico</label><input id="recovery-email" type="email" autoComplete="email" required maxLength={254} value={email} onChange={e => setEmail(e.target.value)} /></div>
-          {error && <div className="alert alert-error" role="alert">{error}</div>}
-          {notice && <div className="alert" role="status">{notice}</div>}
-          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>{busy ? 'Enviando código…' : 'Enviar código'}</button>
+          <div className="input-group">
+            <label htmlFor="recovery-email">Correo electrónico</label>
+            <input
+              id="recovery-email"
+              type="email"
+              autoComplete="email"
+              required
+              maxLength={254}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          {error && (
+            <div className="alert alert-error" role="alert">
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div className="alert" role="status">
+              {notice}
+            </div>
+          )}
+          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>
+            {busy ? 'Enviando código…' : 'Enviar código'}
+          </button>
         </form>
       ) : (
         <form onSubmit={changePassword} className="premium-form">
-          <p className="auth-footer-text" role="status">{notice}</p>
-          <div className="input-group"><label htmlFor="recovery-code">Código de recuperación</label><input id="recovery-code" inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={6} pattern="[0-9]{6}" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} aria-describedby="recovery-code-hint"/><span id="recovery-code-hint">Ingresa los 6 dígitos recibidos por correo.</span></div>
-          <div className="input-group"><label htmlFor="new-password">Nueva contraseña</label><input id="new-password" type="password" autoComplete="new-password" required minLength={12} maxLength={256} value={password} onChange={e => setPassword(e.target.value)} /></div>
-          <div className="input-group"><label htmlFor="confirm-new-password">Confirma la nueva contraseña</label><input id="confirm-new-password" type="password" autoComplete="new-password" required minLength={12} maxLength={256} value={confirmation} onChange={e => setConfirmation(e.target.value)} /></div>
-          {error && <div className="alert alert-error" role="alert">{error}</div>}
-          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>{busy ? 'Actualizando…' : 'Cambiar contraseña'}</button>
-          <button className="btn btn-outline btn-full" type="button" disabled={busy} onClick={() => { setRequested(false); setCode(''); setError(''); setNotice(''); }}>{busy ? 'Espera…' : 'Solicitar otro código'}</button>
+          <p className="auth-footer-text" role="status">
+            {notice}
+          </p>
+          <div className="input-group">
+            <label htmlFor="recovery-code">Código de recuperación</label>
+            <input
+              id="recovery-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              minLength={6}
+              maxLength={6}
+              pattern="[0-9]{6}"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              aria-describedby="recovery-code-hint"
+            />
+            <span id="recovery-code-hint">Ingresa los 6 dígitos recibidos por correo.</span>
+          </div>
+          <div className="input-group">
+            <label htmlFor="new-password">Nueva contraseña</label>
+            <input
+              id="new-password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              maxLength={256}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="confirm-new-password">Confirma la nueva contraseña</label>
+            <input
+              id="confirm-new-password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              maxLength={256}
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+            />
+          </div>
+          {error && (
+            <div className="alert alert-error" role="alert">
+              {error}
+            </div>
+          )}
+          <button className="btn btn-primary btn-full" type="submit" disabled={busy}>
+            {busy ? 'Actualizando…' : 'Cambiar contraseña'}
+          </button>
+          <button
+            className="btn btn-outline btn-full"
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setRequested(false);
+              setCode('');
+              setError('');
+              setNotice('');
+            }}
+          >
+            {busy ? 'Espera…' : 'Solicitar otro código'}
+          </button>
         </form>
       )}
-      <p className="auth-footer-text"><Link to="/iniciar-sesion">Volver a iniciar sesión</Link></p>
+      <p className="auth-footer-text">
+        <Link to="/iniciar-sesion">Volver a iniciar sesión</Link>
+      </p>
     </AuthLayout>
   );
 }
