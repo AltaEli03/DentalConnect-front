@@ -31,6 +31,7 @@ export function LoginPage() {
   };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberSession, setRememberSession] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -41,7 +42,7 @@ export function LoginPage() {
     setBusy(true);
     setError('');
     try {
-      const cognitoProfile = await signIn(email.trim(), password);
+      const cognitoProfile = await signIn(email.trim(), password, rememberSession);
       let profile = cognitoProfile;
       try {
         const response = await api.me();
@@ -91,6 +92,14 @@ export function LoginPage() {
           autoComplete="current-password"
           hint="Mínimo 12 caracteres."
         />
+        <label className="remember-session">
+          <input
+            type="checkbox"
+            checked={rememberSession}
+            onChange={(event) => setRememberSession(event.target.checked)}
+          />
+          Mantener sesión en este dispositivo (solo si es privado)
+        </label>
         {error && (
           <div className="alert alert-error" role="alert">
             {error}
