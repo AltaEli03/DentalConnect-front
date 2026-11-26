@@ -10,7 +10,7 @@ const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-east-1_hVMMV
 const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID || '2ldk42uud5g41rqepe4o4salkg';
 const storagePrefix = 'CognitoIdentityServiceProvider.' + clientId + '.';
 let rememberSession = Boolean(window.localStorage.getItem('CognitoIdentityServiceProvider.' + clientId + '.LastAuthUser'));
-const clearCognitoStorage = (Storage: cognitoStorage) => {
+const clearCognitoStorage = (storage: Storage) => {
   for (let index = storage.length - 1; index >= 0; index -= 1) {
     const key = storage.key(index);
     if (key?.startsWith(storagePrefix)) storage.removeItem(key);
