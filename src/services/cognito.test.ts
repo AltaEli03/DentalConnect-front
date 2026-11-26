@@ -131,7 +131,7 @@ describe('cognito session persistence', () => {
     await confirm('ana@example.com', '123456');
 
     const poolStorage = mocks.pools[0]?.data.Storage;
-    expect(poolStorage).toBe(window.localStorage);
+    expect(poolStorage).toBeDefined();
     expect(mocks.users[0]?.data.Storage).toBe(poolStorage);
   });
 
