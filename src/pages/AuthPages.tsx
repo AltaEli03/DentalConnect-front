@@ -434,7 +434,11 @@ export function VerifyPage() {
         />
         {notice && (
           <div
-            className={`alert ${noticeIsError ? 'alert-error' : 'alert-success'}`}
+            className={`rounded-control border px-4 py-3 text-sm font-semibold ${
+              noticeIsError
+                ? 'border-danger-border bg-danger-soft text-danger-text'
+                : 'border-success-border bg-success-soft text-success-text'
+            }`}
             role={noticeIsError ? 'alert' : 'status'}
             aria-live={noticeIsError ? 'assertive' : 'polite'}
           >
