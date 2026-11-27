@@ -2,13 +2,24 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ContentImage } from '../components/ContentImage';
 import { Button, buttonStyles } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { Notice } from '../components/ui/Notice';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Section } from '../components/ui/Section';
 import { Skeleton } from '../components/ui/Skeleton';
 import { api, ApiError } from '../services/api';
 import { useSeo } from '../lib/useSeo';
+import { formatPriceFrom } from '../lib/clinicPrice';
 import type { Clinic } from '../types/api';
 
-const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('');
+}
 
 function detailMessage(cause: unknown) {
   if (cause instanceof ApiError) {
@@ -123,7 +134,7 @@ export function ClinicDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+    <main className="mx-auto w-full max-w-[1180px] px-5 py-8 sm:px-8 lg:py-10">
       <nav aria-label="Migas de pan" className="text-sm font-semibold">
         <Link
           className="text-accent-strong underline-offset-4 hover:underline"
@@ -135,106 +146,109 @@ export function ClinicDetailPage() {
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] lg:items-start">
         <div className="grid gap-6">
-          <section className="overflow-hidden rounded-card border border-line bg-surface shadow-sm">
-            <div className="aspect-[16/9] w-full overflow-hidden bg-canvas">
+          <section className="overflow-hidden rounded-card border border-line bg-surface">
+            <div className="aspect-[21/9] w-full overflow-hidden bg-canvas">
               <ContentImage
                 src={clinic.imageUrl}
                 alt={`Instalaciones de ${clinic.name}`}
-                className="h-full w-full bg-canvas object-contain"
+                className="h-full w-full object-cover"
+                fallbackLabel={initials(clinic.name)}
                 priority
               />
             </div>
             <div className="p-5 sm:p-6">
-              <p className="text-sm font-semibold text-accent-strong">
-                {clinic.municipality}, {clinic.state}
-              </p>
-              <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-heading sm:text-4xl">
-                {clinic.name}
-              </h1>
-              <p className="mt-3 max-w-2xl leading-relaxed text-muted">
-                {clinic.description || 'Consulta los datos de contacto y servicios disponibles.'}
-              </p>
+              <PageHeader
+                kicker={[clinic.municipality, clinic.state].filter(Boolean).join(', ')}
+                title={clinic.name}
+                description={
+                  clinic.description || 'Consulta los datos de contacto y servicios disponibles.'
+                }
+              />
 
-              <dl className="mt-5 grid gap-3 rounded-control border border-line bg-canvas p-4 text-sm">
-                <div>
-                  <dt className="font-semibold text-heading">Dirección</dt>
-                  <dd className="text-muted">
-                    {[
-                      clinic.address,
-                      clinic.municipality,
-                      clinic.state,
-                      clinic.postalCode ? `C.P. ${clinic.postalCode}` : '',
-                    ]
-                      .filter(Boolean)
-                      .join(', ') || 'Dirección no disponible'}
-                  </dd>
+              <dl className="mt-5 grid gap-4 border-t border-line pt-5 text-sm sm:grid-cols-2">
+                <div className="flex gap-2.5">
+                  <Icon name="pin" size={18} className="mt-0.5 shrink-0 text-accent" />
+                  <div>
+                    <dt className="font-semibold text-heading">Dirección</dt>
+                    <dd className="mt-0.5 text-muted">
+                      {[
+                        clinic.address,
+                        clinic.municipality,
+                        clinic.state,
+                        clinic.postalCode ? `C.P. ${clinic.postalCode}` : '',
+                      ]
+                        .filter(Boolean)
+                        .join(', ') || 'Dirección no disponible'}
+                    </dd>
+                  </div>
                 </div>
-                <div>
-                  <dt className="font-semibold text-heading">Teléfono</dt>
-                  <dd>
-                    {clinic.phone ? (
-                      <a
-                        className="text-accent-strong underline underline-offset-4"
-                        href={`tel:${clinic.phone}`}
-                      >
-                        {clinic.phone}
-                      </a>
-                    ) : (
-                      <span className="text-muted">Teléfono no disponible</span>
-                    )}
-                  </dd>
+                <div className="flex gap-2.5">
+                  <Icon name="phone" size={18} className="mt-0.5 shrink-0 text-accent" />
+                  <div>
+                    <dt className="font-semibold text-heading">Teléfono</dt>
+                    <dd className="mt-0.5 text-muted">
+                      {clinic.phone ? (
+                        <a
+                          className="text-accent-strong underline underline-offset-4"
+                          href={`tel:${clinic.phone}`}
+                        >
+                          {clinic.phone}
+                        </a>
+                      ) : (
+                        'Teléfono no disponible'
+                      )}
+                    </dd>
+                  </div>
                 </div>
-                <div>
-                  <dt className="font-semibold text-heading">Correo</dt>
-                  <dd>
-                    {clinic.email ? (
-                      <a
-                        className="break-all text-accent-strong underline underline-offset-4"
-                        href={`mailto:${clinic.email}`}
-                      >
-                        {clinic.email}
-                      </a>
-                    ) : (
-                      <span className="text-muted">Correo no disponible</span>
-                    )}
-                  </dd>
+                <div className="flex gap-2.5 sm:col-span-2">
+                  <Icon name="mail" size={18} className="mt-0.5 shrink-0 text-accent" />
+                  <div>
+                    <dt className="font-semibold text-heading">Correo</dt>
+                    <dd className="mt-0.5 break-all text-muted">
+                      {clinic.email ? (
+                        <a
+                          className="text-accent-strong underline underline-offset-4"
+                          href={`mailto:${clinic.email}`}
+                        >
+                          {clinic.email}
+                        </a>
+                      ) : (
+                        'Correo no disponible'
+                      )}
+                    </dd>
+                  </div>
                 </div>
               </dl>
             </div>
           </section>
 
-          <section aria-labelledby="services-title">
-            <h2 id="services-title" className="font-display text-2xl font-semibold text-heading">
-              Servicios disponibles
-            </h2>
+          <Section id="servicios" title="Servicios disponibles">
             {clinic.services.length === 0 ? (
-              <Notice tone="info" className="mt-4">
-                Este consultorio aún no publica servicios.
-              </Notice>
+              <Notice tone="info">Este consultorio aún no publica servicios.</Notice>
             ) : (
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+              <ul aria-label="Servicios disponibles" className="divide-y divide-line">
                 {clinic.services.map((service) => (
                   <li
                     key={service.id}
-                    className="flex flex-col rounded-card border border-line bg-surface p-5 shadow-sm"
+                    className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
                       <h3 className="font-display text-lg font-semibold text-heading">
                         {service.name}
                       </h3>
-                      <span className="whitespace-nowrap rounded-full border border-accent/30 bg-accent/5 px-2.5 py-1 text-xs font-bold text-accent-strong">
-                        Desde {money.format(service.priceFrom)}
-                      </span>
-                    </div>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
-                      {service.description || 'Descripción no disponible.'}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-4">
-                      <span className="text-sm font-semibold text-heading">
+                      <p className="mt-1 text-sm leading-relaxed text-muted">
+                        {service.description || 'Descripción no disponible.'}
+                      </p>
+                      <p className="mt-1 text-xs text-subtle">
                         {service.estimatedDurationMinutes} min
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                      <span className="text-sm font-semibold text-heading">
+                        Desde {formatPriceFrom(service.priceFrom)}
                       </span>
                       <Link
-                        className={buttonStyles('primary', 'sm')}
+                        className={buttonStyles('coral', 'sm')}
                         to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}`}
                         state={from ? { from } : undefined}
                         aria-label={`Solicitar ${service.name} en ${clinic.name}`}
@@ -246,56 +260,53 @@ export function ClinicDetailPage() {
                 ))}
               </ul>
             )}
-          </section>
+          </Section>
 
           {clinic.dentists && clinic.dentists.length > 0 && (
-            <section aria-labelledby="team-title">
-              <h2 id="team-title" className="font-display text-2xl font-semibold text-heading">
-                Equipo dental
-              </h2>
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Section title="Equipo dental">
+              <ul className="divide-y divide-line">
                 {clinic.dentists.map((dentist) => (
-                  <li
-                    key={dentist.id}
-                    className="overflow-hidden rounded-card border border-line bg-surface shadow-sm"
-                  >
-                    <div className="h-44 w-full overflow-hidden bg-canvas">
+                  <li key={dentist.id} className="flex flex-wrap items-start gap-4 py-4">
+                    <div className="size-16 shrink-0 overflow-hidden rounded-[4px] bg-canvas">
                       <ContentImage
                         src={dentist.imageUrl}
                         alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
-                        className="h-full w-full object-contain"
+                        className="h-full w-full object-cover"
+                        fallbackLabel={initials(`${dentist.firstName} ${dentist.lastName}`)}
+                        compact
                       />
                     </div>
-                    <div className="p-5">
-                      <p className="text-sm font-semibold text-accent-strong">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-strong">
                         {dentist.specialty || 'Odontología general'}
                       </p>
                       <h3 className="mt-1 font-display text-lg font-semibold text-heading">
                         {dentist.firstName} {dentist.lastName}
                       </h3>
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
+                      <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted">
                         {dentist.biography || 'Biografía profesional no disponible.'}
                       </p>
-                      <Link
-                        className={`${buttonStyles('outline', 'sm')} mt-4 w-full`}
-                        to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
-                        state={from ? { from } : undefined}
-                        aria-label={`Ver perfil de ${dentist.firstName} ${dentist.lastName}`}
-                      >
-                        Ver perfil
-                      </Link>
                     </div>
+                    <Link
+                      className={`${buttonStyles('outline', 'sm')} shrink-0`}
+                      to={`/clinics/${clinic.id}/dentistas/${dentist.id}`}
+                      state={from ? { from } : undefined}
+                      aria-label={`Ver perfil de ${dentist.firstName} ${dentist.lastName}`}
+                    >
+                      Ver perfil
+                    </Link>
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
         </div>
 
-        <aside className="rounded-card border border-line bg-surface p-5 shadow-sm lg:sticky lg:top-24">
+        <aside className="rounded-panel border border-line bg-surface p-5 lg:sticky lg:top-24">
           <h2 className="font-display text-xl font-semibold text-heading">Solicita tu cita</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Elige un servicio y consulta horarios. Enviar la solicitud no confirma ni cobra la cita.
+            Elige un servicio y consulta horarios. Enviar la solicitud no confirma ni cobra la
+            cita.
           </p>
           <ol className="mt-4 grid gap-3 text-sm text-ink">
             <li className="flex gap-3">
@@ -317,9 +328,31 @@ export function ClinicDetailPage() {
               El consultorio confirma tu cita.
             </li>
           </ol>
-          <a className={`${buttonStyles('coral', 'md')} mt-5 w-full`} href="#services-title">
+          <a className={`${buttonStyles('coral', 'md')} mt-5 w-full`} href="#servicios">
             Elegir servicio
           </a>
+          {(clinic.phone || clinic.email) && (
+            <div className="mt-5 grid gap-2 border-t border-line pt-4 text-sm">
+              {clinic.phone && (
+                <a
+                  className="flex items-center gap-2 text-accent-strong hover:underline"
+                  href={`tel:${clinic.phone}`}
+                >
+                  <Icon name="phone" size={16} />
+                  {clinic.phone}
+                </a>
+              )}
+              {clinic.email && (
+                <a
+                  className="flex items-center gap-2 break-all text-accent-strong hover:underline"
+                  href={`mailto:${clinic.email}`}
+                >
+                  <Icon name="mail" size={16} />
+                  {clinic.email}
+                </a>
+              )}
+            </div>
+          )}
         </aside>
       </div>
     </main>

@@ -2,36 +2,32 @@ import type { ReactNode } from 'react';
 
 type AuthLayoutProps = {
   title: string;
-  visualTitle?: string;
-  visualText?: string;
+  description?: string;
   children: ReactNode;
-  hideVisual?: boolean;
   wide?: boolean;
+  footer?: ReactNode;
 };
 
 export function AuthLayout({
   title,
-  visualTitle,
-  visualText,
+  description,
   children,
-  hideVisual = false,
   wide = false,
+  footer,
 }: AuthLayoutProps) {
   return (
-    <main className={`auth-layout ${hideVisual ? 'no-visual' : ''}`}>
-      {!hideVisual && (
-        <div className="auth-visual">
-          <h2>{visualTitle || 'DentalConnect'}</h2>
-          <p>
-            {visualText || 'Consulta consultorios y organiza tus solicitudes de atención dental.'}
-          </p>
+    <main className="bg-canvas px-5 py-12 sm:py-16">
+      <div className={`mx-auto w-full ${wide ? 'max-w-[720px]' : 'max-w-[440px]'}`}>
+        <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
+          <h1 className="font-display text-3xl font-bold tracking-[-0.03em] text-heading">
+            {title}
+          </h1>
+          {description && (
+            <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
+          )}
+          <div className="mt-6">{children}</div>
         </div>
-      )}
-      <div className="auth-content">
-        <div className={`auth-form-box ${wide ? 'auth-form-box-wide' : ''}`}>
-          <h1>{title}</h1>
-          {children}
-        </div>
+        {footer && <div className="mt-4 text-center text-sm leading-relaxed text-muted">{footer}</div>}
       </div>
     </main>
   );

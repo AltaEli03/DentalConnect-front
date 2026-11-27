@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { buttonStyles } from '../components/ui/Button';
+import { Button, buttonStyles } from '../components/ui/Button';
+import { Field, controlClass } from '../components/ui/Field';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
-import { StatusBadge } from '../components/ui/StatusBadge';
+import { AdminShell } from '../components/layout/AdminShell';
+import { StatusStamp } from '../components/ui/StatusStamp';
 import { formatDateTime } from '../lib/appointments';
 import { isClinicAdmin as hasClinicAdminRole } from '../lib/roles';
 import { clinicRequest } from '../services/clinicApi';
@@ -105,66 +107,59 @@ export function ClinicAppointmentsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-10">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <p className="text-sm font-semibold text-accent-strong">Panel del consultorio</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Citas agendadas</h1>
-          <p className="mt-2 text-muted">Consulta las citas confirmadas de tu consultorio.</p>
-        </div>
-        <Link className={buttonStyles('outline', 'sm')} to="/administrar-solicitudes">
-          Ver solicitudes
-        </Link>
-      </header>
-
+    <AdminShell
+      title="Citas agendadas"
+      description="Consulta las citas confirmadas de tu consultorio."
+      active="appointments"
+    >
       <form
         onSubmit={(event) => {
           event.preventDefault();
           setAttempt((current) => current + 1);
         }}
-        className="mt-5 flex flex-wrap items-end gap-3 rounded-card border border-line bg-surface p-4"
+        className="flex flex-wrap items-end gap-3 rounded-panel border border-line bg-surface p-4"
       >
-        <label className="grid gap-1 text-sm font-semibold text-ink">
-          Desde
+        <Field id="from-date" label="Desde" className="max-w-44">
           <input
             type="date"
             value={from}
             onChange={(event) => setFrom(event.target.value)}
-            className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal text-ink focus-visible:ring-4 focus-visible:ring-accent"
+            className={controlClass}
           />
-        </label>
-        <label className="grid gap-1 text-sm font-semibold text-ink">
-          Hasta
+        </Field>
+        <Field id="to-date" label="Hasta" className="max-w-44">
           <input
             type="date"
             value={to}
             onChange={(event) => setTo(event.target.value)}
-            className="min-h-11 rounded-control border border-control bg-surface px-3 font-normal text-ink focus-visible:ring-4 focus-visible:ring-accent"
+            className={controlClass}
           />
-        </label>
-        <button className={buttonStyles('primary', 'sm')} type="submit" disabled={loading}>
+        </Field>
+        <Button type="submit" disabled={loading}>
           {loading ? 'Actualizando…' : 'Filtrar'}
-        </button>
+        </Button>
       </form>
 
       {loading && (
-        <div className="mt-6 grid gap-4" role="status" aria-live="polite">
+        <div className="mt-6 grid gap-3" role="status" aria-live="polite">
           <p className="sr-only">Cargando citas…</p>
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       )}
 
       {!loading && error && (
         <Notice tone="error" title="No pudimos cargar las citas" className="mt-6">
           <p>{error}</p>
-          <button
-            type="button"
-            className="mt-3 text-sm font-semibold text-danger-text underline underline-offset-4"
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3 border-danger/40 text-danger-text hover:bg-danger/5"
             onClick={() => setAttempt((current) => current + 1)}
           >
             Reintentar
-          </button>
+          </Button>
         </Notice>
       )}
 
@@ -175,53 +170,87 @@ export function ClinicAppointmentsPage() {
       )}
 
       {!loading && !error && appointments.length > 0 && (
-        <ul className="mt-6 grid gap-4">
-          {appointments.map((appointment) => (
-            <li
-              key={appointment.id}
-              className="rounded-card border border-line bg-surface p-5 shadow-sm"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-accent-strong">
-                    {formatDateTime(appointment.startsAt)}
-                  </p>
-                  <h2 className="mt-1 font-display text-xl font-semibold text-heading">
-                    {patientName(appointment)}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted">
-                    {appointment.service?.name ?? 'Servicio'} ·{' '}
-                    {[appointment.dentist?.firstName, appointment.dentist?.lastName]
-                      .filter(Boolean)
-                      .join(' ') || 'Dentista'}
-                  </p>
-                  {appointment.patient?.phone && (
-                    <p className="mt-1 text-sm text-muted">
-                      Teléfono:{' '}
+        <div className="mt-6">
+          <table
+            aria-label="Citas agendadas"
+            className="w-full border-collapse text-sm max-lg:block"
+          >
+            <thead className="max-lg:hidden">
+              <tr className="border-b border-line-strong text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle">
+                <th scope="col" className="py-3 pr-4">Paciente</th>
+                <th scope="col" className="py-3 pr-4">Servicio</th>
+                <th scope="col" className="py-3 pr-4">Dentista</th>
+                <th scope="col" className="py-3 pr-4">Fecha y hora</th>
+                <th scope="col" className="py-3 pr-4">Estado</th>
+                <th scope="col" className="py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line max-lg:block">
+              {appointments.map((appointment) => (
+                <tr
+                  key={appointment.id}
+                  className="max-lg:grid max-lg:grid-cols-2 max-lg:gap-x-4 max-lg:gap-y-2 max-lg:border-b max-lg:border-line max-lg:py-4"
+                >
+                  <td className="py-4 pr-4 align-top max-lg:col-span-2 max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Paciente
+                    </span>
+                    <p className="font-display text-lg font-semibold text-heading">
+                      {patientName(appointment)}
+                    </p>
+                    {appointment.patient?.phone && (
                       <a
-                        className="text-accent-strong underline underline-offset-4"
+                        className="mt-1 block text-accent-strong underline underline-offset-4"
                         href={`tel:${appointment.patient.phone}`}
                       >
                         {appointment.patient.phone}
                       </a>
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-subtle">Folio: {appointment.folio}</p>
-                </div>
-                <StatusBadge status={appointment.status} />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  className={buttonStyles('outline', 'sm')}
-                  to={`/administrar-solicitudes?appointmentId=${encodeURIComponent(appointment.id)}`}
-                >
-                  Gestionar en solicitudes
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ul>
+                    )}
+                    <p className="mt-1 text-xs text-subtle">Folio: {appointment.folio}</p>
+                  </td>
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Servicio
+                    </span>
+                    {appointment.service?.name ?? 'Servicio'}
+                  </td>
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Dentista
+                    </span>
+                    {[appointment.dentist?.firstName, appointment.dentist?.lastName]
+                      .filter(Boolean)
+                      .join(' ') || 'Dentista'}
+                  </td>
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Fecha y hora
+                    </span>
+                    {formatDateTime(appointment.startsAt)}
+                  </td>
+                  <td className="py-4 pr-4 align-top max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Estado
+                    </span>
+                    <StatusStamp status={appointment.status} />
+                  </td>
+                  <td className="py-4 align-top max-lg:col-span-2 max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Acciones
+                    </span>
+                    <Link
+                      className={buttonStyles('outline', 'sm')}
+                      to={`/administrar-solicitudes?appointmentId=${encodeURIComponent(appointment.id)}`}
+                    >
+                      Gestionar en solicitudes
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    </main>
+    </AdminShell>
   );
 }

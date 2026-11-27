@@ -64,6 +64,102 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe('Detalle móvil de solicitudes', () => {
+  it('permite volver de la solicitud al listado', async () => {
+    vi.stubGlobal('fetch', fetchMock(async (url) => {
+      if (url.endsWith('/appointments/apt-1')) return json({ data: appointment() });
+      return json({ data: [appointment()] });
+    }));
+
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
+
+    await openDetail();
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a solicitudes' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: 'Ana Pérez' })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('Selecciona una solicitud')).toBeInTheDocument();
+  });
+});
+
+describe('Acciones de la solicitud', () => {
+  it('confirms the selected request', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async (url, init) => {
+        calls.push({ url, init });
+        if (url.endsWith('/appointments/apt-1/confirm')) {
+          return json({ data: appointment({ status: 'CONFIRMED' }) });
+        }
+        if (url.endsWith('/appointments/apt-1')) {
+          return json({ data: appointment() });
+        }
+        return json({ data: [appointment()] });
+      }),
+    );
+
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
+
+    await openDetail();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar esta solicitud' }));
+
+    await waitFor(() =>
+      expect(
+        calls.some(
+          (call) => call.url.endsWith('/appointments/apt-1/confirm') && call.init?.method === 'POST',
+        ),
+      ).toBe(true),
+    );
+  });
+
+  it('requires a rejection reason before sending it', async () => {
+    const bodies: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      fetchMock(async (url, init) => {
+        if (url.endsWith('/appointments/apt-1/reject')) {
+          bodies.push(init?.body);
+          return json({ data: appointment({ status: 'REJECTED' }) });
+        }
+        if (url.endsWith('/appointments/apt-1')) {
+          return json({ data: appointment() });
+        }
+        return json({ data: [appointment()] });
+      }),
+    );
+
+    render(
+      <MemoryRouter>
+        <AppointmentManagementPage />
+      </MemoryRouter>,
+    );
+
+    await openDetail();
+    const rejectButton = screen.getByRole('button', { name: 'Rechazar solicitud' });
+    expect(rejectButton).toBeDisabled();
+    fireEvent.click(rejectButton);
+    expect(bodies).toHaveLength(0);
+
+    fireEvent.change(screen.getByLabelText('Motivo del rechazo'), {
+      target: { value: 'No hay disponibilidad' },
+    });
+    expect(rejectButton).toBeEnabled();
+    fireEvent.click(rejectButton);
+
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(JSON.parse(String(bodies[0]))).toEqual({ reason: 'No hay disponibilidad' });
+  });
+});
+
 describe('HU-13 proponer horario alternativo', () => {
   // DENT-13 R1, R4, R5, R8, R9
   it('propone un horario alternativo y muestra ambos horarios', async () => {

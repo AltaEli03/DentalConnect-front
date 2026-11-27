@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 
-export type NoticeTone = 'info' | 'success' | 'error';
+export type NoticeTone = 'info' | 'success' | 'error' | 'warning';
 
 const tones: Record<NoticeTone, string> = {
-  info: 'border-accent/30 bg-accent/5 text-ink',
-  success: 'border-success/30 bg-success/5 text-ink',
-  error: 'border-danger/30 bg-danger/5 text-ink',
+  info: 'border-info-border bg-info-soft text-ink',
+  success: 'border-success-border bg-success-soft text-success-text',
+  error: 'border-danger-border bg-danger-soft text-danger-text',
+  warning: 'border-warning-border bg-warning-soft text-warning-text',
 };
 
 type NoticeProps = {

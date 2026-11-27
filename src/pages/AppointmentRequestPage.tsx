@@ -2,13 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/ui/Button';
+import { Field, controlClass } from '../components/ui/Field';
 import { Notice } from '../components/ui/Notice';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Receipt } from '../components/ui/Receipt';
 import { Skeleton } from '../components/ui/Skeleton';
+import { SlotButton } from '../components/ui/SlotButton';
 import { api, ApiError } from '../services/api';
 import { formatDateTime, formatTime, localToday, statusLabels } from '../lib/appointments';
+import { formatPriceFrom } from '../lib/clinicPrice';
 import type { AvailabilitySlot, Clinic } from '../types/api';
 
-const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
 function requestMessage(cause: unknown) {
   if (cause instanceof ApiError) {
@@ -228,7 +232,7 @@ export function AppointmentRequestPage() {
   const canChooseDate = Boolean(dentistId);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+    <main className="mx-auto w-full max-w-[1180px] px-5 py-8 sm:px-8 lg:py-10">
       <nav aria-label="Migas de pan" className="text-sm font-semibold">
         <Link
           className="text-accent-strong underline-offset-4 hover:underline"
@@ -239,76 +243,56 @@ export function AppointmentRequestPage() {
         </Link>
       </nav>
 
-      <header className="mt-4 max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-heading sm:text-4xl">
-          Solicitar atención
-        </h1>
-        <p className="mt-2 leading-relaxed text-muted">
-          Elige un servicio, un dentista y un horario. Enviar la solicitud no confirma ni cobra la
-          cita; el consultorio debe revisarla.
-        </p>
-      </header>
+      <PageHeader
+        className="mt-4"
+        title="Solicitar atención"
+        description="Elige un servicio, un dentista y un horario. Enviar la solicitud no confirma ni cobra la cita; el consultorio debe revisarla."
+      />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-        <ol className="grid gap-4">
-          <li className="rounded-card border border-line bg-surface p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span
-                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
-                aria-hidden="true"
-              >
-                1
+        <ol className="grid gap-6">
+          <li className="border-t border-line pt-5">
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-sm font-bold text-accent-strong" aria-hidden="true">
+                01
               </span>
               <h2 className="font-display text-xl font-semibold text-heading">
                 Selecciona el servicio
               </h2>
             </div>
-            <label
-              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
-              htmlFor="service-select"
-            >
-              Servicio de interés
+            <Field id="service-select" label="Servicio de interés" className="mt-4">
               <select
                 id="service-select"
                 value={serviceId}
                 onChange={(event) => changeService(event.target.value)}
-                className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent"
+                className={controlClass}
               >
                 <option value="">Elige un servicio</option>
                 {clinic.services.map((service) => (
                   <option key={service.id} value={service.id}>
-                    {service.name} · Desde {money.format(service.priceFrom)}
+                    {service.name} · Desde {formatPriceFrom(service.priceFrom)}
                   </option>
                 ))}
               </select>
-            </label>
+            </Field>
           </li>
 
-          <li
-            className={`rounded-card border border-line bg-surface p-5 shadow-sm ${canChooseDentist ? '' : 'opacity-60'}`}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
-                aria-hidden="true"
-              >
-                2
+          <li className={`border-t border-line pt-5 ${canChooseDentist ? '' : 'opacity-60'}`}>
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-sm font-bold text-accent-strong" aria-hidden="true">
+                02
               </span>
               <h2 className="font-display text-xl font-semibold text-heading">
                 Elige a tu especialista
               </h2>
             </div>
-            <label
-              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
-              htmlFor="dentist-select"
-            >
-              Especialista
+            <Field id="dentist-select" label="Especialista" className="mt-4">
               <select
                 id="dentist-select"
                 value={dentistId}
                 onChange={(event) => changeDentist(event.target.value)}
                 disabled={!canChooseDentist}
-                className="min-h-11 rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
+                className={controlClass}
               >
                 <option value="">Selecciona un dentista</option>
                 {dentists.map((dentist) => (
@@ -317,7 +301,7 @@ export function AppointmentRequestPage() {
                   </option>
                 ))}
               </select>
-            </label>
+            </Field>
             {canChooseDentist && dentists.length === 0 && (
               <Notice tone="info" className="mt-3">
                 No hay especialistas publicados para este servicio.
@@ -325,25 +309,16 @@ export function AppointmentRequestPage() {
             )}
           </li>
 
-          <li
-            className={`rounded-card border border-line bg-surface p-5 shadow-sm ${canChooseDate ? '' : 'opacity-60'}`}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white"
-                aria-hidden="true"
-              >
-                3
+          <li className={`border-t border-line pt-5 ${canChooseDate ? '' : 'opacity-60'}`}>
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-sm font-bold text-accent-strong" aria-hidden="true">
+                03
               </span>
               <h2 className="font-display text-xl font-semibold text-heading">
                 Selecciona fecha y hora
               </h2>
             </div>
-            <label
-              className="mt-4 grid gap-1.5 text-sm font-semibold text-ink"
-              htmlFor="date-input"
-            >
-              Fecha de atención
+            <Field id="date-input" label="Fecha de atención" className="mt-4 max-w-sm">
               <input
                 id="date-input"
                 type="date"
@@ -357,9 +332,10 @@ export function AppointmentRequestPage() {
                 }}
                 min={localToday()}
                 disabled={!canChooseDate}
-                className="min-h-11 max-w-sm rounded-control border border-control bg-surface px-3 text-base font-normal text-ink outline-none focus-visible:ring-4 focus-visible:ring-accent disabled:cursor-not-allowed"
+                className={controlClass}
               />
-            </label>
+            </Field>
+            <p className="mt-2 text-xs text-subtle">Zona horaria: Ciudad de México.</p>
 
             {loadingSlots && (
               <div className="mt-4" role="status" aria-live="polite">
@@ -396,113 +372,125 @@ export function AppointmentRequestPage() {
             {!loadingSlots && !availabilityError && slots.length > 0 && (
               <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {slots.map((slot) => (
-                  <button
+                  <SlotButton
                     key={slot.startsAt}
-                    type="button"
-                    aria-pressed={selectedSlot === slot.startsAt}
+                    selected={selectedSlot === slot.startsAt}
                     aria-label={`${formatDateTime(slot.startsAt)} a ${formatTime(slot.endsAt)}`}
                     onClick={() => chooseSlot(slot)}
-                    className={`min-h-11 rounded-control border px-2 text-sm font-semibold transition-colors ${
-                      selectedSlot === slot.startsAt
-                        ? 'border-brand bg-brand text-white'
-                        : 'border-control bg-surface text-heading hover:border-accent hover:bg-canvas'
-                    }`}
                   >
                     {formatTime(slot.startsAt)}
-                  </button>
+                  </SlotButton>
                 ))}
               </div>
             )}
           </li>
-        </ol>
 
-        <aside
-          className="rounded-card border border-line bg-surface shadow-md lg:sticky lg:top-24"
-          aria-labelledby="summary-title"
-        >
-          <div className="rounded-t-card bg-brand p-5 text-white">
-            <h2 id="summary-title" className="font-display text-xl font-semibold">
-              Resumen de solicitud
-            </h2>
-          </div>
-          <dl className="grid gap-4 border-b border-dashed border-line p-5 text-sm">
-            <div>
-              <dt className="font-semibold text-muted">Consultorio</dt>
-              <dd className="mt-1 font-semibold text-ink">{clinic.name}</dd>
+          <li className="border-t border-line pt-5">
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-sm font-bold text-accent-strong" aria-hidden="true">
+                04
+              </span>
+              <h2 className="font-display text-xl font-semibold text-heading">Tus datos</h2>
             </div>
-            <div>
-              <dt className="font-semibold text-muted">Servicio</dt>
-              <dd className="mt-1 font-semibold text-ink">
-                {selectedService?.name ?? 'Por seleccionar'}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-muted">Especialista</dt>
-              <dd className="mt-1 font-semibold text-ink">
-                {selectedDentist
-                  ? `${selectedDentist.firstName} ${selectedDentist.lastName}`
-                  : 'Por seleccionar'}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-muted">Fecha y hora</dt>
-              <dd className="mt-1 font-semibold text-ink">
-                {selectedSlot ? formatDateTime(selectedSlot) : 'Por seleccionar'}
-              </dd>
-            </div>
-          </dl>
-
-          <div className="p-5">
-            {requestError && (
-              <Notice tone="error" className="mb-4">
-                {requestError}
-              </Notice>
-            )}
-
             {authLoading ? (
-              <p className="text-sm text-muted" role="status" aria-live="polite">
+              <p className="mt-3 text-sm text-muted" role="status" aria-live="polite">
                 Verificando tu sesión…
               </p>
-            ) : !user ? (
-              <Link
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white hover:bg-brand-strong focus-visible:ring-4 focus-visible:ring-accent"
-                to="/iniciar-sesion"
-                state={{ from: `${location.pathname}${location.search}` }}
-              >
-                Inicia sesión para agendar
-              </Link>
-            ) : requestResult ? (
-              <Notice tone="success" title="Solicitud enviada" className="mb-3">
-                <p>
-                  Folio <strong>{requestResult.folio}</strong> · estado{' '}
-                  <strong>
-                    {statusLabels[requestResult.status?.toUpperCase()] ?? requestResult.status}
-                  </strong>
-                </p>
-                <Link
-                  className="mt-2 inline-block font-semibold text-accent-strong underline underline-offset-4"
-                  to={`/mi-solicitud/?appointmentId=${encodeURIComponent(requestResult.id)}`}
-                >
-                  Ver el estado de mi solicitud
-                </Link>
-              </Notice>
+            ) : user ? (
+              <p className="mt-3 text-sm text-ink">
+                <strong className="font-semibold text-heading">
+                  {user.firstName} {user.lastName}
+                </strong>
+                <span className="text-muted"> · {user.email}</span>
+              </p>
             ) : (
-              <Button
-                variant="coral"
-                className="w-full"
-                loading={requesting}
-                disabled={!selectedSlot}
-                onClick={() => void submitRequest()}
-              >
-                {requesting ? 'Enviando solicitud…' : 'Enviar solicitud'}
-              </Button>
+              <p className="mt-3 text-sm text-muted">
+                Inicia sesión para enviar la solicitud con los datos de tu cuenta.
+              </p>
             )}
-
-            <p className="mt-4 text-xs leading-relaxed text-muted">
-              Enviar la solicitud no confirma la cita. El consultorio revisará el horario y te
-              responderá.
+            <p className="mt-2 text-xs leading-relaxed text-muted">
+              Usaremos los datos de tu cuenta para contactarte sobre esta solicitud.
             </p>
-          </div>
+          </li>
+        </ol>
+
+        <aside className="lg:sticky lg:top-24">
+          <section aria-label="Resumen de la solicitud">
+            <Receipt
+              title="Resumen de solicitud"
+              rows={[
+                { label: 'Consultorio', value: clinic.name },
+                { label: 'Servicio', value: selectedService?.name ?? 'Por seleccionar' },
+                {
+                  label: 'Especialista',
+                  value: selectedDentist
+                    ? `${selectedDentist.firstName} ${selectedDentist.lastName}`
+                    : 'Por seleccionar',
+                },
+                {
+                  label: 'Fecha y hora',
+                  value: selectedSlot ? formatDateTime(selectedSlot) : 'Por seleccionar',
+                },
+                {
+                  label: 'Paciente',
+                  value: user ? `${user.firstName} ${user.lastName}` : 'Por iniciar sesión',
+                },
+              ]}
+              footer={
+                <div>
+                  {requestError && (
+                    <Notice tone="error" className="mb-4">
+                      {requestError}
+                    </Notice>
+                  )}
+
+                  {authLoading ? (
+                    <p className="text-sm text-muted" role="status" aria-live="polite">
+                      Verificando tu sesión…
+                    </p>
+                  ) : !user ? (
+                    <Link
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-brand px-5 font-semibold text-white hover:bg-brand-strong focus-visible:ring-4 focus-visible:ring-accent"
+                      to="/iniciar-sesion"
+                      state={{ from: `${location.pathname}${location.search}` }}
+                    >
+                      Inicia sesión para agendar
+                    </Link>
+                  ) : requestResult ? (
+                    <Notice tone="success" title="Solicitud enviada" className="mb-3">
+                      <p>
+                        Folio <strong>{requestResult.folio}</strong> · estado{' '}
+                        <strong>
+                          {statusLabels[requestResult.status?.toUpperCase()] ?? requestResult.status}
+                        </strong>
+                      </p>
+                      <Link
+                        className="mt-2 inline-block font-semibold text-accent-strong underline underline-offset-4"
+                        to={`/mi-solicitud/?appointmentId=${encodeURIComponent(requestResult.id)}`}
+                      >
+                        Ver el estado de mi solicitud
+                      </Link>
+                    </Notice>
+                  ) : (
+                    <Button
+                      variant="coral"
+                      className="w-full"
+                      loading={requesting}
+                      disabled={!selectedSlot}
+                      onClick={() => void submitRequest()}
+                    >
+                      {requesting ? 'Enviando solicitud…' : 'Enviar solicitud'}
+                    </Button>
+                  )}
+
+                  <p className="mt-4 text-xs leading-relaxed text-muted">
+                    Enviar la solicitud no confirma la cita. El consultorio revisará el horario y
+                    te responderá.
+                  </p>
+                </div>
+              }
+            />
+          </section>
         </aside>
       </div>
     </main>

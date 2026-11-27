@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
-import { StatusBadge } from '../components/ui/StatusBadge';
+import { PageHeader } from '../components/ui/PageHeader';
+import { StatusStamp } from '../components/ui/StatusStamp';
 import { buttonStyles } from '../components/ui/Button';
 import { api, ApiError } from '../services/api';
 import { formatDateTime } from '../lib/appointments';
@@ -88,7 +89,7 @@ export function PatientAppointmentsPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <section className="rounded-card border border-line bg-surface p-6 shadow-sm">
+        <section className="rounded-panel border border-line bg-surface p-6">
           <p className="text-sm font-semibold text-accent-strong">Mi cuenta</p>
           <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Mis citas</h1>
           <Notice tone="info" className="mt-4">
@@ -114,26 +115,26 @@ export function PatientAppointmentsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:py-10">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <p className="text-sm font-semibold text-accent-strong">Mi cuenta</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-heading">Mis citas</h1>
-          <p className="mt-2 text-muted">Consulta próximas citas e historial de tus solicitudes.</p>
-        </div>
-        <Link className={buttonStyles('outline', 'sm')} to="/clinics">
-          Buscar consultorio
-        </Link>
-      </header>
+      <PageHeader
+        kicker="Mi cuenta"
+        title="Mis citas"
+        description="Consulta próximas citas e historial de tus solicitudes."
+        actions={
+          <Link className={buttonStyles('outline', 'sm')} to="/clinics">
+            Buscar consultorio
+          </Link>
+        }
+      />
 
-      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Filtrar citas">
+      <div className="mt-5 flex flex-wrap gap-5" role="group" aria-label="Filtrar citas">
         <button
           type="button"
           aria-pressed={view === 'upcoming'}
           onClick={() => setView('upcoming')}
-          className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+          className={`inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold ${
             view === 'upcoming'
-              ? 'border-brand bg-brand text-white'
-              : 'border-control bg-surface text-heading hover:bg-canvas'
+              ? 'border-accent text-heading'
+              : 'border-transparent text-subtle hover:text-heading'
           }`}
         >
           Próximas ({upcoming.length})
@@ -142,10 +143,10 @@ export function PatientAppointmentsPage() {
           type="button"
           aria-pressed={view === 'history'}
           onClick={() => setView('history')}
-          className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+          className={`inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold ${
             view === 'history'
-              ? 'border-brand bg-brand text-white'
-              : 'border-control bg-surface text-heading hover:bg-canvas'
+              ? 'border-accent text-heading'
+              : 'border-transparent text-subtle hover:text-heading'
           }`}
         >
           Historial ({history.length})
@@ -182,14 +183,14 @@ export function PatientAppointmentsPage() {
       )}
 
       {!loading && !error && visible.length > 0 && (
-        <ul className="mt-6 grid gap-4">
+        <ul
+          aria-label="Citas del paciente"
+          className="mt-6 divide-y divide-line border-y border-line"
+        >
           {visible.map((appointment) => {
             const status = appointment.status?.toUpperCase() ?? '';
             return (
-              <li
-                key={appointment.id}
-                className="rounded-card border border-line bg-surface p-5 shadow-sm"
-              >
+              <li key={appointment.id} className="py-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-accent-strong">
@@ -202,7 +203,7 @@ export function PatientAppointmentsPage() {
                       {appointment.dentist.firstName} {appointment.dentist.lastName}
                     </p>
                   </div>
-                  <StatusBadge status={status} />
+                  <StatusStamp status={status} />
                 </div>
 
                 <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">

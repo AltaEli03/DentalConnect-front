@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { Field, controlClass } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { Notice } from '../components/ui/Notice';
+import { SlotButton } from '../components/ui/SlotButton';
+import { StatusStamp } from '../components/ui/StatusStamp';
+import { AdminShell } from '../components/layout/AdminShell';
 import { clinicRequest as request } from '../services/clinicApi';
 import type { AvailabilitySlot } from '../types/api';
 
@@ -27,27 +34,7 @@ type Appointment = {
   rejectionReason?: string;
 };
 
-const statusLabels: Record<string, string> = {
-  PENDING: 'Pendiente',
-  CONFIRMED: 'Confirmada',
-  REJECTED: 'Rechazada',
-  CANCELLED: 'Cancelada',
-  PROPOSED: 'Con propuesta',
-};
 
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'status-confirmed';
-    case 'REJECTED':
-    case 'CANCELLED':
-      return 'status-cancelled';
-    case 'PROPOSED':
-      return 'status-proposed';
-    default:
-      return 'status-pending';
-  }
-};
 
 const timeZone = 'America/Mexico_City';
 const localToday = () => new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
@@ -287,367 +274,295 @@ export function AppointmentManagementPage() {
   );
 
   return (
-    <main className="dashboard-page">
-      {/* HEADER Y FILTROS */}
-      <section className="panel dashboard-header-panel">
-        <div>
-          <p className="eyebrow">Panel de Gestión</p>
-          <h1>Solicitudes de Cita</h1>
-          <p className="text-muted">Revisa, confirma o propone nuevos horarios a los pacientes.</p>
-        </div>
-
-        <div className="filter-bar">
-          <label>
-            Estado
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="premium-input"
-            >
-              <option value="">Todas</option>
-              <option value="PENDING">Pendientes</option>
-              <option value="CONFIRMED">Confirmadas</option>
-              <option value="REJECTED">Rechazadas</option>
-              <option value="PROPOSED">Con propuesta</option>
-            </select>
-          </label>
-          <label>
-            Desde
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="premium-input"
-            />
-          </label>
-          <label>
-            Hasta
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="premium-input"
-            />
-          </label>
-          <button onClick={() => void load()} disabled={loading} className="btn btn-primary">
-            {loading ? 'Actualizando…' : 'Filtrar'}
-          </button>
-        </div>
-      </section>
+    <AdminShell
+      title="Solicitudes de cita"
+      description="Revisa, confirma o propone nuevos horarios a los pacientes."
+      active="requests"
+    >
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void load();
+        }}
+        className="flex flex-wrap items-end gap-3 rounded-panel border border-line bg-surface p-4"
+        aria-label="Filtrar solicitudes"
+      >
+        <Field id="request-status" label="Estado" className="min-w-44">
+          <select
+            id="request-status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className={controlClass}
+          >
+            <option value="">Todas</option>
+            <option value="PENDING">Pendientes</option>
+            <option value="CONFIRMED">Confirmadas</option>
+            <option value="REJECTED">Rechazadas</option>
+            <option value="PROPOSED">Con propuesta</option>
+          </select>
+        </Field>
+        <Field id="request-from" label="Desde" className="min-w-40">
+          <input
+            type="date"
+            value={from}
+            onChange={(event) => setFrom(event.target.value)}
+            className={controlClass}
+          />
+        </Field>
+        <Field id="request-to" label="Hasta" className="min-w-40">
+          <input
+            type="date"
+            value={to}
+            onChange={(event) => setTo(event.target.value)}
+            className={controlClass}
+          />
+        </Field>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Actualizando…' : 'Filtrar'}
+        </Button>
+      </form>
 
       {error && (
-        <div className="alert alert-error" role="alert">
-          {error}
-        </div>
+        <Notice tone="error" className="mt-5">
+          <p>{error}</p>
+        </Notice>
       )}
       {notice && (
-        <div className="alert alert-success" role="status">
+        <Notice tone="success" className="mt-5">
           {notice}
-        </div>
+        </Notice>
       )}
 
-      <div className="management-layout">
-        {/* COLUMNA IZQUIERDA: LISTA DE SOLICITUDES */}
-        <aside className="panel inbox-panel">
-          <div className="panel-header">
-            <h2>Bandeja de Entrada</h2>
-            <span className="badge">{pendingCount} pendientes</span>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
+        <section
+          className={`rounded-panel border border-line bg-surface ${selected ? 'max-lg:hidden' : ''}`}
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+            <h2 className="font-display text-lg font-semibold text-heading">Bandeja de entrada</h2>
+            <span className="text-xs font-semibold text-subtle">{pendingCount} pendientes</span>
           </div>
 
           {loading && items.length === 0 ? (
-            <div className="loading-state">
-              <p>Cargando solicitudes…</p>
-            </div>
+            <p className="p-4 text-sm text-muted" role="status">
+              Cargando solicitudes…
+            </p>
           ) : items.length === 0 ? (
-            <div className="loading-state">
-              <p>No hay solicitudes con estos filtros.</p>
-            </div>
+            <p className="p-4 text-sm text-muted">No hay solicitudes con estos filtros.</p>
           ) : (
-            <div className="request-list">
+            <ul aria-label="Solicitudes de cita" className="divide-y divide-line">
               {items.map((item) => {
-                const s = item.status?.toUpperCase();
+                const itemStatus = item.status?.toUpperCase() ?? 'PENDING';
                 return (
-                  <button
-                    key={item.id}
-                    className={`request-card ${selected?.id === item.id ? 'active' : ''} border-${getStatusClass(s)}`}
-                    onClick={() => void openDetail(item.id)}
-                    aria-current={selected?.id === item.id ? 'true' : 'false'}
-                  >
-                    <div className="request-card-top">
-                      <strong>{patientName(item)}</strong>
-                      <span
-                        className={`status-dot ${getStatusClass(s)}`}
-                        title={statusLabels[s] || s}
-                      >
-                        <span className="sr-only">{statusLabels[s] || s}</span>
-                      </span>
-                    </div>
-                    <p className="request-service">{item.serviceName || 'Servicio'}</p>
-                    <div className="request-meta">
-                      <span>📅 {dateTime(item.startsAt)}</span>
-                    </div>
-                    <span className="request-folio">
-                      Folio: {item.reference || item.folio || item.id.split('-')[0]}
-                    </span>
-                  </button>
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className={`w-full px-4 py-4 text-left transition-colors hover:bg-surface-soft ${
+                        selected?.id === item.id ? 'border-l-2 border-accent bg-surface-soft' : ''
+                      }`}
+                      onClick={() => void openDetail(item.id)}
+                      aria-current={selected?.id === item.id ? 'true' : 'false'}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <strong className="font-display text-base font-semibold text-heading">
+                          {patientName(item)}
+                        </strong>
+                        <StatusStamp status={itemStatus} />
+                      </div>
+                      <p className="mt-1 text-sm text-muted">
+                        {item.serviceName || 'Servicio'}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">{dateTime(item.startsAt)}</p>
+                      <p className="mt-1 text-xs text-subtle">
+                        Folio: {item.reference || item.folio || item.id.split('-')[0]}
+                      </p>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
-        </aside>
+        </section>
 
-        {/* COLUMNA DERECHA: DETALLE DE LA SOLICITUD */}
-        <section className="panel detail-panel" aria-label="Detalle de solicitud">
+        <section
+          className={`rounded-panel border border-line bg-surface ${selected ? '' : 'max-lg:hidden'}`}
+          aria-label="Detalle de solicitud"
+        >
           {loadingDetail ? (
-            <div className="loading-state" style={{ height: '100%' }}>
-              <p>Cargando detalle de la solicitud…</p>
-            </div>
+            <p className="p-6 text-sm text-muted" role="status">
+              Cargando detalle de la solicitud…
+            </p>
           ) : selected ? (
             <>
-              {/* Cabecera del Detalle */}
-              <div className="detail-header">
+              <div className="p-4 pb-0 lg:hidden">
+                <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+                  Volver a solicitudes
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-surface-soft p-5">
                 <div>
-                  <h2>{patientName(selected)}</h2>
-                  <span
-                    className={`status-badge ${getStatusClass(selected.status?.toUpperCase())}`}
-                  >
-                    {statusLabels[selected.status?.toUpperCase()] || selected.status}
-                  </span>
+                  <h2 className="font-display text-2xl font-semibold text-heading">
+                    {patientName(selected)}
+                  </h2>
+                  <div className="mt-2">
+                    <StatusStamp status={selected.status?.toUpperCase()} />
+                  </div>
                 </div>
-                <div className="detail-folio">
+                <div className="text-right text-xs text-subtle">
                   Ref: {selected.reference || selected.folio || selected.id}
                 </div>
               </div>
 
-              {/* Ficha del Paciente */}
-              <div className="patient-card">
-                <div className="patient-contact">
-                  <div className="contact-item">
-                    <span className="icon">✉️</span> {selected.patientEmail || 'No disponible'}
-                  </div>
-                  <div className="contact-item">
-                    <span className="icon">📞</span> {selected.patientPhone || 'No disponible'}
-                  </div>
-                </div>
-                <div className="appointment-info">
-                  <div className="info-row">
-                    <span>Servicio:</span>{' '}
-                    <strong>{selected.serviceName || 'No disponible'}</strong>
-                  </div>
-                  <div className="info-row">
-                    <span>Especialista:</span>{' '}
-                    <strong>{selected.dentistName || 'No disponible'}</strong>
-                  </div>
-                  <div className="info-row highlight-row">
-                    <span>Fecha Solicitada:</span> <strong>{dateTime(selected.startsAt)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Estado de Propuesta */}
-              {selected.proposedStartsAt && (
-                <div
-                  className="proposal-status-box"
-                  style={{
-                    margin: '0 2rem 1.5rem',
-                    padding: '1rem',
-                    background: 'var(--color-bg)',
-                    borderRadius: 'var(--radius-md)',
-                    borderLeft: '4px solid var(--color-accent)',
-                  }}
-                >
-                  <p style={{ margin: 0 }}>
-                    <strong>Horario Propuesto:</strong> {dateTime(selected.proposedStartsAt)} –{' '}
-                    {dateTime(selected.proposedEndsAt)}
+              <div className="grid gap-5 p-5">
+                <div className="grid gap-3 rounded-control border border-line bg-canvas p-4 text-sm sm:grid-cols-2">
+                  <p className="flex items-center gap-2">
+                    <Icon name="mail" size={16} className="text-accent" />
+                    {selected.patientEmail || 'No disponible'}
                   </p>
-                  {selected.proposalExpiresAt && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      <strong>Vence:</strong> {dateTime(selected.proposalExpiresAt)}
-                    </p>
-                  )}
+                  <p className="flex items-center gap-2">
+                    <Icon name="phone" size={16} className="text-accent" />
+                    {selected.patientPhone || 'No disponible'}
+                  </p>
                 </div>
-              )}
 
-              {/* ZONA DE ACCIONES (Solo si está PENDIENTE) */}
-              {selected.status?.toUpperCase() === 'PENDING' && (
-                <div className="action-zone">
-                  <h3>Acciones Disponibles</h3>
-
-                  {/* 1. CONFIRMAR */}
-                  <div className="action-block">
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-full confirm-btn"
-                      disabled={busy}
-                      onClick={() => void act('confirm')}
-                    >
-                      {busy ? 'Guardando…' : '✓ Confirmar esta solicitud'}
-                    </button>
+                <dl className="grid gap-3 text-sm">
+                  <div className="flex flex-wrap justify-between gap-2 border-b border-line pb-3">
+                    <dt className="text-muted">Servicio:</dt>
+                    <dd className="font-semibold text-heading">
+                      {selected.serviceName || 'No disponible'}
+                    </dd>
                   </div>
-
-                  <div className="action-divider">
-                    <span>o</span>
+                  <div className="flex flex-wrap justify-between gap-2 border-b border-line pb-3">
+                    <dt className="text-muted">Especialista:</dt>
+                    <dd className="font-semibold text-heading">
+                      {selected.dentistName || 'No disponible'}
+                    </dd>
                   </div>
-
-                  {/* 2. PROPONER NUEVO HORARIO */}
-                  <div className="action-block propose-block">
-                    <h4>Proponer un horario alternativo</h4>
-                    <label
-                      htmlFor="proposed-date"
-                      className="date-label"
-                      style={{
-                        display: 'block',
-                        marginBottom: '0.5rem',
-                        fontWeight: 600,
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      Selecciona una fecha
-                    </label>
-                    <input
-                      id="proposed-date"
-                      type="date"
-                      className="premium-input btn-full"
-                      style={{ marginBottom: '1rem' }}
-                      min={localToday()}
-                      value={proposedDate}
-                      onChange={(e) => {
-                        setProposedDate(e.target.value);
-                        setSelectedProposed('');
-                      }}
-                    />
-
-                    {loadingSlots && (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                        Buscando disponibilidad…
-                      </p>
-                    )}
-                    {slotError && (
-                      <div
-                        className="alert alert-error"
-                        style={{ padding: '0.5rem', fontSize: '0.85rem' }}
-                      >
-                        {slotError}
-                      </div>
-                    )}
-                    {!loadingSlots && !slotError && slots.length === 0 && (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                        No hay horarios para esta fecha.
-                      </p>
-                    )}
-
-                    <div
-                      className="slots-grid"
-                      style={{
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                        marginBottom: '1rem',
-                      }}
-                    >
-                      {slots.map((slot) => (
-                        <button
-                          type="button"
-                          key={slot.startsAt}
-                          className={`slot-btn ${selectedProposed === slot.startsAt ? 'active' : ''}`}
-                          aria-pressed={selectedProposed === slot.startsAt}
-                          onClick={() => setSelectedProposed(slot.startsAt)}
-                        >
-                          {new Intl.DateTimeFormat('es-MX', {
-                            timeStyle: 'short',
-                            timeZone,
-                          }).format(new Date(slot.startsAt))}
-                        </button>
-                      ))}
+                  <div className="flex flex-wrap justify-between gap-2 border-b border-line pb-3">
+                    <dt className="text-muted">Fecha Solicitada:</dt>
+                    <dd className="font-semibold text-heading">{dateTime(selected.startsAt)}</dd>
+                  </div>
+                  {selected.proposedStartsAt && (
+                    <div className="flex flex-wrap justify-between gap-2 border-b border-line pb-3">
+                      <dt className="text-muted">Horario Propuesto:</dt>
+                      <dd className="font-semibold text-heading">
+                        {dateTime(selected.proposedStartsAt)} – {dateTime(selected.proposedEndsAt)}
+                      </dd>
                     </div>
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-full"
-                      disabled={!selectedProposed || proposing}
-                      onClick={() => void propose()}
-                    >
-                      {proposing ? 'Enviando…' : 'Proponer horario seleccionado'}
-                    </button>
-                  </div>
+                  )}
+                  {selected.proposalExpiresAt && (
+                    <div className="flex flex-wrap justify-between gap-2 border-b border-line pb-3">
+                      <dt className="text-muted">Vence:</dt>
+                      <dd className="font-semibold text-heading">
+                        {dateTime(selected.proposalExpiresAt)}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
 
-                  <div className="action-divider">
-                    <span>o</span>
-                  </div>
+                {selected.status?.toUpperCase() === 'PENDING' && (
+                  <div className="grid gap-5 border-t border-line pt-5">
+                    <div>
+                      <Button disabled={busy} onClick={() => void act('confirm')}>
+                        {busy ? 'Guardando…' : 'Confirmar esta solicitud'}
+                      </Button>
+                    </div>
 
-                  {/* 3. RECHAZAR */}
-                  <div
-                    className="action-block danger-block"
-                    style={{
-                      padding: '1rem',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
-                    }}
-                  >
-                    <h4>Rechazar solicitud</h4>
-                    <textarea
-                      className="premium-input"
-                      rows={2}
-                      minLength={10}
-                      maxLength={250}
-                      placeholder="Motivo del rechazo (10-250 caracteres)"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      style={{ marginBottom: '1rem', resize: 'none' }}
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-full"
-                      disabled={busy || reason.trim().length < 10}
-                      onClick={() => void act('reject')}
-                    >
-                      Rechazar solicitud
-                    </button>
-                  </div>
-                </div>
-              )}
+                    <div className="grid gap-3 rounded-control border border-line bg-canvas p-4">
+                      <h3 className="font-display text-lg font-semibold text-heading">
+                        Proponer un horario alternativo
+                      </h3>
+                      <Field id="proposed-date" label="Selecciona una fecha">
+                        <input
+                          type="date"
+                          min={localToday()}
+                          value={proposedDate}
+                          onChange={(event) => {
+                            setProposedDate(event.target.value);
+                            setSelectedProposed('');
+                          }}
+                          className={controlClass}
+                        />
+                      </Field>
+                      {loadingSlots && <p className="text-sm text-muted">Buscando disponibilidad…</p>}
+                      {slotError && (
+                        <Notice tone="error">
+                          <p>{slotError}</p>
+                        </Notice>
+                      )}
+                      {!loadingSlots && !slotError && slots.length === 0 && (
+                        <p className="text-sm text-muted">No hay horarios para esta fecha.</p>
+                      )}
+                      {slots.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                          {slots.map((slot) => (
+                            <SlotButton
+                              key={slot.startsAt}
+                              selected={selectedProposed === slot.startsAt}
+                              onClick={() => setSelectedProposed(slot.startsAt)}
+                            >
+                              {new Intl.DateTimeFormat('es-MX', {
+                                timeStyle: 'short',
+                                timeZone,
+                              }).format(new Date(slot.startsAt))}
+                            </SlotButton>
+                          ))}
+                        </div>
+                      )}
+                      <Button
+                        className="justify-self-start"
+                        disabled={!selectedProposed || proposing}
+                        loading={proposing}
+                        onClick={() => void propose()}
+                      >
+                        {proposing ? 'Enviando…' : 'Proponer horario seleccionado'}
+                      </Button>
+                    </div>
 
-              {selected.rejectionReason && (
-                <div className="alert alert-error" style={{ margin: '0 2rem 2rem' }}>
-                  <strong>Motivo de rechazo:</strong> {selected.rejectionReason}
-                </div>
-              )}
+                    <div className="grid gap-3 rounded-control border border-danger-border bg-danger-soft p-4">
+                      <h3 className="font-display text-lg font-semibold text-heading">
+                        Rechazar solicitud
+                      </h3>
+                      <Field id="rejection-reason" label="Motivo del rechazo">
+                        <textarea
+                          rows={2}
+                          minLength={10}
+                          maxLength={250}
+                          placeholder="Motivo del rechazo (10-250 caracteres)"
+                          value={reason}
+                          onChange={(event) => setReason(event.target.value)}
+                          className={controlClass}
+                        />
+                      </Field>
+                      <Button
+                        variant="danger"
+                        disabled={busy || reason.trim().length < 10}
+                        onClick={() => void act('reject')}
+                      >
+                        Rechazar solicitud
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {selected.rejectionReason && (
+                  <Notice tone="error">
+                    <strong>Motivo de rechazo:</strong> {selected.rejectionReason}
+                  </Notice>
+                )}
+              </div>
             </>
           ) : (
-            <div
-              className="empty-detail"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                minHeight: '400px',
-                padding: '2rem',
-                textAlign: 'center',
-                color: 'var(--color-text-muted)',
-              }}
-            >
-              <div
-                className="empty-icon"
-                style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}
-              >
-                📥
-              </div>
-              <h2 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
+            <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-6 text-center">
+              <p className="font-display text-lg font-semibold text-heading">
                 Selecciona una solicitud
-              </h2>
-              <p style={{ maxWidth: '300px' }}>
-                Elige una cita de la bandeja izquierda para ver los detalles del paciente y
-                gestionar la cita.
+              </p>
+              <p className="max-w-[40ch] text-sm text-muted">
+                Elige una solicitud de la bandeja para revisar los datos del paciente y responder.
               </p>
             </div>
           )}
         </section>
       </div>
-    </main>
+    </AdminShell>
   );
 }

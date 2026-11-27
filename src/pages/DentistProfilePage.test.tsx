@@ -64,6 +64,7 @@ describe('DentistProfilePage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Luis Mora' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Servicios activos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Elegir Ortodoncia' })).toHaveAttribute(
       'href',
       '/clinics/clinic-1/solicitar?serviceId=service-1&dentistId=dentist-1',

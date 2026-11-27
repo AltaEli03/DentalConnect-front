@@ -1,9 +1,12 @@
 import { type FormEvent, useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { Button } from '../components/ui/Button';
+import { Field, controlClass } from '../components/ui/Field';
 import { Notice } from '../components/ui/Notice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { isClinicAdmin } from '../lib/roles';
+import { AdminShell } from '../components/layout/AdminShell';
 import { api } from '../services/api';
 import { clinicRequest } from '../services/clinicApi';
 
@@ -179,237 +182,513 @@ export function DentistManagementPage() {
   }
 
   return (
-    <main className="dashboard-page">
-      <section className="panel dashboard-header-panel">
-        <div>
-          <p className="eyebrow">{clinicName}</p>
-          <h1>Dentistas y horarios</h1>
-          <p className="text-muted">Administra el equipo y la agenda desde secciones separadas.</p>
-        </div>
-        <Link to="/consultorio/configuracion" className="secondary-btn">Volver a perfil y servicios</Link>
-      </section>
-
+    <AdminShell
+      title="Dentistas y horarios"
+      description="Administra el equipo y la agenda desde secciones separadas."
+      clinicName={clinicName}
+      active="team"
+    >
       {message && (
-        <div className="notice error" role="alert">
+        <Notice tone="error" role="alert" className="mb-5">
           <p>{message}</p>
-        </div>
+        </Notice>
       )}
 
       {clinicId && (
         <>
-        <nav className="management-section-nav" aria-label="Secciones de administración">
-          <button type="button" className={`management-section-link ${activeSection === 'team' ? 'active' : ''}`} aria-pressed={activeSection === 'team'} onClick={() => setActiveSection('team')}>
-            <span className="management-section-number" aria-hidden="true">1</span>
-            <span><strong>Equipo dental</strong><small>Perfiles y servicios</small></span>
-            <span className="management-section-count">{dentists.length}</span>
-          </button>
-          <button type="button" className={`management-section-link ${activeSection === 'schedule' ? 'active' : ''}`} aria-pressed={activeSection === 'schedule'} disabled={dentists.every(d => !d.isActive)} onClick={() => setActiveSection('schedule')}>
-            <span className="management-section-number" aria-hidden="true">2</span>
-            <span><strong>Horarios</strong><small>Jornadas y bloqueos</small></span>
-            <span className="management-section-count">{dentists.filter(d => d.isActive).length}</span>
-          </button>
-        </nav>
+          <div className="flex flex-wrap gap-5" role="group" aria-label="Secciones de administración">
+            <button
+              type="button"
+              aria-pressed={activeSection === 'team'}
+              onClick={() => setActiveSection('team')}
+              className={`inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold ${
+                activeSection === 'team'
+                  ? 'border-accent text-heading'
+                  : 'border-transparent text-subtle hover:text-heading'
+              }`}
+            >
+              Equipo dental
+            </button>
+            <button
+              type="button"
+              aria-pressed={activeSection === 'schedule'}
+              disabled={dentists.every((d) => !d.isActive)}
+              onClick={() => setActiveSection('schedule')}
+              className={`inline-flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                activeSection === 'schedule'
+                  ? 'border-accent text-heading'
+                  : 'border-transparent text-subtle hover:text-heading'
+              }`}
+            >
+              Horarios
+            </button>
+          </div>
 
-        {activeSection === 'team' && <div className="management-layout">
-          
-          {/* COLUMNA IZQUIERDA: LISTA DE DENTISTAS */}
-          <section className="panel list-panel">
-            <div className="panel-header">
-              <h2>Dentistas</h2>
-              <span className="badge">{dentists.length}</span>
-            </div>
-            
-            {dentists.length === 0 ? (
-            <p className="empty-state">Aún no hay dentistas. Agrega el primero en el formulario.</p>
-            ) : (
-              <div className="dentist-list">
-                {dentists.map(d => (
-                  <article key={d.id} className={`dentist-card ${selected === d.id ? 'selected' : ''}`}>
-                    <div className="dentist-card-header">
-                      <h3>{d.firstName} {d.lastName}</h3>
-                      <span className={`status-badge ${d.isActive ? 'active' : 'inactive'}`}>
-                        {d.isActive ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </div>
-                    <p className="dentist-specialty">{d.specialty} · Céd. {d.professionalLicense}</p>
-                    <p className="dentist-services">
-                      {(d.services||[]).map(s=>s.name).join(' • ') || 'Sin servicios asignados'}
-                    </p>
-                    <div className="dentist-actions">
-                      <button type="button" className="secondary-btn" onClick={()=>edit(d)}>Editar perfil</button>
-                      <button type="button" className="secondary-btn" disabled={!d.isActive} title={!d.isActive ? 'Activa al dentista para configurar su agenda' : undefined} onClick={()=>{setScheduleDentistId(d.id);setActiveSection('schedule');}}>Horarios</button>
-                      <button type="button" className={`danger-btn ${d.isActive ? '' : 'success-btn'}`} onClick={()=>void toggle(d)}>
-                        {d.isActive ? 'Desactivar' : 'Activar'}
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+          {activeSection === 'team' && (
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+              <section className="rounded-panel border border-line bg-surface">
+                <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+                  <h2 className="font-display text-lg font-semibold text-heading">Dentistas</h2>
+                  <span className="text-xs font-semibold text-subtle">{dentists.length}</span>
+                </div>
 
-          {/* COLUMNA DERECHA: FORMULARIO */}
-          <section className="panel form-panel">
-            <h2>{selected ? 'Editar Perfil' : 'Nuevo Dentista'}</h2>
-            <form onSubmit={saveDentist} className="premium-form">
-              <div className="form-row">
-                <label>Nombre(s)
-                  <input required value={form.firstName} onChange={e=>setForm({...form,firstName:e.target.value})}/>
-                </label>
-                <label>Apellidos
-                  <input required value={form.lastName} onChange={e=>setForm({...form,lastName:e.target.value})}/>
-                </label>
-              </div>
-              
-              <div className="form-row">
-                <label>Cédula Profesional
-                  <input required value={form.professionalLicense} onChange={e=>setForm({...form,professionalLicense:e.target.value})}/>
-                </label>
-                <label>Especialidad
-                  <input required value={form.specialty} onChange={e=>setForm({...form,specialty:e.target.value})}/>
-                </label>
-              </div>
-
-              <label>Fotografía PNG/JPEG/WebP (máx. 5 MB)<input key={imageInputKey} type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} onChange={e=>{const input=e.currentTarget;const file=input.files?.[0]??null;if(file&&(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024)){setMessage('Selecciona PNG, JPEG o WebP de hasta 5 MB.');input.value='';return;}setImageFile(file);setMessage('');}}/><small>{imageFile?'Archivo seleccionado: '+imageFile.name:'La foto se carga al guardar.'}</small></label><label>URL de Fotografía (Opcional)
-                <input type="url" value={form.imageUrl} onChange={e=>setForm({...form,imageUrl:e.target.value})} placeholder="https://..." />
-              </label>
-
-              <label>Biografía
-                <textarea rows={4} value={form.biography} onChange={e=>setForm({...form,biography:e.target.value})} placeholder="Breve resumen profesional..." />
-              </label>
-
-              <fieldset className="services-fieldset">
-                <legend>Servicios que ofrece</legend>
-                {services.length === 0 ? <p className="text-muted">Aún no hay servicios. Agrégalos primero desde «Perfil y servicios».</p> : <div className="checkbox-grid">
-                  {services.map(s => (
-                    <label key={s.id} className={`checkbox-pill ${form.dentalServiceIds.includes(s.id) ? 'checked' : ''}`}>
-                      <input 
-                        type="checkbox" 
-                        checked={form.dentalServiceIds.includes(s.id)} 
-                        onChange={e=>setForm({...form,dentalServiceIds:e.target.checked?[...form.dentalServiceIds,s.id]:form.dentalServiceIds.filter(id=>id!==s.id)})}
-                      /> 
-                      {s.name}
-                    </label>
-                  ))}
-                </div>}
-              </fieldset>
-              <p className="management-form-hint">Para agregar o editar los servicios del consultorio, abre «Perfil y servicios».</p>
-
-              <div className="form-actions">
-                <button type="submit" disabled={busy} className="primary-btn">
-                  {selected ? 'Guardar Cambios' : 'Crear Dentista'}
-                </button>
-                {selected && (
-                  <button type="button" className="secondary-btn" onClick={()=>{setSelected('');setForm(emptyDentist); setImageFile(null); setImageInputKey(value=>value+1); setImageFile(null); setImageInputKey(value=>value+1);}}>
-                    Cancelar Edición
-                  </button>
+                {dentists.length === 0 ? (
+                  <p className="p-4 text-sm text-muted">
+                    Aún no hay dentistas. Agrega el primero en el formulario.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-line">
+                    {dentists.map((d) => (
+                      <li
+                        key={d.id}
+                        className={`px-4 py-4 ${selected === d.id ? 'border-l-2 border-accent' : ''}`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h3 className="font-display text-lg font-semibold text-heading">
+                            {d.firstName} {d.lastName}
+                          </h3>
+                          <span
+                            className={`inline-flex rounded-[4px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                              d.isActive
+                                ? 'border-success-border bg-success-soft text-success-text'
+                                : 'border-line-strong bg-surface-soft text-subtle'
+                            }`}
+                          >
+                            {d.isActive ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted">
+                          {d.specialty} · Céd. {d.professionalLicense}
+                        </p>
+                        <p className="mt-1 text-sm text-muted">
+                          {(d.services || []).map((service) => service.name).join(' • ') ||
+                            'Sin servicios asignados'}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button variant="outline" size="sm" onClick={() => edit(d)}>
+                            Editar perfil
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!d.isActive}
+                            title={
+                              !d.isActive ? 'Activa al dentista para configurar su agenda' : undefined
+                            }
+                            onClick={() => {
+                              setScheduleDentistId(d.id);
+                              setActiveSection('schedule');
+                            }}
+                          >
+                            Horarios
+                          </Button>
+                          <Button
+                            variant={d.isActive ? 'danger' : 'primary'}
+                            size="sm"
+                            onClick={() => void toggle(d)}
+                          >
+                            {d.isActive ? 'Desactivar' : 'Activar'}
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              </div>
-            </form>
-          </section>
-        </div>}
+              </section>
+
+              <section className="rounded-panel border border-line bg-surface p-5">
+                <h2 className="font-display text-lg font-semibold text-heading">
+                  {selected ? 'Editar perfil' : 'Nuevo dentista'}
+                </h2>
+                <form onSubmit={saveDentist} className="mt-4 grid gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field id="dentist-first-name" label="Nombre(s)">
+                      <input
+                        required
+                        value={form.firstName}
+                        onChange={(event) =>
+                          setForm({ ...form, firstName: event.target.value })
+                        }
+                        className={controlClass}
+                      />
+                    </Field>
+                    <Field id="dentist-last-name" label="Apellidos">
+                      <input
+                        required
+                        value={form.lastName}
+                        onChange={(event) => setForm({ ...form, lastName: event.target.value })}
+                        className={controlClass}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field id="dentist-license" label="Cédula profesional">
+                      <input
+                        required
+                        value={form.professionalLicense}
+                        onChange={(event) =>
+                          setForm({ ...form, professionalLicense: event.target.value })
+                        }
+                        className={controlClass}
+                      />
+                    </Field>
+                    <Field id="dentist-specialty" label="Especialidad">
+                      <input
+                        required
+                        value={form.specialty}
+                        onChange={(event) => setForm({ ...form, specialty: event.target.value })}
+                        className={controlClass}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field id="dentist-photo" label="Fotografía PNG/JPEG/WebP (máx. 5 MB)">
+                    <input
+                      key={imageInputKey}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      disabled={busy}
+                      onChange={(event) => {
+                        const input = event.currentTarget;
+                        const file = input.files?.[0] ?? null;
+                        if (
+                          file &&
+                          (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+                            file.size > 5 * 1024 * 1024)
+                        ) {
+                          setMessage('Selecciona PNG, JPEG o WebP de hasta 5 MB.');
+                          input.value = '';
+                          return;
+                        }
+                        setImageFile(file);
+                        setMessage('');
+                      }}
+                      className={controlClass}
+                    />
+                  </Field>
+                  <p className="-mt-2 text-xs text-muted">
+                    {imageFile
+                      ? `Archivo seleccionado: ${imageFile.name}`
+                      : 'La foto se carga al guardar.'}
+                  </p>
+
+                  <Field id="dentist-photo-url" label="URL de fotografía (opcional)">
+                    <input
+                      type="url"
+                      value={form.imageUrl}
+                      onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
+                      placeholder="https://..."
+                      className={controlClass}
+                    />
+                  </Field>
+
+                  <Field id="dentist-biography" label="Biografía">
+                    <textarea
+                      rows={4}
+                      value={form.biography}
+                      onChange={(event) => setForm({ ...form, biography: event.target.value })}
+                      placeholder="Breve resumen profesional..."
+                      className={controlClass}
+                    />
+                  </Field>
+
+                  <fieldset className="rounded-control border border-line p-3">
+                    <legend className="px-1 text-sm font-semibold text-heading">
+                      Servicios que ofrece
+                    </legend>
+                    {services.length === 0 ? (
+                      <p className="text-sm text-muted">
+                        Aún no hay servicios. Agrégalos primero desde «Perfil y servicios».
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {services.map((service) => {
+                          const checked = form.dentalServiceIds.includes(service.id);
+                          return (
+                            <label
+                              key={service.id}
+                              className={`inline-flex items-center gap-2 rounded-[4px] border px-2.5 py-1.5 text-sm ${
+                                checked
+                                  ? 'border-accent bg-surface-soft text-heading'
+                                  : 'border-line text-ink'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) =>
+                                  setForm({
+                                    ...form,
+                                    dentalServiceIds: event.target.checked
+                                      ? [...form.dentalServiceIds, service.id]
+                                      : form.dentalServiceIds.filter(
+                                          (id) => id !== service.id,
+                                        ),
+                                  })
+                                }
+                              />
+                              {service.name}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </fieldset>
+                  <p className="text-xs text-muted">
+                    Para agregar o editar los servicios del consultorio, abre «Perfil y
+                    servicios».
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="submit" disabled={busy} loading={busy}>
+                      {selected ? 'Guardar cambios' : 'Crear dentista'}
+                    </Button>
+                    {selected && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelected('');
+                          setForm(emptyDentist);
+                          setImageFile(null);
+                          setImageInputKey((value) => value + 1);
+                        }}
+                      >
+                        Cancelar edición
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              </section>
+            </div>
+          )}
         </>
       )}
 
       {clinicId && activeSection === 'schedule' && (
-        <section className="panel schedule-panel">
-          <div className="schedule-management-header">
+        <section className="mt-6 rounded-panel border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
             <div>
-              <h2>Agenda del equipo</h2>
-              <p className="text-muted">Configura jornadas semanales y bloqueos por fecha para un dentista.</p>
+              <h2 className="font-display text-lg font-semibold text-heading">Agenda del equipo</h2>
+              <p className="mt-1 text-sm text-muted">
+                Configura jornadas semanales y bloqueos por fecha para un dentista.
+              </p>
             </div>
-            <label className="schedule-dentist-select">Dentista
-              <select value={scheduleDentistId} onChange={e=>setScheduleDentistId(e.target.value)}>
+            <Field id="schedule-dentist" label="Dentista" className="min-w-72">
+              <select
+                value={scheduleDentistId}
+                onChange={(event) => setScheduleDentistId(event.target.value)}
+                className={controlClass}
+              >
                 <option value="">Selecciona un dentista</option>
-                {dentists.filter(d=>d.isActive).map(d=><option key={d.id} value={d.id}>{d.firstName} {d.lastName}</option>)}
+                {dentists
+                  .filter((d) => d.isActive)
+                  .map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.firstName} {d.lastName}
+                    </option>
+                  ))}
               </select>
-            </label>
+            </Field>
           </div>
 
-          {!scheduleDentistId ? <div className="empty-state schedule-empty-state">Selecciona un dentista activo para consultar o configurar su agenda.</div> : <>
-          <p className="schedule-timezone-note">Zona horaria: Ciudad de México</p>
-          <div className="schedule-grid">
-            {/* JORNADAS SEMANALES */}
-            <div className="schedule-column">
-              <h3>Horario semanal</h3>
-              <form onSubmit={addWeekly} className="compact-form">
-                <div className="form-grid-compact">
-                  <label>Día
-                    <select value={day} onChange={e=>setDay(e.target.value)}>
-                      {days.map((name,i)=><option key={name} value={i}>{name}</option>)}
-                    </select>
-                  </label>
-                  <label>Inicio
-                    <input type="time" required value={starts} onChange={e=>setStarts(e.target.value)}/>
-                  </label>
-                  <label>Fin
-                    <input type="time" required value={ends} onChange={e=>setEnds(e.target.value)}/>
-                  </label>
-                </div>
-                <div className="form-grid-compact">
-                  <label>Inicio Descanso
-                    <input type="time" value={breakStart} onChange={e=>setBreakStart(e.target.value)}/>
-                  </label>
-                  <label>Fin Descanso
-                    <input type="time" value={breakEnd} onChange={e=>setBreakEnd(e.target.value)}/>
-                  </label>
-                </div>
-                <button disabled={busy} className="primary-btn full-width">Añadir Jornada</button>
-              </form>
-
-              <div className="schedule-list">
-                {weekly.length === 0 && <p className="schedule-list-empty">Aún no hay jornadas. Agrega los días y horas en que atiende.</p>}
-                {weekly.map(s=>(
-                  <div key={s.id} className="schedule-item">
-                    <div>
-                      <strong>{days[s.dayOfWeek]}</strong>
-                      <span>{String(s.startsAt).slice(0,5)} - {String(s.endsAt).slice(0,5)}</span>
-                      {s.breakStartsAt && <small>Descanso: {String(s.breakStartsAt).slice(0,5)} - {String(s.breakEndsAt).slice(0,5)}</small>}
+          {!scheduleDentistId ? (
+            <p className="py-8 text-center text-sm text-muted">
+              Selecciona un dentista activo para consultar o configurar su agenda.
+            </p>
+          ) : (
+            <>
+              <p className="mt-4 text-xs text-subtle">Zona horaria: Ciudad de México</p>
+              <div className="mt-4 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-control border border-line bg-canvas p-4">
+                  <h3 className="font-display text-base font-semibold text-heading">
+                    Horario semanal
+                  </h3>
+                  <form onSubmit={addWeekly} className="mt-3 grid gap-3">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <Field id="weekly-day" label="Día">
+                        <select
+                          value={day}
+                          onChange={(event) => setDay(event.target.value)}
+                          className={controlClass}
+                        >
+                          {days.map((name, index) => (
+                            <option key={name} value={index}>
+                              {name}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field id="weekly-start" label="Inicio">
+                        <input
+                          type="time"
+                          required
+                          value={starts}
+                          onChange={(event) => setStarts(event.target.value)}
+                          className={controlClass}
+                        />
+                      </Field>
+                      <Field id="weekly-end" label="Fin">
+                        <input
+                          type="time"
+                          required
+                          value={ends}
+                          onChange={(event) => setEnds(event.target.value)}
+                          className={controlClass}
+                        />
+                      </Field>
                     </div>
-                    <button type="button" className="icon-btn danger" aria-label={`Eliminar jornada del ${days[s.dayOfWeek]}`} onClick={()=>void run(async()=>{await call(dentistPath+'/schedule/'+s.id,{method:'DELETE'});await loadSchedule(scheduleDentistId);})}>
-                      Eliminar
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* BLOQUEOS */}
-            <div className="schedule-column">
-              <h3>Bloqueos por Fecha</h3>
-              <form onSubmit={addBlock} className="compact-form">
-                <label>Desde
-                  <input type="datetime-local" required value={blockStart} onChange={e=>setBlockStart(e.target.value)}/>
-                </label>
-                <label>Hasta
-                  <input type="datetime-local" required value={blockEnd} onChange={e=>setBlockEnd(e.target.value)}/>
-                </label>
-                <label>Motivo (Opcional)
-                  <input value={blockReason} onChange={e=>setBlockReason(e.target.value)} placeholder="Ej. Vacaciones, Congreso..." />
-                </label>
-                <button disabled={busy} className="danger-btn full-width">Bloquear Horario</button>
-              </form>
-
-              <div className="schedule-list">
-                {blocks.length === 0 && <p className="schedule-list-empty">No hay bloqueos por fecha.</p>}
-                {blocks.map(b=>(
-                  <div key={b.id} className="schedule-item block">
-                    <div>
-                      <strong>{new Date(b.startsAt).toLocaleString()}</strong>
-                      <span>Hasta: {new Date(b.endsAt).toLocaleString()}</span>
-                      <small>Motivo: {b.reason || 'No especificado'}</small>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field id="break-start" label="Inicio descanso">
+                        <input
+                          type="time"
+                          value={breakStart}
+                          onChange={(event) => setBreakStart(event.target.value)}
+                          className={controlClass}
+                        />
+                      </Field>
+                      <Field id="break-end" label="Fin descanso">
+                        <input
+                          type="time"
+                          value={breakEnd}
+                          onChange={(event) => setBreakEnd(event.target.value)}
+                          className={controlClass}
+                        />
+                      </Field>
                     </div>
-                    <button type="button" className="icon-btn danger" aria-label={`Eliminar bloqueo del ${new Date(b.startsAt).toLocaleDateString()}`} onClick={()=>void run(async()=>{await call(dentistPath+'/blocks/'+b.id,{method:'DELETE'});await loadSchedule(scheduleDentistId);})}>
-                      Eliminar
-                    </button>
+                    <Button type="submit" disabled={busy}>
+                      Añadir jornada
+                    </Button>
+                  </form>
+
+                  <div className="mt-4 grid gap-2">
+                    {weekly.length === 0 && (
+                      <p className="rounded-control border border-dashed border-line p-3 text-sm text-muted">
+                        Aún no hay jornadas. Agrega los días y horas en que atiende.
+                      </p>
+                    )}
+                    {weekly.map((schedule) => (
+                      <div
+                        key={schedule.id}
+                        className="flex items-start justify-between gap-3 rounded-control border border-line bg-surface p-3 text-sm"
+                      >
+                        <div>
+                          <strong className="block text-heading">
+                            {days[schedule.dayOfWeek]}
+                          </strong>
+                          <span className="text-muted">
+                            {String(schedule.startsAt).slice(0, 5)} -{' '}
+                            {String(schedule.endsAt).slice(0, 5)}
+                          </span>
+                          {schedule.breakStartsAt && (
+                            <small className="block text-muted">
+                              Descanso: {String(schedule.breakStartsAt).slice(0, 5)} -{' '}
+                              {String(schedule.breakEndsAt).slice(0, 5)}
+                            </small>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          aria-label={`Eliminar jornada del ${days[schedule.dayOfWeek]}`}
+                          onClick={() =>
+                            void run(async () => {
+                              await call(dentistPath + '/schedule/' + schedule.id, {
+                                method: 'DELETE',
+                              });
+                              await loadSchedule(scheduleDentistId);
+                            })
+                          }
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                <div className="rounded-control border border-line bg-canvas p-4">
+                  <h3 className="font-display text-base font-semibold text-heading">
+                    Bloqueos por fecha
+                  </h3>
+                  <form onSubmit={addBlock} className="mt-3 grid gap-3">
+                    <Field id="block-start" label="Desde">
+                      <input
+                        type="datetime-local"
+                        required
+                        value={blockStart}
+                        onChange={(event) => setBlockStart(event.target.value)}
+                        className={controlClass}
+                      />
+                    </Field>
+                    <Field id="block-end" label="Hasta">
+                      <input
+                        type="datetime-local"
+                        required
+                        value={blockEnd}
+                        onChange={(event) => setBlockEnd(event.target.value)}
+                        className={controlClass}
+                      />
+                    </Field>
+                    <Field id="block-reason" label="Motivo (opcional)">
+                      <input
+                        value={blockReason}
+                        onChange={(event) => setBlockReason(event.target.value)}
+                        placeholder="Ej. Vacaciones, congreso..."
+                        className={controlClass}
+                      />
+                    </Field>
+                    <Button type="submit" variant="danger" disabled={busy}>
+                      Bloquear horario
+                    </Button>
+                  </form>
+
+                  <div className="mt-4 grid gap-2">
+                    {blocks.length === 0 && (
+                      <p className="rounded-control border border-dashed border-line p-3 text-sm text-muted">
+                        No hay bloqueos por fecha.
+                      </p>
+                    )}
+                    {blocks.map((block) => (
+                      <div
+                        key={block.id}
+                        className="flex items-start justify-between gap-3 rounded-control border border-warning-border bg-warning-soft p-3 text-sm"
+                      >
+                        <div>
+                          <strong className="block text-heading">
+                            {new Date(block.startsAt).toLocaleString()}
+                          </strong>
+                          <span className="text-muted">
+                            Hasta: {new Date(block.endsAt).toLocaleString()}
+                          </span>
+                          <small className="block text-muted">
+                            Motivo: {block.reason || 'No especificado'}
+                          </small>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          aria-label={`Eliminar bloqueo del ${new Date(block.startsAt).toLocaleDateString()}`}
+                          onClick={() =>
+                            void run(async () => {
+                              await call(dentistPath + '/blocks/' + block.id, {
+                                method: 'DELETE',
+                              });
+                              await loadSchedule(scheduleDentistId);
+                            })
+                          }
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          </>}
+            </>
+          )}
         </section>
       )}
-    </main>
+    </AdminShell>
   );
 }

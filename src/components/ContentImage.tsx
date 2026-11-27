@@ -5,22 +5,31 @@ type ContentImageProps = {
   alt: string;
   className?: string;
   priority?: boolean;
+  fallbackLabel?: string;
+  compact?: boolean;
 };
 
-export function ContentImage({ src, alt, className = '', priority = false }: ContentImageProps) {
+export function ContentImage({
+  src,
+  alt,
+  className = '',
+  priority = false,
+  fallbackLabel,
+  compact = false,
+}: ContentImageProps) {
   const [failedSource, setFailedSource] = useState('');
 
   if (!src || failedSource === src) {
     return (
       <div
-        className={`flex min-h-40 w-full flex-col items-center justify-center gap-2 bg-canvas text-subtle ${className}`}
+        className={`flex min-h-0 w-full flex-col items-center justify-center gap-2 bg-canvas text-subtle ${className}`}
         role="img"
         aria-label={`${alt}. Imagen no disponible`}
       >
-        <span className="font-display text-2xl font-bold text-heading/30" aria-hidden="true">
-          DC
+        <span className="font-display text-2xl font-bold text-heading/50" aria-hidden="true">
+          {fallbackLabel ?? 'DC'}
         </span>
-        <span className="text-xs font-medium">Imagen no disponible</span>
+        {!compact && <span className="text-xs font-medium">Imagen no disponible</span>}
       </div>
     );
   }

@@ -12,6 +12,9 @@ vi.mock('../services/cognito', () => ({
   signOut: vi.fn(),
 }));
 vi.mock('../services/clinicApi', () => ({ clinicRequest: vi.fn() }));
+vi.mock('../services/api', () => ({
+  api: { me: vi.fn().mockRejectedValue(new Error('API no expuesta')) },
+}));
 
 const appointment = {
   id: 'apt-1',
@@ -58,7 +61,8 @@ describe('ClinicAppointmentsPage', () => {
   it('shows confirmed appointments with patient contact and management link', async () => {
     renderPage();
 
-    expect(await screen.findByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: 'Citas agendadas' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: /Ana Pérez/ })).toBeInTheDocument();
     expect(screen.getByText(/Limpieza/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '5551234567' })).toHaveAttribute(
       'href',
@@ -101,6 +105,6 @@ describe('ClinicAppointmentsPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos conectar');
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
 
-    expect(await screen.findByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument();
+    expect(await screen.findByRole('cell', { name: /Ana Pérez/ })).toBeInTheDocument();
   });
 });

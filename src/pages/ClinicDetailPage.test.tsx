@@ -67,6 +67,7 @@ describe('ClinicDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Clínica Sonrisa' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Servicios disponibles' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Solicitar Limpieza/ })).toHaveAttribute(
       'href',
       '/clinics/clinic-1/solicitar?serviceId=service-1',
