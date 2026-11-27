@@ -32,10 +32,10 @@ export function SiteHeader() {
               to={link.to}
               end={link.end}
               className={({ isActive }) =>
-                `inline-flex min-h-11 items-center rounded-control px-2.5 text-[13px] font-medium transition-colors ${
+                `inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors ${
                   isActive
-                    ? 'bg-surface-soft text-heading'
-                    : 'text-muted hover:bg-brand/5 hover:text-heading'
+                    ? 'text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
+                    : 'text-muted hover:text-heading'
                 }`
               }
             >
@@ -52,10 +52,10 @@ export function SiteHeader() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `inline-flex min-h-11 items-center rounded-control px-2.5 text-[13px] font-medium transition-colors ${
+                `inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors ${
                   isActive
-                    ? 'bg-surface-soft text-heading'
-                    : 'text-muted hover:bg-brand/5 hover:text-heading'
+                    ? 'text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
+                    : 'text-muted hover:text-heading'
                 }`
               }
             >

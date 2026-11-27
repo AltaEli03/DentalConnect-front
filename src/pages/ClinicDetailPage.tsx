@@ -248,7 +248,7 @@ export function ClinicDetailPage() {
                         Desde {formatPriceFrom(service.priceFrom)}
                       </span>
                       <Link
-                        className={buttonStyles('primary', 'sm')}
+                        className={buttonStyles('coral', 'sm')}
                         to={`/clinics/${clinic.id}/solicitar?serviceId=${encodeURIComponent(service.id)}`}
                         state={from ? { from } : undefined}
                         aria-label={`Solicitar ${service.name} en ${clinic.name}`}
@@ -273,6 +273,7 @@ export function ClinicDetailPage() {
                         alt={`Fotografía de ${dentist.firstName} ${dentist.lastName}`}
                         className="h-full w-full object-cover"
                         fallbackLabel={initials(`${dentist.firstName} ${dentist.lastName}`)}
+                        compact
                       />
                     </div>
                     <div className="min-w-0 flex-1">

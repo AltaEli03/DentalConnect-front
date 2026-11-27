@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 
 type AuthLayoutProps = {
   title: string;
@@ -19,13 +18,7 @@ export function AuthLayout({
   return (
     <main className="bg-canvas px-5 py-12 sm:py-16">
       <div className={`mx-auto w-full ${wide ? 'max-w-[720px]' : 'max-w-[440px]'}`}>
-        <Link
-          to="/clinics"
-          className="font-display text-xl font-extrabold tracking-[-0.04em] text-heading"
-        >
-          Dental<span className="text-accent">Connect</span>
-        </Link>
-        <div className="mt-5 rounded-card border border-line bg-surface p-6 sm:p-8">
+        <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
           <h1 className="font-display text-3xl font-bold tracking-[-0.03em] text-heading">
             {title}
           </h1>
