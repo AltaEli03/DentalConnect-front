@@ -32,11 +32,9 @@ export function SiteHeader() {
               to={link.to}
               end={link.end}
               className={({ isActive }) =>
-                `inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors ${
-                  isActive
-                    ? 'text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
-                    : 'text-muted hover:text-heading'
-                }`
+                isActive
+                  ? 'inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
+                  : 'inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors text-muted hover:text-heading'
               }
             >
               {link.label}
@@ -52,11 +50,9 @@ export function SiteHeader() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors ${
-                  isActive
-                    ? 'text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
-                    : 'text-muted hover:text-heading'
-                }`
+                isActive
+                  ? 'inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors text-heading underline decoration-accent decoration-2 underline-offset-[10px]'
+                  : 'inline-flex min-h-11 items-center px-2.5 text-[13px] font-medium transition-colors text-muted hover:text-heading'
               }
             >
               {link.label}
@@ -81,7 +77,8 @@ export function SiteHeader() {
             label="Menú"
             groups={mobileGroups}
             className="lg:hidden"
-            panelClassName="fixed! inset-x-0 top-[58px] z-50 max-h-[calc(100vh-4rem)] overflow-y-auto lg:hidden"
+            panelClassName="lg:hidden"
+            portal
           />
         </div>
       </div>
