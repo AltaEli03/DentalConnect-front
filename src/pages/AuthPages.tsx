@@ -23,6 +23,11 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, '');
 }
 
+function sanitizePhoneInput(value: string) {
+  const digits = digitsOnly(value);
+  return value.trimStart().startsWith('+') ? `+${digits}` : digits;
+}
+
 function emailErrorMessage(value: string) {
   const email = value.trim();
   if (!email) return 'Escribe tu correo electrónico.';
@@ -350,7 +355,7 @@ export function RegisterPage() {
         <Field
           id="phone"
           label="Teléfono"
-          hint="Solo números, con lada. Si no escribes el prefijo +52, lo agregamos."
+          hint="Solo números. Puedes empezar con + para conservar un prefijo internacional; si no lo escribes, agregamos +52."
           error={fieldErrors.phone}
         >
           <input
@@ -359,13 +364,13 @@ export function RegisterPage() {
             name="phone"
             type="tel"
             autoComplete="tel"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={15}
+            inputMode="tel"
+            pattern="[+]?[0-9]*"
+            maxLength={16}
             required
             value={data.phone}
-            onChange={(event) => update({ phone: digitsOnly(event.target.value) })}
-            placeholder="5512345678"
+            onChange={(event) => update({ phone: sanitizePhoneInput(event.target.value) })}
+            placeholder="+525512345678"
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -588,7 +593,7 @@ export function AccountPage() {
     if (!user) return;
     setFirstName(user.firstName);
     setLastName(user.lastName);
-    setPhone(digitsOnly(user.phone ?? ''));
+    setPhone(sanitizePhoneInput(user.phone ?? ''));
   }, [user]);
 
   if (loading)
@@ -732,16 +737,16 @@ export function AccountPage() {
             name="phone"
             type="tel"
             autoComplete="tel"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={15}
+            inputMode="tel"
+            pattern="[+]?[0-9]*"
+            maxLength={16}
             required
             aria-describedby="profile-phone-hint"
             value={phone}
-            onChange={(event) => setPhone(digitsOnly(event.target.value))}
+            onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
           />
           <small id="profile-phone-hint">
-            Solo números, entre 10 y 15 dígitos. Incluye la lada.
+            Solo números, entre 10 y 15 dígitos. Puedes conservar el prefijo internacional con +.
           </small>
           {profileError && (
             <p role="alert" className="text-sm font-semibold text-danger-text">

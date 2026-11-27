@@ -76,7 +76,7 @@ describe('Sprint 2 account flow', () => {
       firstName: 'Ana',
       lastName: 'Pérez',
       email: 'paciente@example.com',
-      phone: '522221234567',
+      phone: '+522221234567',
       password: 'DentConnect123!',
     });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
@@ -251,7 +251,7 @@ describe('Sprint 2 account flow', () => {
     expect(password).toHaveAttribute('type', 'password');
     expect(screen.getAllByText('12 caracteres como mínimo')).toHaveLength(1);
     expect(screen.getByLabelText('Teléfono')).toHaveAttribute('type', 'tel');
-    expect(screen.getByLabelText('Teléfono')).toHaveAttribute('inputmode', 'numeric');
+    expect(screen.getByLabelText('Teléfono')).toHaveAttribute('inputmode', 'tel');
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Mostrar contraseña' })[0]);
     expect(password).toHaveAttribute('type', 'text');
@@ -367,7 +367,7 @@ describe('HU-18 patient contact profile', () => {
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
     await waitFor(() => expect(screen.getByLabelText('Nombre')).toHaveValue('Ana'));
-    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('525551234567'));
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+525551234567'));
     expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('readonly');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana María' } });
     fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez López' } });
@@ -379,10 +379,34 @@ describe('HU-18 patient contact profile', () => {
       profile: { ...profile, role: 'PACIENTE', phone: '+525551234567' },
       firstName: 'Ana María',
       lastName: 'Pérez López',
-      phone: '525558765432',
+      phone: '+525558765432',
     });
     expect(await screen.findByText('Ana María Pérez López')).toBeInTheDocument();
     expect(screen.getByLabelText('Correo electrónico')).toHaveValue(profile.email);
+  });
+
+  it('preserves an explicit international prefix when saving', async () => {
+    vi.mocked(currentUser).mockResolvedValue({
+      ...profile,
+      role: 'PACIENTE',
+      phone: '+15551234567',
+    });
+    vi.mocked(updateAccountProfile).mockResolvedValue({
+      ...profile,
+      role: 'PACIENTE',
+      phone: '+15551234567',
+    });
+    renderApp('/mi-cuenta');
+
+    await screen.findByRole('heading', { name: 'Mi cuenta' });
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+15551234567'));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
+
+    await waitFor(() =>
+      expect(updateAccountProfile).toHaveBeenCalledWith(
+        expect.objectContaining({ phone: '+15551234567' }),
+      ),
+    );
   });
 
   it('rejects a phone with letters or fewer than ten digits without calling Cognito', async () => {
@@ -394,7 +418,7 @@ describe('HU-18 patient contact profile', () => {
     renderApp('/mi-cuenta');
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
-    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('525551234567'));
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+525551234567'));
     fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '12345abc' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
 
