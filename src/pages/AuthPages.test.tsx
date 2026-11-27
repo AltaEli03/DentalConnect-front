@@ -54,6 +54,8 @@ describe('Sprint 2 account flow', () => {
     renderApp('/registro');
 
     await screen.findByLabelText('Nombre');
+    expect(screen.getByLabelText('Nombre')).toHaveAttribute('maxlength', '50');
+    expect(screen.getByLabelText('Apellidos')).toHaveAttribute('maxlength', '50');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana' } });
     fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez' } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
@@ -367,6 +369,8 @@ describe('HU-18 patient contact profile', () => {
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
     await waitFor(() => expect(screen.getByLabelText('Nombre')).toHaveValue('Ana'));
+    expect(screen.getByLabelText('Nombre')).toHaveAttribute('maxlength', '50');
+    expect(screen.getByLabelText('Apellidos')).toHaveAttribute('maxlength', '50');
     await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+525551234567'));
     expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('readonly');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana María' } });

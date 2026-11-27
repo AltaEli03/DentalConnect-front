@@ -315,7 +315,7 @@ export function RegisterPage() {
               id="firstName"
               name="firstName"
               autoComplete="given-name"
-              maxLength={80}
+              maxLength={50}
               required
               value={data.firstName}
               onChange={(event) => update({ firstName: event.target.value })}
@@ -328,7 +328,7 @@ export function RegisterPage() {
               id="lastName"
               name="lastName"
               autoComplete="family-name"
-              maxLength={100}
+              maxLength={50}
               required
               value={data.lastName}
               onChange={(event) => update({ lastName: event.target.value })}
@@ -373,7 +373,7 @@ export function RegisterPage() {
             placeholder="+525512345678"
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid items-start gap-4 md:grid-cols-2">
           <PasswordField
             id="password"
             label="Contraseña"
@@ -700,7 +700,7 @@ export function AccountPage() {
             name="firstName"
             autoComplete="given-name"
             required
-            maxLength={80}
+            maxLength={50}
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
           />
@@ -713,7 +713,7 @@ export function AccountPage() {
             name="lastName"
             autoComplete="family-name"
             required
-            maxLength={120}
+            maxLength={50}
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
           />
