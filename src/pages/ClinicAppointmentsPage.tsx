@@ -170,22 +170,31 @@ export function ClinicAppointmentsPage() {
       )}
 
       {!loading && !error && appointments.length > 0 && (
-        <div className="mt-6 overflow-x-auto">
-          <table aria-label="Citas agendadas" className="w-full min-w-[760px] border-collapse text-sm">
-            <thead>
+        <div className="mt-6">
+          <table
+            aria-label="Citas agendadas"
+            className="w-full border-collapse text-sm max-lg:block"
+          >
+            <thead className="max-lg:hidden">
               <tr className="border-b border-line-strong text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle">
-                <th className="py-3 pr-4">Paciente</th>
-                <th className="py-3 pr-4">Servicio</th>
-                <th className="py-3 pr-4">Dentista</th>
-                <th className="py-3 pr-4">Fecha y hora</th>
-                <th className="py-3 pr-4">Estado</th>
-                <th className="py-3">Acciones</th>
+                <th scope="col" className="py-3 pr-4">Paciente</th>
+                <th scope="col" className="py-3 pr-4">Servicio</th>
+                <th scope="col" className="py-3 pr-4">Dentista</th>
+                <th scope="col" className="py-3 pr-4">Fecha y hora</th>
+                <th scope="col" className="py-3 pr-4">Estado</th>
+                <th scope="col" className="py-3">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody className="divide-y divide-line max-lg:block">
               {appointments.map((appointment) => (
-                <tr key={appointment.id}>
-                  <td className="py-4 pr-4 align-top">
+                <tr
+                  key={appointment.id}
+                  className="max-lg:grid max-lg:grid-cols-2 max-lg:gap-x-4 max-lg:gap-y-2 max-lg:border-b max-lg:border-line max-lg:py-4"
+                >
+                  <td className="py-4 pr-4 align-top max-lg:col-span-2 max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Paciente
+                    </span>
                     <p className="font-display text-lg font-semibold text-heading">
                       {patientName(appointment)}
                     </p>
@@ -199,21 +208,36 @@ export function ClinicAppointmentsPage() {
                     )}
                     <p className="mt-1 text-xs text-subtle">Folio: {appointment.folio}</p>
                   </td>
-                  <td className="py-4 pr-4 align-top text-muted">
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Servicio
+                    </span>
                     {appointment.service?.name ?? 'Servicio'}
                   </td>
-                  <td className="py-4 pr-4 align-top text-muted">
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Dentista
+                    </span>
                     {[appointment.dentist?.firstName, appointment.dentist?.lastName]
                       .filter(Boolean)
                       .join(' ') || 'Dentista'}
                   </td>
-                  <td className="py-4 pr-4 align-top text-muted">
+                  <td className="py-4 pr-4 align-top text-muted max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Fecha y hora
+                    </span>
                     {formatDateTime(appointment.startsAt)}
                   </td>
-                  <td className="py-4 pr-4 align-top">
+                  <td className="py-4 pr-4 align-top max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Estado
+                    </span>
                     <StatusStamp status={appointment.status} />
                   </td>
-                  <td className="py-4 align-top">
+                  <td className="py-4 align-top max-lg:col-span-2 max-lg:border-0 max-lg:p-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle lg:hidden">
+                      Acciones
+                    </span>
                     <Link
                       className={buttonStyles('outline', 'sm')}
                       to={`/administrar-solicitudes?appointmentId=${encodeURIComponent(appointment.id)}`}

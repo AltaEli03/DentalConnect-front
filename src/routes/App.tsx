@@ -7,6 +7,7 @@ import { NetworkStatus } from '../components/NetworkStatus';
 import { FeedbackToast } from '../components/FeedbackToast';
 import { SiteHeader } from '../components/layout/SiteHeader';
 import { SiteFooter } from '../components/layout/SiteFooter';
+import { RouteFallback } from '../components/layout/RouteFallback';
 
 const ClinicDetailPage = lazy(() =>
   import('../pages/ClinicDetailPage').then((m) => ({ default: m.ClinicDetailPage })),
@@ -77,14 +78,7 @@ function AppContent() {
       <NetworkStatus />
       <FeedbackToast />
       <div id="main-content" className="main-content" tabIndex={-1}>
-        <Suspense
-          fallback={
-            <main className="mx-auto min-h-[45vh] max-w-6xl px-4 py-10" role="status">
-              <span className="sr-only">Cargando…</span>
-              <div className="skeleton h-48 rounded-card" aria-hidden="true" />
-            </main>
-          }
-        >
+        <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Navigate to="/clinics" replace />} />
             <Route path="/clinics" element={<ClinicListPage />} />

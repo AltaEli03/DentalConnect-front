@@ -275,7 +275,7 @@ export function NotificationsPage() {
           </p>
         )}
         {pushState === 'error' && (
-          <p className="mt-3 text-sm text-danger" role="alert">
+          <p className="mt-3 text-sm text-danger-text" role="alert">
             {pushMessage || 'No pudimos consultar el estado de las notificaciones.'}
           </p>
         )}

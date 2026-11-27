@@ -39,17 +39,29 @@ export function ClinicApplicationPage() {
   const [queue, setQueue] = useState<ReviewItem[]>([]);
   const [form, setForm] = useState<Record<string, string>>(emptyForm);
   const [busy, setBusy] = useState(false);
+  const [loadingOwn, setLoadingOwn] = useState(true);
+  const [loadingQueue, setLoadingQueue] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const platformAdmin = user?.role?.split(/[\s,]+/).includes('PLATFORM_ADMIN') ?? false;
 
   const loadOwn = useCallback(async () => {
-    const result = await request<Envelope<Application | null>>('/clinic-applications/mine');
-    setApplication(result.data);
+    setLoadingOwn(true);
+    try {
+      const result = await request<Envelope<Application | null>>('/clinic-applications/mine');
+      setApplication(result.data);
+    } finally {
+      setLoadingOwn(false);
+    }
   }, []);
   const loadQueue = useCallback(async () => {
-    const result = await request<Envelope<ReviewItem[]>>('/platform/clinic-applications');
-    setQueue(result.data);
+    setLoadingQueue(true);
+    try {
+      const result = await request<Envelope<ReviewItem[]>>('/platform/clinic-applications');
+      setQueue(result.data);
+    } finally {
+      setLoadingQueue(false);
+    }
   }, []);
   useEffect(() => {
     if (!user) return;
@@ -169,7 +181,14 @@ export function ClinicApplicationPage() {
         </Notice>
       )}
 
+      {!platformAdmin && loadingOwn && (
+        <p className="mt-6 text-sm text-muted" role="status">
+          Cargando registro…
+        </p>
+      )}
+
       {!platformAdmin &&
+        !loadingOwn &&
         (application ? (
           <section className="mt-6 rounded-panel border border-line bg-surface p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -306,8 +325,12 @@ export function ClinicApplicationPage() {
 
       {platformAdmin && (
         <Section className="mt-6" title="Solicitudes por revisar">
-          {queue.length === 0 ? (
-            <p className="text-sm text-muted">No hay solicitudes pendientes.</p>
+          {loadingQueue ? (
+            <p className="text-sm text-muted" role="status">
+              Cargando solicitudes…
+            </p>
+          ) : queue.length === 0 ? (
+            error ? null : <p className="text-sm text-muted">No hay solicitudes pendientes.</p>
           ) : (
             <ul className="divide-y divide-line border-y border-line">
               {queue.map((item) => (

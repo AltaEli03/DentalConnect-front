@@ -121,6 +121,7 @@ describe('AppointmentRequestPage', () => {
     renderPage();
 
     await chooseSlot();
+    expect(screen.getByText(/Zona horaria: Ciudad de México/)).toBeInTheDocument();
     expect(
       screen.getByRole('region', { name: 'Resumen de la solicitud' }),
     ).toBeInTheDocument();

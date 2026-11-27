@@ -33,7 +33,7 @@ The product does not process payments, ratings, reviews, maps, or insurance. It 
 
 ## Capabilities and Constraints
 
-- React 19, Vite 6, TypeScript, Tailwind 4, Vitest 4. No backend changes in scope.
+- React 19, Vite 6, TypeScript, Tailwind 4, Vitest 4. The only approved backend change is the additive `priceFrom` field in the clinic list service summary; no other API contract changes.
 - The API is the source of truth. Do not invent ratings, reviews, availability, prices, or clinic data.
 - Prices are "desde" amounts per service, not final quotes.
 - Clinic images are optional and vary in quality. Some clinics have no image.

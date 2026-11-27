@@ -335,6 +335,7 @@ export function AppointmentRequestPage() {
                 className={controlClass}
               />
             </Field>
+            <p className="mt-2 text-xs text-subtle">Zona horaria: Ciudad de México.</p>
 
             {loadingSlots && (
               <div className="mt-4" role="status" aria-live="polite">

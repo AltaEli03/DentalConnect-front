@@ -290,6 +290,7 @@ export function AppointmentProposalPage() {
                 ) : (
                   <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                     <Button
+                      variant="coral"
                       className="sm:flex-1"
                       disabled={busy}
                       loading={busy}

@@ -334,7 +334,9 @@ export function AppointmentManagementPage() {
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
-        <section className="rounded-panel border border-line bg-surface">
+        <section
+          className={`rounded-panel border border-line bg-surface ${selected ? 'max-lg:hidden' : ''}`}
+        >
           <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
             <h2 className="font-display text-lg font-semibold text-heading">Bandeja de entrada</h2>
             <span className="text-xs font-semibold text-subtle">{pendingCount} pendientes</span>
@@ -382,7 +384,7 @@ export function AppointmentManagementPage() {
         </section>
 
         <section
-          className="rounded-panel border border-line bg-surface"
+          className={`rounded-panel border border-line bg-surface ${selected ? '' : 'max-lg:hidden'}`}
           aria-label="Detalle de solicitud"
         >
           {loadingDetail ? (
@@ -391,6 +393,11 @@ export function AppointmentManagementPage() {
             </p>
           ) : selected ? (
             <>
+              <div className="p-4 pb-0 lg:hidden">
+                <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+                  Volver a solicitudes
+                </Button>
+              </div>
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-surface-soft p-5">
                 <div>
                   <h2 className="font-display text-2xl font-semibold text-heading">

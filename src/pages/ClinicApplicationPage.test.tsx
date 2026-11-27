@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ClinicApplicationPage } from './ClinicApplicationPage';
 
 const auth = vi.hoisted(() => ({
@@ -30,6 +30,10 @@ beforeEach(() => {
   vi.mocked(currentIdToken).mockResolvedValue('token');
 });
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('ClinicApplicationPage', () => {
   it('explains how to register a clinic before signing in', () => {
     renderPage();
@@ -39,6 +43,16 @@ describe('ClinicApplicationPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Crear cuenta' })).toBeInTheDocument();
+  });
+
+  it('shows a loading state while the platform queue is in flight', async () => {
+    auth.value = { user: { role: 'PLATFORM_ADMIN' }, loading: false, refresh: vi.fn() };
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => undefined)));
+
+    renderPage();
+
+    expect(await screen.findByText('Cargando solicitudes…')).toBeInTheDocument();
+    expect(screen.queryByText('No hay solicitudes pendientes.')).not.toBeInTheDocument();
   });
 
   it('shows the platform review queue', async () => {
