@@ -13,6 +13,14 @@ import type { Clinic, Service } from '../types/api';
 
 type ClinicWithDistance = Clinic & { distanceKm?: number };
 const PAGE_SIZE = 6;
+const FILTER_DEBOUNCE_MS = 350;
+
+function filtersToParams(search: string, serviceId: string) {
+  const next = new URLSearchParams();
+  if (search.trim()) next.set('q', search);
+  if (serviceId) next.set('servicio', serviceId);
+  return next;
+}
 const directorySchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -79,6 +87,19 @@ export function ClinicListPage() {
     setSelectedService(serviceId);
   }, [q, serviceId]);
 
+  // La URL se actualiza sola para que el filtro no dependa del botón Buscar.
+  useEffect(() => {
+    const next = filtersToParams(search, selectedService);
+    if (next.toString() === params.toString()) return;
+    const timeout = window.setTimeout(() => {
+      setParams(next, { replace: true });
+      setPage(1);
+      setNearby(false);
+      setLocationMessage('');
+    }, FILTER_DEBOUNCE_MS);
+    return () => window.clearTimeout(timeout);
+  }, [search, selectedService, params, setParams]);
+
   useEffect(() => {
     if (!q && !serviceId) return;
     let active = true;
@@ -120,12 +141,21 @@ export function ClinicListPage() {
     };
   }, [attempt, q, serviceId, page, nearby]);
 
+  const changeService = (value: string) => {
+    setSelectedService(value);
+    const next = filtersToParams(search, value);
+    if (next.toString() !== params.toString()) {
+      setParams(next, { replace: true });
+      setPage(1);
+      setNearby(false);
+      setLocationMessage('');
+    }
+  };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const next = new URLSearchParams();
-    if (search.trim()) next.set('q', search.trim());
-    if (selectedService) next.set('servicio', selectedService);
-    setParams(next);
+    const next = filtersToParams(search, selectedService);
+    if (next.toString() !== params.toString()) setParams(next);
     setPage(1);
     setNearby(false);
     setLocationMessage('');
@@ -215,24 +245,30 @@ export function ClinicListPage() {
             className="mt-8 rounded-panel border border-line bg-surface p-3.5"
             aria-label="Buscar consultorios"
           >
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.75fr)_auto] md:items-end">
-              <Field
-                id="search"
-                label="Nombre, zona o código postal"
-                labelClassName="text-[10px] font-semibold uppercase tracking-[0.13em] text-subtle"
-              >
-                <input
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.75fr)] md:items-end">
+              <div className="flex items-end gap-2">
+                <Field
                   id="search"
-                  name="search"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Consultorio, ciudad, colonia o C.P."
-                  maxLength={120}
-                  autoComplete="off"
-                  className={controlClass}
-                />
-              </Field>
+                  label="Nombre, zona o código postal"
+                  labelClassName="text-[10px] font-semibold uppercase tracking-[0.13em] text-subtle"
+                  className="min-w-0 flex-1"
+                >
+                  <input
+                    id="search"
+                    name="search"
+                    type="search"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Consultorio, ciudad, colonia o C.P."
+                    maxLength={120}
+                    autoComplete="off"
+                    className={controlClass}
+                  />
+                </Field>
+                <Button type="submit" className="shrink-0 px-4 md:min-w-28">
+                  Buscar
+                </Button>
+              </div>
               <Field
                 id="service-filter"
                 label="Servicio dental"
@@ -242,7 +278,7 @@ export function ClinicListPage() {
                   id="service-filter"
                   name="serviceId"
                   value={selectedService}
-                  onChange={(event) => setSelectedService(event.target.value)}
+                  onChange={(event) => changeService(event.target.value)}
                   className={controlClass}
                 >
                   <option value="">Todos los servicios</option>
@@ -253,9 +289,6 @@ export function ClinicListPage() {
                   ))}
                 </select>
               </Field>
-              <Button type="submit" className="md:min-w-28">
-                Buscar
-              </Button>
             </div>
 
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">

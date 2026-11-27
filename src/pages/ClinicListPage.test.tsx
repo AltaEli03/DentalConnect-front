@@ -105,6 +105,30 @@ describe('ClinicListPage', () => {
     );
   });
 
+  it('filters while typing and selecting without pressing Buscar', async () => {
+    vi.mocked(api.clinics).mockResolvedValue(pageResponse([clinic(1)]) as never);
+    renderPage();
+    await screen.findByRole('heading', { name: 'Clínica 1' });
+
+    fireEvent.change(screen.getByLabelText('Nombre, zona o código postal'), {
+      target: { value: 'Centro' },
+    });
+
+    await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Centro', '', 1, 6), {
+      timeout: 1500,
+    });
+    expect(screen.getByTestId('location')).toHaveTextContent('/clinics?q=Centro');
+
+    fireEvent.change(screen.getByLabelText('Servicio dental'), {
+      target: { value: 'service-1' },
+    });
+
+    await waitFor(() => expect(api.clinics).toHaveBeenCalledWith('Centro', 'service-1', 1, 6));
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/clinics?q=Centro&servicio=service-1',
+    );
+  });
+
   it('explains a connection error and retries without losing context', async () => {
     vi.mocked(api.clinics)
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))
@@ -123,12 +147,13 @@ describe('ClinicListPage', () => {
 
   it('shows six results per page and moves to the second page', async () => {
     const allClinics = Array.from({ length: 7 }, (_, index) => clinic(index + 1));
-    vi.mocked(api.clinics).mockImplementation(async (_query, _service, requestedPage = 1) =>
-      pageResponse(
-        allClinics.slice((requestedPage - 1) * 6, requestedPage * 6),
-        requestedPage,
-        allClinics.length,
-      ) as never,
+    vi.mocked(api.clinics).mockImplementation(
+      async (_query, _service, requestedPage = 1) =>
+        pageResponse(
+          allClinics.slice((requestedPage - 1) * 6, requestedPage * 6),
+          requestedPage,
+          allClinics.length,
+        ) as never,
     );
 
     renderPage();
