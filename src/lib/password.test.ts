@@ -14,8 +14,24 @@ describe('passwordChecks', () => {
     expect(passwordChecks('DentConnect123!', 'otra').matches).toBe(false);
   });
 
-  it('detects a varied password', () => {
-    expect(passwordChecks('DentConnect123!').variety).toBe(true);
+  it('detects each character group', () => {
+    expect(passwordChecks('dentconnect')).toMatchObject({
+      lowercase: true,
+      uppercase: false,
+      number: false,
+      symbol: false,
+    });
+    expect(passwordChecks('DentConnect123!')).toMatchObject({
+      lowercase: true,
+      uppercase: true,
+      number: true,
+      symbol: true,
+      variety: true,
+    });
+  });
+
+  it('recommends variety when three of the four groups are present', () => {
+    expect(passwordChecks('dentconnect123!').variety).toBe(true);
     expect(passwordChecks('dentconnect123').variety).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { passwordChecks } from '../../lib/password';
 import { controlClass } from '../ui/Field';
 import { Icon } from '../ui/Icon';
@@ -14,10 +14,46 @@ type PasswordFieldProps = {
   showRequirements?: boolean;
   error?: string;
   hint?: string;
+  labelAction?: ReactNode;
   required?: boolean;
   minLength?: number;
   maxLength?: number;
 };
+
+function Requirement({ met, children }: { met: boolean; children: ReactNode }) {
+  return (
+    <li className={`flex items-start gap-2 ${met ? 'text-success-text' : 'text-muted'}`}>
+      <span
+        aria-hidden="true"
+        className={`mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border ${
+          met ? 'border-success-border bg-success-soft' : 'border-line-strong bg-surface'
+        }`}
+      >
+        {met && <Icon name="check" size={11} />}
+      </span>
+      <span className="text-xs leading-relaxed">
+        <span className="sr-only">{met ? 'Cumplido: ' : 'Pendiente: '}</span>
+        {children}
+      </span>
+    </li>
+  );
+}
+
+function SecurityChip({ met, children }: { met: boolean; children: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-chip border px-2 py-0.5 text-[11px] font-medium ${
+        met
+          ? 'border-success-border bg-success-soft text-success-text'
+          : 'border-line bg-surface text-subtle'
+      }`}
+    >
+      {met && <Icon name="check" size={11} />}
+      <span className="sr-only">{met ? 'Incluida: ' : 'No incluida: '}</span>
+      {children}
+    </span>
+  );
+}
 
 export function PasswordField({
   id,
@@ -30,22 +66,27 @@ export function PasswordField({
   showRequirements = false,
   error,
   hint,
+  labelAction,
   required = true,
   minLength,
   maxLength = 128,
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
   const checks = passwordChecks(value, confirmValue);
-  const requirementsId = showRequirements ? `${id}-requirements` : undefined;
+  const showChecklist = showRequirements || confirmValue !== undefined;
+  const requirementsId = showChecklist ? `${id}-requirements` : undefined;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, requirementsId, errorId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-sm font-semibold text-ink">
-        {label}
-      </label>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <label htmlFor={id} className="text-sm font-semibold text-ink">
+          {label}
+        </label>
+        {labelAction}
+      </div>
       <div className="relative flex items-center">
         <input
           id={id}
@@ -59,7 +100,7 @@ export function PasswordField({
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`${controlClass} pr-12`}
+          className={`${controlClass} pr-12 ${error ? 'border-danger-border' : ''}`}
         />
         <button
           type="button"
@@ -77,22 +118,36 @@ export function PasswordField({
           {hint}
         </p>
       )}
-      {showRequirements && (
-        <ul id={requirementsId} className="grid gap-1 text-xs leading-relaxed">
-          <li className={checks.length ? 'text-success-text' : 'text-muted'}>
-            12 caracteres como mínimo
-          </li>
-          <li className={checks.maxLength ? 'text-success-text' : 'text-muted'}>
-            Hasta 128 caracteres
-          </li>
-          {confirmValue !== undefined && (
-            <li className={checks.matches ? 'text-success-text' : 'text-muted'}>
-              Las contraseñas coinciden
-            </li>
+      {showChecklist && (
+        <ul id={requirementsId} className="grid gap-1">
+          {showRequirements && (
+            <>
+              <Requirement met={checks.length}>12 caracteres como mínimo</Requirement>
+              <Requirement met={checks.maxLength}>Hasta 128 caracteres</Requirement>
+              <li className="mt-1">
+                <p className="mb-1.5 text-xs font-medium text-muted">
+                  Para mayor seguridad (recomendado)
+                </p>
+                <ul className="flex flex-wrap gap-1.5">
+                  <li>
+                    <SecurityChip met={checks.lowercase}>Minúscula</SecurityChip>
+                  </li>
+                  <li>
+                    <SecurityChip met={checks.uppercase}>Mayúscula</SecurityChip>
+                  </li>
+                  <li>
+                    <SecurityChip met={checks.number}>Número</SecurityChip>
+                  </li>
+                  <li>
+                    <SecurityChip met={checks.symbol}>Símbolo</SecurityChip>
+                  </li>
+                </ul>
+              </li>
+            </>
           )}
-          <li className={checks.variety ? 'text-success-text' : 'text-muted'}>
-            Combina mayúsculas, minúsculas, números o símbolos (recomendado)
-          </li>
+          {confirmValue !== undefined && (
+            <Requirement met={checks.matches === true}>Las contraseñas coinciden</Requirement>
+          )}
         </ul>
       )}
       {error && (

@@ -4,7 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../routes/App';
 import { AuthProvider } from '../auth/AuthContext';
 import { LoginPage, PasswordRecoveryPage } from './AuthPages';
-import { currentUser, signIn, signOut, updateAccountProfile, requestPasswordReset, confirmPasswordReset } from '../services/cognito';
+import {
+  currentUser,
+  signIn,
+  signOut,
+  updateAccountProfile,
+  requestPasswordReset,
+  confirmPasswordReset,
+} from '../services/cognito';
 import { api } from '../services/api';
 
 vi.mock('../services/cognito', () => ({
@@ -52,7 +59,9 @@ describe('Sprint 2 account flow', () => {
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'paciente@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '+522221234567' } });
+    fireEvent.change(screen.getByLabelText('Teléfono'), {
+      target: { value: '+52 abc 222 123 4567' },
+    });
     fireEvent.change(screen.getByLabelText('Contraseña'), {
       target: { value: 'DentConnect123!' },
     });
@@ -67,7 +76,7 @@ describe('Sprint 2 account flow', () => {
       firstName: 'Ana',
       lastName: 'Pérez',
       email: 'paciente@example.com',
-      phone: '+522221234567',
+      phone: '522221234567',
       password: 'DentConnect123!',
     });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
@@ -114,6 +123,18 @@ describe('Sprint 2 account flow', () => {
     expect(signOut).toHaveBeenCalledOnce();
   });
 
+  it('explains which login fields are missing before calling Cognito', async () => {
+    renderApp('/iniciar-sesion');
+
+    await screen.findByLabelText('Correo electrónico');
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByText('Escribe tu correo electrónico.')).toBeInTheDocument();
+    expect(screen.getByText('Escribe tu contraseña.')).toBeInTheDocument();
+    expect(screen.getByText('Corrige los datos marcados para continuar.')).toBeInTheDocument();
+    expect(signIn).not.toHaveBeenCalled();
+  });
+
   it('keeps the user on login when the provider rejects an unverified account', async () => {
     vi.mocked(signIn).mockRejectedValue(new Error('El usuario no está confirmado.'));
     renderApp('/iniciar-sesion');
@@ -127,7 +148,7 @@ describe('Sprint 2 account flow', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('El usuario no está confirmado.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('todavía no está verificada');
     expect(screen.queryByRole('heading', { name: 'Mi cuenta' })).not.toBeInTheDocument();
   });
 
@@ -228,8 +249,9 @@ describe('Sprint 2 account flow', () => {
 
     const password = screen.getByLabelText('Contraseña');
     expect(password).toHaveAttribute('type', 'password');
-    expect(screen.getAllByText('12 caracteres como mínimo')).toHaveLength(2);
+    expect(screen.getAllByText('12 caracteres como mínimo')).toHaveLength(1);
     expect(screen.getByLabelText('Teléfono')).toHaveAttribute('type', 'tel');
+    expect(screen.getByLabelText('Teléfono')).toHaveAttribute('inputmode', 'numeric');
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Mostrar contraseña' })[0]);
     expect(password).toHaveAttribute('type', 'text');
@@ -275,7 +297,9 @@ describe('Unified role-based login', () => {
         .getAllByRole('link', { name: 'Crear cuenta' })
         .some((link) => link.getAttribute('href') === '/registro'),
     ).toBe(true);
-    expect(screen.getByText(/Inicia sesión con esa cuenta para registrar y administrar un consultorio/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Inicia sesión con esa cuenta para registrar y administrar un consultorio/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toHaveTextContent(
       'Registrar consultorio',
     );
@@ -343,6 +367,7 @@ describe('HU-18 patient contact profile', () => {
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
     await waitFor(() => expect(screen.getByLabelText('Nombre')).toHaveValue('Ana'));
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('525551234567'));
     expect(screen.getByLabelText('Correo electrónico')).toHaveAttribute('readonly');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana María' } });
     fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'Pérez López' } });
@@ -354,7 +379,7 @@ describe('HU-18 patient contact profile', () => {
       profile: { ...profile, role: 'PACIENTE', phone: '+525551234567' },
       firstName: 'Ana María',
       lastName: 'Pérez López',
-      phone: '+525558765432',
+      phone: '525558765432',
     });
     expect(await screen.findByText('Ana María Pérez López')).toBeInTheDocument();
     expect(screen.getByLabelText('Correo electrónico')).toHaveValue(profile.email);
@@ -369,7 +394,7 @@ describe('HU-18 patient contact profile', () => {
     renderApp('/mi-cuenta');
 
     await screen.findByRole('heading', { name: 'Mi cuenta' });
-    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('+525551234567'));
+    await waitFor(() => expect(screen.getByLabelText('Teléfono')).toHaveValue('525551234567'));
     fireEvent.change(screen.getByLabelText('Teléfono'), { target: { value: '12345abc' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar datos de contacto' }));
 
@@ -387,17 +412,31 @@ describe('Password recovery', () => {
         <PasswordRecoveryPage />
       </MemoryRouter>,
     );
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'paciente@example.com' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'paciente@example.com' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Enviar código' }));
     expect(await screen.findByText(/Si la cuenta existe, recibirás un código/)).toBeInTheDocument();
     expect(requestPasswordReset).toHaveBeenCalledWith('paciente@example.com');
 
-    fireEvent.change(screen.getByLabelText('Código de recuperación'), { target: { value: '123456' } });
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'DentalConnect!2026' } });
-    fireEvent.change(screen.getByLabelText('Confirma la nueva contraseña'), { target: { value: 'DentalConnect!2026' } });
+    fireEvent.change(screen.getByLabelText('Código de recuperación'), {
+      target: { value: '123456' },
+    });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'DentalConnect!2026' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirma la nueva contraseña'), {
+      target: { value: 'DentalConnect!2026' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
-    expect(await screen.findByText('La contraseña se actualizó. Ya puedes iniciar sesión.')).toBeInTheDocument();
-    expect(confirmPasswordReset).toHaveBeenCalledWith('paciente@example.com', '123456', 'DentalConnect!2026');
+    expect(
+      await screen.findByText('La contraseña se actualizó. Ya puedes iniciar sesión.'),
+    ).toBeInTheDocument();
+    expect(confirmPasswordReset).toHaveBeenCalledWith(
+      'paciente@example.com',
+      '123456',
+      'DentalConnect!2026',
+    );
   });
 
   it('uses the canvas background for the auth shell', async () => {
